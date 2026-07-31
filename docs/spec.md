@@ -13,6 +13,7 @@ El sistema deberá contemplar, como mínimo:
 - ediciones anuales del evento;
 - usuarios, miembros y participación en una edición;
 - autenticación y autorización por roles;
+- alta inicial de miembros realizada manualmente por el propietario del proyecto;
 - contenidos públicos consultables sin autenticación;
 - contenidos privados accesibles sólo a miembros autorizados;
 - álbumes de fotos y otros contenidos asociados a una edición;
@@ -49,6 +50,8 @@ El producto tendrá dos superficies de acceso:
 
 Los permisos deberán controlar tanto el acceso a módulos como la capacidad de leer, crear, modificar, publicar o administrar cada tipo de contenido.
 
+Durante la primera etapa no habrá registro público ni panel de administración para dar de alta miembros. La provisión de usuarios se hará manualmente con ayuda del propietario, mediante un procedimiento controlado del proyecto. Esto no elimina los roles ni los permisos de uso: sólo deja fuera de la interfaz la gestión administrativa de cuentas.
+
 ## 5. Principios iniciales
 
 - La base de datos será la fuente de verdad operativa.
@@ -66,6 +69,7 @@ Los permisos deberán controlar tanto el acceso a módulos como la capacidad de 
 - identidad del propietario del sistema y de cada edición;
 - roles exactos y permisos por rol;
 - si un usuario puede participar en varias ediciones;
+- procedimiento concreto para provisionar, desactivar y recuperar cuentas manuales;
 - modelo de cuotas, pagos y reembolsos;
 - estados oficiales de productos y catering;
 - qué datos puede editar cada participante;
