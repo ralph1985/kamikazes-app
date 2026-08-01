@@ -70,9 +70,19 @@ Los permisos deberán controlar tanto el acceso a módulos como la capacidad de 
 
 Las tres áreas funcionales compartirán el mismo sistema de identidad, inicio de sesión y sesión activa. El usuario no tendrá que autenticarse de nuevo al pasar entre gestión, fotos y catering; la autorización seguirá evaluándose de forma independiente para cada área.
 
-La lista de compras será específica de cada edición. Los productos previstos no formarán parte de un catálogo global compartido entre años.
+La lista de compras será específica de cada edición. Los productos previstos no formarán parte de un catálogo global compartido entre años. Cada producto tendrá una única asignación operativa principal, que podrá apuntar a un miembro, a un momento/día de compra, a un lugar/tienda o quedar sin asignar inicialmente. Cada edición podrá configurar sus propios momentos o días de compra, como `Compra sábado` o `Compra con tiempo`, para utilizarlos como asignaciones. Estos momentos serán etiquetas con nombre configurable y no requerirán una fecha concreta.
+
+La lista ofrecerá búsqueda y filtros por estado, categoría, tienda y asignación. El usuario podrá elegir cómo agrupar visualmente los productos: por categoría, tienda, asignación o estado, sin alterar los datos. Dentro de cada grupo, los productos podrán ordenarse por descripción, precio unitario, cantidad o total, alternando entre orden ascendente y descendente. Cada miembro conservará sus preferencias para futuras sesiones mediante una combinación de preferencias generales y preferencias por edición: la agrupación y el orden serán generales por usuario, mientras que la búsqueda y los filtros serán específicos de cada edición.
 
 Los lectores podrán consultar todos los productos y sus detalles. Sólo los editores de compras y el administrador podrán crear o modificar productos de la lista. Los productos no se eliminarán: cuando dejen de ser necesarios se conservarán y se marcarán con un estado de no compra. Los estados iniciales serán `Pendiente`, `Comprado`, `No se compra este año` y `Regalado`.
+
+La cantidad de un producto podrá ser entera o decimal, para admitir unidades fraccionarias y productos vendidos por peso, con un máximo de dos decimales. Se permitirá el valor `0`, aunque la forma recomendada de indicar que un producto no se compra será el estado `No se compra este año`. También se permitirán cantidades negativas para representar devoluciones; en esos casos el total calculado podrá ser negativo y será obligatoria una nota explicando el motivo.
+
+El precio unitario también admitirá decimales, incluido `0,00 €` para productos regalados o sin coste. El total previsto de cada producto se calculará automáticamente como `cantidad × precio unitario` y será de sólo lectura; no se podrá editar manualmente.
+
+Un producto podrá crearse inicialmente como pendiente sin descripción, cantidad, precio o categoría informados, para completarlos más adelante. Mientras falte cualquiera de los valores necesarios para calcularlo, el total se mostrará vacío y no como `0 €`.
+
+La moneda del sistema será exclusivamente el euro (€). Los precios unitarios se almacenarán y mostrarán con dos decimales.
 
 Se podrán copiar productos de una edición anterior a una nueva. La copia incluirá descripción, categoría, tienda, cantidad, notas, responsable, estado y el valor anterior. La copia conservará el valor de la edición anterior como referencia histórica y la nueva edición tendrá su propio valor editable, que podrá actualizarse con el precio real observado para mantener el presupuesto vivo. El valor histórico no se sobrescribirá al modificar el valor de la nueva edición.
 
