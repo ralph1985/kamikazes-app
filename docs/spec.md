@@ -142,25 +142,40 @@ Durante la primera etapa no habrá registro público ni panel de administración
 
 ## 6. Decisiones pendientes
 
-- identidad del propietario del sistema y de cada edición;
-- roles exactos y permisos por rol;
-- diferencia entre miembro desactivado globalmente y miembro no participante en una edición;
-- alcance exacto del acceso privado que conserva un miembro no participante;
-- matriz concreta de permisos por módulo para administrador, editor y lector;
-- catálogo definitivo de módulos y capacidades editables en cada uno;
-- límites funcionales exactos entre gestión, fotos y catering;
-- almacenamiento y publicación de fotografías;
-- si un usuario puede participar en varias ediciones;
-- procedimiento concreto para provisionar, desactivar y recuperar cuentas manuales;
-- política de complejidad, recuperación y bloqueo de contraseñas;
-- modelo de cuotas, pagos y reembolsos;
-- estados oficiales de productos y catering;
-- qué datos puede editar cada participante;
-- si habrá varios grupos/eventos independientes;
-- qué contenidos serán públicos, privados o publicables por edición;
-- si los álbumes admitirán fotos individuales, álbumes colaborativos o ambos;
-- estrategia de importación y corrección del Excel;
-- stack definitivo, despliegue y proveedor de autenticación/base de datos.
+Esta lista se mantiene deliberadamente corta. Las decisiones ya confirmadas durante el interrogatorio se consideran requisitos, aunque todavía puedan necesitar criterios de aceptación y diseño técnico.
+
+### Producto y permisos
+
+- matriz completa de permisos por área para administrador, editores, lectores y miembros;
+- alcance exacto de las capacidades de los editores de presupuesto, compras/inventario y catering;
+- qué información puede consultar cada rol en cada área, especialmente pagos, tickets y datos históricos;
+- detalles restantes del ciclo de vida operativo de una edición y de sus datos cerrados.
+
+### Cuentas y seguridad
+
+- procedimiento concreto para provisionar, desactivar, reactivar y recuperar cuentas manuales;
+- reglas adicionales de contraseñas, sesiones, bloqueo y protección frente a intentos repetidos;
+- registro y revisión de acciones administrativas y cambios sensibles.
+
+### Presupuesto y datos económicos
+
+- modelo definitivo de reembolsos y otros ajustes económicos;
+- reglas exactas para ingresos, gastos manuales, saldos, cuotas y pagos en los totales;
+- criterios de aceptación para cierres, reaperturas y correcciones excepcionales.
+
+### Fotos y documentos
+
+- proveedor de almacenamiento de fotos, tickets y justificantes;
+- modelo de álbumes, visibilidad pública y publicación de fotos;
+- límites de tamaño, formatos, eliminación y conservación de archivos.
+
+### Migración y tecnología
+
+- estrategia de importación, limpieza y validación del Excel;
+- modelo relacional definitivo y migraciones iniciales;
+- stack de frontend, backend, base de datos, autenticación y almacenamiento;
+- despliegue, copias de seguridad, observabilidad y pruebas;
+- criterios de aceptación y alcance exacto del MVP.
 
 ## 7. Criterio de trabajo SDD
 
