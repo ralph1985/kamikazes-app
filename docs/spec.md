@@ -45,7 +45,7 @@ Estas cifras describen el estado del archivo de referencia y no son todavía req
 
 La aplicación representa una única peña, Kamikazes, con continuidad entre años. Las ediciones anuales serán una entidad central para separar presupuestos, compras, catering, inventario, sobrantes y demás información que pertenezca a un año concreto. Los álbumes de fotos serán transversales a las ediciones y no estarán asociados obligatoriamente a un año.
 
-La identidad de un miembro será permanente entre ediciones. Su participación se registrará por año: un miembro podrá participar en una edición, no participar en otra y volver a participar posteriormente. No participar en un año implica que no aporta dinero y no entra en el presupuesto de esa edición, pero no elimina su acceso al espacio privado de la peña ni su capacidad de colaborar en los álbumes transversales.
+La identidad de un miembro será permanente entre ediciones. Su participación se registrará por año: un miembro podrá participar en una edición, no participar en otra y volver a participar posteriormente. No participar en un año implica que no aporta dinero y no entra en el presupuesto de esa edición, pero no elimina su acceso al espacio privado de la peña ni su capacidad de colaborar en los álbumes transversales. Si el miembro deja la peña y su cuenta se desactiva globalmente, perderá inmediatamente todo acceso privado, incluidos álbumes y datos históricos; sus registros se conservarán y no se borrarán. Sólo el administrador podrá reactivar posteriormente una cuenta desactivada, que recuperará sus roles y permisos anteriores.
 
 La participación en catering será independiente de la participación económica general. Un miembro podrá no participar en el presupuesto anual y, aun así, apuntarse a una o varias comidas de la edición según las reglas específicas del catering. La asistencia se registrará por comida, de modo que pueda asistir a una comida y no a otra, por ejemplo sábado sí y domingo no. Cada comida podrá tener estados `Sí`, `No` o `Cancelado`. El precio será configurable por edición y por día, permitiendo importes distintos para cada comida. El pago también se controlará por comida, de forma independiente para sábado y domingo. Los miembros podrán gestionar únicamente su propia asistencia; los editores de catering podrán modificar cualquier registro del área y serán los únicos que podrán modificar los estados de pago. No habrá fecha límite ni bloqueo automático para que los miembros modifiquen su asistencia.
 
@@ -58,13 +58,21 @@ Las tarifas no serán una propiedad fija del miembro. Cada edición definirá su
 El producto se organizará en tres áreas funcionales diferenciadas:
 
 - **Gestión económica y operativa:** presupuesto y cuotas, lista de compras, inventario, sobrantes, derramas e histórico económico.
-- **Fotos y álbumes:** espacio colaborativo para conservar recuerdos de la peña. Todos los miembros podrán subir fotos; la solución de almacenamiento y publicación queda pendiente, pudiendo apoyarse en Google Photos u otra alternativa.
+- **Fotos y álbumes:** espacio colaborativo para conservar recuerdos de la peña. El administrador creará los álbumes y todos los miembros podrán subir fotos dentro de álbumes existentes; los miembros no crearán álbumes en el MVP. Los miembros podrán eliminar sus propias fotos y el administrador podrá editar o eliminar cualquier foto. La solución de almacenamiento queda pendiente y se estudiará Google Photos u otra alternativa.
 - **Catering:** gestión independiente de asistencia, comidas y pagos, con su propio flujo y permisos.
+
+Los editores de compras también gestionarán el inventario. Los sobrantes se registrarán por edición con producto, cantidad y notas.
+
+Las ubicaciones del inventario podrán crearse y renombrarse desde la aplicación. Cada elemento de inventario tendrá producto, cantidad, ubicación y notas. Los nombres de productos podrán corregirse. El mismo producto podrá existir en varias ubicaciones. Los editores podrán mover productos entre ubicaciones y añadir una nota opcional al movimiento. En una misma ubicación, las cantidades del mismo producto se acumularán en un único registro. La cantidad admitirá decimales y valores negativos para reflejar pérdidas o ajustes. Los registros se conservarán aunque la cantidad llegue a `0`. Todos los cambios de inventario quedarán registrados en el historial de auditoría. Cada sobrante podrá indicar la edición de la que procede y una ubicación concreta, y los editores de compras podrán crearlo y modificarlo. Los sobrantes del mismo producto, edición de origen y ubicación se acumularán en un único registro y tendrán estado `Disponible`, `Consumido` o `Descartado`; no se convertirán en elementos de inventario.
 
 El producto tendrá dos superficies de acceso:
 
 - **Pública:** información y contenidos que la peña decida mostrar a cualquier visitante sin iniciar sesión.
 - **Privada:** gestión económica, organización interna, álbumes restringidos y demás información disponible sólo para miembros según sus permisos.
+
+En el MVP, la superficie pública se limitará a información general de la peña. Presupuestos, compras, catering, inventario, sobrantes, derramas y demás datos internos no serán públicos. La visibilidad pública de álbumes se decidirá más adelante.
+
+La información general pública sólo podrá modificarla el administrador durante el MVP. Incluirá una página de presentación con el logo de la peña, secciones de contenido configurables, su historia, su descripción y enlaces a las redes sociales de la peña como formas de contacto. El logo no se podrá cambiar desde la aplicación inicialmente. No habrá formulario público de contacto inicialmente. El administrador podrá configurar desde la aplicación qué redes aparecen y sus enlaces; cada entrada tendrá un nombre, una URL personalizada y un estado activo/inactivo para ocultarla sin borrarla. Cada sección tendrá título, texto con formato básico, imagen opcional, orden y estado visible/oculto; el administrador podrá crear, eliminar, ocultar y editar secciones, además de subir esas imágenes desde la aplicación.
 
 Los permisos deberán controlar tanto el acceso a módulos como la capacidad de leer, crear, modificar, publicar o administrar cada tipo de contenido.
 
@@ -110,6 +118,11 @@ Durante la primera etapa no habrá registro público ni panel de administración
 - En el primer inicio de sesión será obligatorio establecer una contraseña nueva antes de acceder a la aplicación.
 - Las contraseñas se almacenarán siempre mediante hash; la contraseña inicial no se incluirá en el repositorio ni en documentación pública operativa.
 - La cuenta no podrá considerarse plenamente activada hasta completar el cambio de contraseña.
+- Cada miembro tendrá un `id` interno permanente e inmutable que se utilizará para relacionar todos sus datos históricos.
+- El miembro podrá cambiar desde su perfil su nombre visible y su nombre de usuario.
+- El nombre de usuario seguirá siendo único y el sistema comprobará que no esté ocupado antes de guardarlo.
+- El miembro podrá cambiar su contraseña desde el perfil en cualquier momento.
+- No se exigirá una longitud mínima para las nuevas contraseñas, pero nunca podrán estar vacías; las demás reglas de validación quedan pendientes de definir.
 - La recuperación de acceso será manual durante la primera etapa y la gestionaremos nosotros.
 - Un restablecimiento manual asignará una nueva contraseña temporal y volverá a exigir el cambio en el siguiente inicio de sesión.
 - No será obligatorio almacenar un email para recuperar la cuenta en esta primera etapa.
@@ -121,6 +134,7 @@ Durante la primera etapa no habrá registro público ni panel de administración
 - Todo dato operativo estará vinculado a una edición concreta cuando corresponda.
 - Los permisos se comprobarán en servidor y en la base de datos, no sólo en la interfaz.
 - Las acciones relevantes quedarán auditadas.
+- El historial guardará el `id` del miembro que realizó cada acción y mostrará su nombre actual al consultarlo, aunque el nombre haya cambiado después.
 - La importación conservará trazabilidad hacia el dato original.
 - El producto se diseñará para evolucionar a nuevas ediciones sin copiar hojas ni código.
 - Lo público se publicará explícitamente; el contenido privado será la opción segura por defecto.
