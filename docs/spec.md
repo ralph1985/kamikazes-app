@@ -246,6 +246,23 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Se podrán organizar agentes especializados para backend, frontend, datos/migraciones y QA, coordinados por el flujo común del proyecto.
 - Ningún agente realizará commits, pushes, cambios destructivos ni operaciones sobre producción sin autorización explícita.
 - Los editores se separarán por área: presupuesto, compras/inventario y catering; el administrador tendrá acceso global.
+- En catering todos los miembros podrán consultar la asistencia de todos; los editores del área y el administrador podrán modificarla según las reglas definidas.
+- En catering todos los miembros podrán consultar también los pagos individuales; sólo los editores de catering y el administrador podrán modificarlos.
+- En compras e inventario todos los miembros podrán consultar listas, compras reales, inventario y sobrantes; sólo los editores del área y el administrador podrán modificarlos.
+- En compras todos los miembros podrán consultar los tickets; sólo los editores de compras y el administrador podrán subirlos o eliminarlos.
+- Un editor de catering sólo podrá modificar catering; un editor de presupuesto sólo presupuesto; y un editor de compras sólo compras/inventario.
+- Una misma persona podrá ser editora de varias áreas.
+- El rol de editor incluirá automáticamente permisos de lectura en su propia área.
+- Los permisos de edición se asignarán por área y edición; una persona podrá editar un área en una edición y no tener ese permiso en otra.
+- Retirar un permiso no modificará los datos ni la auditoría de los cambios realizados anteriormente.
+- Los miembros activos podrán leer todas las áreas y ediciones, incluidas las cerradas, salvo los datos expresamente reservados.
+- Un miembro desactivado perderá inmediatamente todo acceso a áreas, ediciones históricas y contenidos privados.
+- El acceso anónimo se limitará al contenido público publicado y no permitirá consultar áreas internas ni tickets.
+- Sólo el administrador podrá modificar el logo, la historia, las secciones públicas y los enlaces de redes sociales.
+- El saldo económico de una edición se calculará como ingresos menos gastos, incluyendo cuotas cobradas, devoluciones, saldos trasladados, ingresos y gastos manuales y compras reales.
+- Las compras reales y sus tickets afectarán al saldo de la edición correspondiente.
+- La aplicación mostrará por separado un saldo previsto y un saldo real; sus componentes exactos se definirán en el modelo económico.
+- Las compras reales podrán corregirse o eliminarse sólo por editores de compras y administrador, manteniendo la auditoría correspondiente.
 - La entidad `edición` será el eje de los datos anuales de presupuesto, compras, catering, inventario y sobrantes.
 - Miembros, cuentas, álbumes y contenido general serán entidades transversales y no dependerán de una edición, salvo sus relaciones específicas de participación o visibilidad.
 - La migración inicial importará todos los datos útiles del Excel: miembros, edición 2026, catering, derramas, inventario, sobrantes e historial, con limpieza manual cuando sea necesaria.
