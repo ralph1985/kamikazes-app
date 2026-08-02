@@ -71,6 +71,12 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
         <p className={styles.sidebarNote}>
           {member ? `Hola, ${member.displayName}.` : "La vida de la peña, ordenada por ediciones."}
         </p>
+        <p className={styles.credit}>
+          Hecho por Rafa ·{" "}
+          <a href="https://conquense.dev/" rel="noreferrer" target="_blank">
+            conquense.dev
+          </a>
+        </p>
       </aside>
 
       <div className={styles.page}>

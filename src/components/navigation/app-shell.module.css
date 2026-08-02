@@ -80,6 +80,21 @@
   max-width: 190px;
 }
 
+.credit {
+  color: #7f8982;
+  font-size: 0.75rem;
+  margin: 24px 0 0;
+}
+
+.credit a {
+  color: #c8cec9;
+  text-underline-offset: 3px;
+}
+
+.credit a:hover {
+  color: #fff8ef;
+}
+
 .page {
   background: #f7f4ef;
   min-height: 100vh;
