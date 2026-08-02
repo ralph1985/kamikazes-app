@@ -38,6 +38,16 @@ export interface SessionReader {
   findActiveMemberByTokenHash(tokenHash: string, now: Date): Promise<AuthenticatedMember | null>;
 }
 
+export interface PasswordChangeWriter {
+  changePasswordAndRotateSession(input: {
+    memberId: string;
+    currentTokenHash: string;
+    passwordHash: string;
+    now: Date;
+    expiresAt: Date;
+  }): Promise<Session>;
+}
+
 export interface IdentityAuditWriter {
   record(event: { memberId: string; action: IdentityErrorCode | "login_locked" }): Promise<void>;
 }
