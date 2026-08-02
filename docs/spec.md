@@ -166,6 +166,7 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - La API será la puerta de entrada principal a los datos y concentrará las reglas de negocio, permisos y auditoría.
 - La API se expondrá mediante Route Handlers de Next.js con una interfaz REST explícita.
 - El frontend y la API se implementarán como una aplicación única de Next.js con TypeScript.
+- Los estilos del frontend usarán CSS Modules por componente y un `globals.css` limitado a variables de diseño y estilos base; no se adoptará un framework CSS externo en el MVP.
 - El acceso a Neon y las migraciones se gestionarán con Drizzle ORM.
 - Se usará una única base de datos Neon de producción; no se crearán ramas persistentes de Neon para previews.
 - Las sesiones se persistirán en Neon para poder invalidarlas al desactivar miembros.

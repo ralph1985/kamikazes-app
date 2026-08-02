@@ -29,6 +29,7 @@ Kamikazes gestionará una peña con ediciones anuales, miembros permanentes, cue
 - Autenticación propia con Argon2id, sesiones en Neon y cookies seguras.
 - Zod, OpenAPI, Vitest, Playwright, TDD y BDD.
 - Mobile first, PWA y offline tolerante limitado a compras, lista e inventario.
+- CSS Modules para estilos aislados por componente y `globals.css` sólo para tokens de diseño y estilos base; sin framework CSS externo en el MVP.
 
 ## Reglas de producto importantes
 
