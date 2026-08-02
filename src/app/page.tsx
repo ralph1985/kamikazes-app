@@ -1,13 +1,18 @@
 export default function HomePage() {
   return (
     <main className="shell">
-      <p className="eyebrow">Kamikazes</p>
-      <h1>La base para gestionar nuestra peña.</h1>
+      <p className="eyebrow">Peña Kamikazes · 2026</p>
+      <h1>La vida de la peña, ordenada y compartida.</h1>
       <p className="intro">
-        El proyecto está preparado para construir, por hitos, la gestión de ediciones, presupuesto,
-        compras, catering, inventario y contenidos públicos.
+        Un lugar común para cuidar cada edición: organizar, comprar, cuadrar cuentas y guardar lo
+        que vivimos juntos.
       </p>
-      <p className="status">Hito 0 · Preparación del proyecto</p>
+      <div className="homeActions">
+        <a className="primaryAction" href="/login">
+          Entrar en la peña
+        </a>
+        <span className="status">Primera edición digital en construcción</span>
+      </div>
     </main>
   );
 }

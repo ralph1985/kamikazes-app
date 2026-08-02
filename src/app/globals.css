@@ -14,7 +14,7 @@ body {
 .shell {
   margin: 0 auto;
   max-width: 760px;
-  padding: 15vh 24px;
+  padding: 10vh 24px 15vh;
 }
 .eyebrow {
   color: #8b2e2e;
@@ -34,9 +34,114 @@ h1 {
   line-height: 1.6;
   max-width: 600px;
 }
+.homeActions {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 40px;
+}
+.primaryAction {
+  background: #d95d39;
+  border: 0;
+  border-radius: 999px;
+  color: #fff8ef;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  justify-content: center;
+  padding: 14px 22px;
+  text-decoration: none;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+.primaryAction:hover {
+  background: #b9482b;
+  transform: translateY(-1px);
+}
+.primaryAction:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+}
 .status {
   border-left: 4px solid #8b2e2e;
   font-weight: 700;
-  margin-top: 36px;
+  margin: 0;
   padding: 10px 16px;
+}
+.loginShell {
+  display: grid;
+  gap: 48px;
+  margin: 0 auto;
+  max-width: 980px;
+  padding: 8vh 24px 12vh;
+}
+.loginIntro h1 {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 0.95;
+  margin: 18px 0 24px;
+  max-width: 520px;
+}
+.loginCard {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgb(45 39 30 / 8%);
+  display: grid;
+  gap: 22px;
+  max-width: 460px;
+  padding: 28px;
+}
+.loginCard h2 {
+  font-size: 1.6rem;
+  margin: 8px 0 0;
+}
+.formEyebrow {
+  color: #8b2e2e;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-transform: uppercase;
+}
+.loginCard label {
+  display: grid;
+  font-size: 0.86rem;
+  font-weight: 700;
+  gap: 8px;
+}
+.loginCard input {
+  background: #f7f4ef;
+  border: 1px solid #cfc8bd;
+  border-radius: 8px;
+  color: #1f2421;
+  font: inherit;
+  padding: 13px 14px;
+  width: 100%;
+}
+.loginCard input:focus {
+  border-color: #8b2e2e;
+  outline: 3px solid rgb(139 46 46 / 18%);
+}
+.formError {
+  background: #fff0eb;
+  border-left: 4px solid #b9482b;
+  color: #8b2e2e;
+  margin: 0;
+  padding: 10px 12px;
+}
+.backLink {
+  color: #687169;
+  font-size: 0.9rem;
+  text-align: center;
+}
+@media (min-width: 760px) {
+  .loginShell {
+    align-items: center;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 86px);
+  }
 }

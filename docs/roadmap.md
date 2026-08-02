@@ -39,6 +39,8 @@ Primera rebanada verificable:
 - Argon2id, cookies seguras y bloqueo tras tres intentos;
 - cambio obligatorio de contraseña, recuperación manual y cierre de sesiones;
 - perfil y cambios auditados.
+- pantalla de login conectada al contrato REST de autenticación;
+- shell compartida con menú lateral y acceso visible al login.
 
 Resultado: acceso real seguro para miembros, todavía sin módulos económicos.
 

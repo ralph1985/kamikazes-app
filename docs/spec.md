@@ -240,6 +240,8 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Las listas de la API usarán paginación desde el inicio.
 - El contenido público y la carga inicial de lectura usarán Server Components; los Client Components se reservarán para interacción, formularios, filtros y sincronización offline.
 - La aplicación será mobile first, instalable como PWA y usará TanStack Query para caché, reintentos y sincronización del frontend.
+- La primera shell de navegación tendrá un menú lateral compartido entre las superficies públicas y privadas; al abrirlo, el contenido principal se desplazará para revelar el menú situado detrás.
+- El menú ofrecerá una entrada visible a la pantalla de inicio de sesión, que usará el contrato REST de autenticación y no expondrá credenciales al cliente más allá del envío HTTPS necesario.
 - Las listas móviles podrán paginarse mediante cursor y las tablas administrativas mediante `page/limit`, según la experiencia de cada pantalla.
 - Cada operación offline tendrá un `operationId` único persistido en Neon para impedir duplicados durante los reintentos.
 - Antes de implementar los hitos se configurará Codex mediante un `AGENTS.md` raíz y, cuando sea útil, instrucciones específicas por módulo.
