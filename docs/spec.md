@@ -158,6 +158,90 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Lo público se publicará explícitamente; el contenido privado será la opción segura por defecto.
 - Las fotos y otros contenidos tendrán visibilidad configurable; los álbumes no dependerán de la edición anual.
 
+## 5.1 Decisiones técnicas iniciales
+
+- La aplicación se desplegará en Vercel.
+- La base de datos será PostgreSQL gestionada con Neon e integrada con Vercel.
+- La autenticación será propia de la aplicación, con nombres de usuario, contraseñas, sesiones y recuperación manual.
+- La API será la puerta de entrada principal a los datos y concentrará las reglas de negocio, permisos y auditoría.
+- La API se expondrá mediante Route Handlers de Next.js con una interfaz REST explícita.
+- El frontend y la API se implementarán como una aplicación única de Next.js con TypeScript.
+- El acceso a Neon y las migraciones se gestionarán con Drizzle ORM.
+- Se usará una única base de datos Neon de producción; no se crearán ramas persistentes de Neon para previews.
+- Las sesiones se persistirán en Neon para poder invalidarlas al desactivar miembros.
+- Los tickets y justificantes se almacenarán en Vercel Blob privado; Neon conservará sus metadatos y referencias.
+- El desarrollo y las pruebas se realizarán directamente contra producción, principalmente desde dispositivos móviles.
+- Se programarán copias locales cifradas de la base de datos desde el PC mediante cron, con una periodicidad diaria y una retención inicial de 30 días.
+- No habrá usuarios ni ediciones de prueba: se trabajará desde el inicio con los usuarios y datos reales.
+- Los cambios de esquema y despliegues deberán diseñarse para ser controlados y reversibles cuando sea posible.
+- Las migraciones se ejecutarán manualmente y se verificarán antes del despliegue de la versión que las necesite.
+- Sentry u otro servicio externo de monitorización de errores queda fuera del MVP y se estudiará más adelante.
+- Vercel desplegará producción automáticamente a partir de cambios publicados en `main`.
+- El desarrollo seguirá TDD y BDD: primero se definirán comportamiento y pruebas, y después la implementación.
+- Vitest cubrirá las pruebas unitarias y de integración, y Playwright las pruebas de comportamiento completas, incluyendo el uso móvil.
+- La rama `main` estará protegida y exigirá que las comprobaciones automáticas terminen correctamente antes de publicar.
+- Las contraseñas se almacenarán usando Argon2id.
+- Las sesiones usarán cookies `HttpOnly`, `Secure` y `SameSite`, con limitación de intentos de inicio de sesión.
+- La API mantendrá un contrato JSON uniforme con las claves `success`, `data` y `error`, incluyendo códigos de error definidos.
+- Los roles y permisos se almacenarán en Neon y se aplicarán por área y edición, no mediante reglas del frontend.
+- La API se versionará desde `/api/v1`.
+- El navegador no accederá directamente a Neon; todo acceso a datos pasará por la API del servidor.
+- Las entidades principales tendrán UUID como identificador técnico inmutable.
+- Los eventos con hora se almacenarán con `timestamptz`, normalizados en UTC, y se mostrarán en `Europe/Madrid`; los datos sin hora usarán `date`.
+- Los importes económicos se almacenarán directamente en euros mediante `NUMERIC(12,2)`; las cantidades de productos usarán valores numéricos con un máximo de dos decimales.
+- Cada modificación y su registro de auditoría se ejecutarán dentro de la misma transacción de base de datos.
+- La importación inicial del Excel se realizará mediante un script privado con validación previa e informe de errores; no existirá una función de importación expuesta en la aplicación.
+- Las entradas de la API se validarán con Zod antes de ejecutar la lógica de negocio.
+- Las restricciones críticas también se declararán en PostgreSQL, incluyendo unicidad, relaciones, importes válidos y estados permitidos.
+- El backend seguirá una arquitectura hexagonal pragmática: dominio y casos de uso independientes de Next.js, Neon, Drizzle, Vercel Blob y cookies.
+- Los Route Handlers actuarán como adaptadores de entrada; Drizzle/Neon, Vercel Blob y la gestión de sesiones serán adaptadores de salida mediante puertos explícitos.
+- La documentación OpenAPI describirá la API `/api/v1` y permitirá compartir o generar tipos entre API y frontend.
+- El dominio se organizará en módulos ampliables: identidad, ediciones, presupuesto, compras/inventario, catering, contenido público y auditoría.
+- Cada módulo tendrá sus propios casos de uso, validadores, repositorios y pruebas, manteniendo sus reglas separadas.
+- La incorporación posterior de nuevos módulos no requerirá modificar un servicio central monolítico.
+- El contenido público de baja frecuencia se generará de forma estática y se revalidará al publicar cambios desde administración.
+- Las páginas públicas estáticas podrán conservarse en caché offline para consulta sin conexión.
+- La PWA sólo cacheará páginas públicas y recursos estáticos versionados; no cacheará sesiones, API privada, permisos, datos económicos ni tickets.
+- Las rutas autenticadas requerirán conexión con el servidor y las cachés del service worker tendrán versionado, limpieza automática y un mecanismo de recuperación controlado.
+- Las actualizaciones del service worker se validarán en pruebas móviles y no exigirán al usuario borrar todos los datos de navegación.
+- Si la aplicación detecta una versión nueva, mostrará la actualización y bloqueará el uso hasta completarla; sin conexión podrá seguir funcionando con la última versión instalada y aprobada.
+- Se permitirá una cola offline limitada para operaciones de compras, lista e inventario, excluyendo pagos y devoluciones.
+- Las operaciones pendientes se sincronizarán al recuperar conexión mediante identificadores idempotentes; los conflictos no se sobrescribirán automáticamente y quedarán para resolución manual.
+- La aplicación mostrará las operaciones pendientes de sincronización con su estado, error y posibilidad de reintento.
+- Las fotografías de tickets y justificantes sólo se subirán con conexión; no se encolarán archivos offline.
+- La cola offline se almacenará en IndexedDB mediante Dexie.
+- Las operaciones pendientes se conservarán hasta su sincronización correcta o resolución explícita; no caducarán automáticamente.
+- La caducidad de la sesión no eliminará operaciones offline pendientes; será necesario volver a autenticarse para sincronizarlas.
+- La aplicación reintentará automáticamente la sincronización al recuperar conexión, con límites y control de errores para evitar repeticiones infinitas.
+- Las sesiones tendrán una duración máxima de 30 días renovables mientras se use la aplicación, y se revocarán al cerrar sesión o desactivar al miembro.
+- Las operaciones offline pendientes permanecerán asociadas a su cuenta al cerrar sesión; al volver a entrar se mostrará un aviso antes de reanudar la sincronización.
+- Un usuario podrá mantener sesiones simultáneas en varios dispositivos.
+- El perfil ofrecerá una acción para cerrar todas las sesiones activas.
+- El identificador de sesión se rotará después del inicio de sesión y del cambio de contraseña.
+- Al cambiar la contraseña se revocarán las demás sesiones y se conservará únicamente la sesión actual.
+- La auditoría se registrará desde la capa de casos de uso dentro de la misma transacción que el cambio, incluyendo usuario, área, entidad, campo, valor anterior y nuevo.
+- PostgreSQL será la autoridad final para fechas, importes, estados y relaciones; el frontend se ocupará de la presentación y la interacción.
+- Las operaciones sensibles comprobarán los permisos en el servidor contra Neon; el frontend sólo adaptará la interfaz y nunca será la autoridad.
+- Las zonas privadas de miembros y de administración tendrán rutas y protección diferenciadas, aunque compartan la misma sesión.
+- Los archivos privados se servirán mediante URLs temporales generadas por la API después de comprobar permisos.
+- Las URLs temporales de lectura de archivos privados caducarán inicialmente a los 10 minutos.
+- Neon sólo será accesible desde el servidor; sus credenciales se mantendrán en secretos de Vercel y nunca llegarán al navegador.
+- Las subidas de archivos serán autorizadas por la API y se realizarán directamente desde el cliente a Vercel Blob; el registro en Neon sólo se confirmará después de validar la subida.
+- Los tickets admitirán inicialmente PDF, JPG, PNG y WEBP, con un tamaño máximo de 10 MB por archivo.
+- Al eliminar un ticket se eliminará también su archivo de Vercel Blob y la acción quedará registrada en auditoría.
+- No habrá sustitución directa de archivos: para cambiar un ticket se eliminará el anterior y se subirá uno nuevo.
+- Las subidas validarán el tipo real del archivo, no sólo su extensión o el MIME declarado.
+- Se rechazarán archivos dañados o que no puedan abrirse como PDF o imagen válida.
+- Las copias locales cubrirán inicialmente la base de datos; la copia de archivos de Vercel Blob se estudiará en una fase posterior.
+- Los tickets y justificantes se conservarán indefinidamente hasta su eliminación explícita por un editor o administrador.
+- Los estados funcionales se definirán en el dominio y se reforzarán en PostgreSQL mediante restricciones `CHECK`, evitando enums rígidos de base de datos.
+- Las búsquedas, filtros y ordenaciones se resolverán mediante la API, no descargando siempre todos los registros al móvil.
+- Las listas de la API usarán paginación desde el inicio.
+- El contenido público y la carga inicial de lectura usarán Server Components; los Client Components se reservarán para interacción, formularios, filtros y sincronización offline.
+- La aplicación será mobile first, instalable como PWA y usará TanStack Query para caché, reintentos y sincronización del frontend.
+- Las listas móviles podrán paginarse mediante cursor y las tablas administrativas mediante `page/limit`, según la experiencia de cada pantalla.
+- Cada operación offline tendrá un `operationId` único persistido en Neon para impedir duplicados durante los reintentos.
+
 ## 6. Decisiones pendientes
 
 Esta lista se mantiene deliberadamente corta. Las decisiones ya confirmadas durante el interrogatorio se consideran requisitos, aunque todavía puedan necesitar criterios de aceptación y diseño técnico.
@@ -191,7 +275,6 @@ Esta lista se mantiene deliberadamente corta. Las decisiones ya confirmadas dura
 
 - estrategia de importación, limpieza y validación del Excel;
 - modelo relacional definitivo y migraciones iniciales;
-- stack de frontend, backend, base de datos, autenticación y almacenamiento;
 - despliegue, copias de seguridad, observabilidad y pruebas;
 - criterios de aceptación y alcance exacto del MVP.
 
