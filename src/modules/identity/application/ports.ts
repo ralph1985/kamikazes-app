@@ -1,6 +1,7 @@
 import type { IdentityErrorCode } from "../domain/identity";
 
 export type IdentityAccount = {
+  accountId: string;
   memberId: string;
   username: string;
   passwordHash: string;

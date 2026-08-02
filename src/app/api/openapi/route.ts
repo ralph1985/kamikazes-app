@@ -26,6 +26,24 @@ const document = {
         },
       },
     },
+    "/auth/login": {
+      post: {
+        operationId: "login",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: { $ref: "#/components/schemas/LoginInput" } },
+          },
+        },
+        responses: {
+          "200": { description: "Sesión creada" },
+          "400": { description: "Entrada inválida" },
+          "401": { description: "Credenciales inválidas" },
+          "423": { description: "Cuenta bloqueada" },
+          "503": { description: "Autenticación no configurada" },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -36,6 +54,14 @@ const document = {
           status: { type: "string", enum: ["ok"] },
           service: { type: "string", enum: ["kamikazes-api"] },
           version: { type: "string", enum: ["v1"] },
+        },
+      },
+      LoginInput: {
+        type: "object",
+        required: ["username", "password"],
+        properties: {
+          username: { type: "string" },
+          password: { type: "string", format: "password" },
         },
       },
     },

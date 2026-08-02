@@ -4,6 +4,7 @@ import { login } from "./login";
 import type { AccountRepository, IdentityAccount, PasswordHasher, SessionIssuer } from "./ports";
 
 const baseAccount: IdentityAccount = {
+  accountId: "account-1",
   memberId: "member-1",
   username: "jose",
   passwordHash: "hash",
