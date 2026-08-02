@@ -24,6 +24,16 @@ Resultado: aplicación mínima desplegable con comprobaciones automáticas.
 
 ## Hito 2 — Identidad y sesiones
 
+Estado: En desarrollo.
+
+Primera rebanada verificable:
+
+- contrato de login y respuesta uniforme de autenticación;
+- normalización de nombres de usuario y validación de contraseña no vacía;
+- bloqueo tras tres intentos y estado de cambio obligatorio de contraseña;
+- emisión y rotación de sesiones con duración máxima de 30 días;
+- puerto de hash Argon2id, sin persistencia ni credenciales reales en fixtures.
+
 - miembros, cuentas y sesiones;
 - login por nombre de usuario;
 - Argon2id, cookies seguras y bloqueo tras tres intentos;

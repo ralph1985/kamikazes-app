@@ -11,7 +11,8 @@ Esta memoria es deliberadamente breve y segura para que una conversación nueva 
 - La aplicación está desplegada en Vercel con el dominio público `https://kamikazes.conquense.dev/`.
 - La especificación completa está en `docs/spec.md`.
 - El roadmap de implementación está en `docs/roadmap.md`.
-- El Hito 1 está en desarrollo: completa la base de Drizzle, Neon, contratos Zod/OpenAPI y calidad sin migrar tablas de negocio.
+- La base técnica del Hito 1 está implementada y verificada localmente, sin migrar tablas de negocio.
+- El Hito 2 está en desarrollo con el primer slice de identidad y sesiones, todavía sin persistencia en Neon.
 
 ## Producto
 
