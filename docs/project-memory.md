@@ -12,7 +12,7 @@ Esta memoria es deliberadamente breve y segura para que una conversación nueva 
 - La especificación completa está en `docs/spec.md`.
 - El roadmap de implementación está en `docs/roadmap.md`.
 - La base técnica del Hito 1 está implementada y verificada localmente, sin migrar tablas de negocio.
-- El Hito 2 está en desarrollo con el primer slice de identidad y sesiones, todavía sin persistencia en Neon.
+- El Hito 2 está en desarrollo con el modelo y la migración revisable de identidad/sesiones preparados, todavía sin ejecutar contra Neon.
 
 ## Producto
 
