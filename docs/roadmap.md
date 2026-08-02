@@ -13,8 +13,10 @@ Resultado: repositorio preparado para desarrollar sin datos ni código de produc
 
 ## Hito 1 — Base técnica y calidad
 
+Estado: En desarrollo.
+
 - configurar Drizzle y conexión de servidor a Neon;
-- crear migraciones iniciales y convenciones de UUID, fechas e importes;
+- preparar el flujo de migraciones y convenciones de UUID, fechas e importes;
 - configurar Zod, OpenAPI, Vitest y Playwright;
 - preparar el pipeline de comprobaciones y el despliegue de Vercel.
 
