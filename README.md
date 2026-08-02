@@ -6,7 +6,22 @@ El proyecto se desarrolla siguiendo un enfoque Spec-Driven Development (SDD). La
 
 ## Estado
 
-Fase inicial: descubrimiento y definición del producto.
+Hito 0: preparación técnica inicial.
+
+### Comandos
+
+```bash
+pnpm install
+pnpm dev
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:e2e
+```
+
+Las variables de entorno se documentan en `.env.example`. `DATABASE_URL` es
+server-only y no debe exponerse al navegador.
 
 ## Documentación
 
