@@ -44,6 +44,15 @@ Resultado: acceso real seguro para miembros, todavía sin módulos económicos.
 
 ## Hito 3 — Ediciones y autorización
 
+Estado: En desarrollo.
+
+Primera rebanada verificable:
+
+- ediciones anuales con estado abierta/cerrada;
+- asignaciones de rol por miembro, área y edición;
+- administrador global sin depender de una edición;
+- autorización de lectura y edición en dominio, independiente de React.
+
 - ediciones anuales y estados abierta/cerrada;
 - roles y permisos por área y edición;
 - protección de API y rutas privadas;

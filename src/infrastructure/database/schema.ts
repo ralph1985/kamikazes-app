@@ -56,3 +56,49 @@ export const sessions = pgTable(
   },
   (table) => [uniqueIndex("sessions_token_hash_unique").on(table.tokenHash)],
 );
+
+export const editions = pgTable(
+  "editions",
+  {
+    id: primaryKey(),
+    year: integer("year").notNull(),
+    status: text("status").notNull().default("open"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("editions_year_unique").on(table.year),
+    check("editions_status_allowed", sql`${table.status} in ('open', 'closed')`),
+  ],
+);
+
+export const roleAssignments = pgTable(
+  "role_assignments",
+  {
+    id: primaryKey(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "cascade" }),
+    editionId: uuid("edition_id").references(() => editions.id, { onDelete: "restrict" }),
+    area: text("area").notNull(),
+    role: text("role").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("role_assignments_member_edition_area_unique").on(
+      table.memberId,
+      table.editionId,
+      table.area,
+    ),
+    check("role_assignments_role_allowed", sql`${table.role} in ('admin', 'editor', 'reader')`),
+    check(
+      "role_assignments_area_allowed",
+      sql`${table.area} in ('global', 'identity', 'editions', 'budget', 'shopping', 'catering', 'public-content', 'audit')`,
+    ),
+    check(
+      "role_assignments_scope_valid",
+      sql`(${table.role} = 'admin' and ${table.area} = 'global' and ${table.editionId} is null) or (${table.role} in ('editor', 'reader') and ${table.area} <> 'global' and ${table.editionId} is not null)`,
+    ),
+  ],
+);
