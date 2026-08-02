@@ -263,6 +263,31 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Las compras reales y sus tickets afectarán al saldo de la edición correspondiente.
 - La aplicación mostrará por separado un saldo previsto y un saldo real; sus componentes exactos se definirán en el modelo económico.
 - Las compras reales podrán corregirse o eliminarse sólo por editores de compras y administrador, manteniendo la auditoría correspondiente.
+- El saldo previsto contará como ingresos las cuotas asignadas, los saldos iniciales y los ingresos previstos, aunque aún no estén cobrados.
+- Catering tendrá saldos previsto y real propios, separados del presupuesto general de la edición.
+- El gasto previsto general incluirá los totales de la lista de compra prevista y los gastos manuales previstos.
+- El saldo real general sólo incluirá compras reales y movimientos económicos registrados; los productos aún no comprados no afectarán al saldo real.
+- El gasto previsto de compras excluirá productos marcados como `No se compra este año` o `Regalado`.
+- El gasto previsto de cada producto se calculará como cantidad por precio unitario previsto, con los importes válidos disponibles.
+- Un producto marcado como `Comprado` seguirá contando en el saldo previsto hasta que exista una compra real registrada.
+- La lista de compra tendrá también el estado `En carrito`; se podrá introducir el precio real del producto antes del pago sin afectar todavía al saldo real.
+- Al pagar, se registrará una única compra real con su importe total y tickets, y los productos correspondientes se marcarán como `Comprado`.
+- El importe total de la compra real será la cifra oficial del gasto y la suma de precios reales de productos sólo servirá para control y detección de diferencias, sin duplicar el gasto.
+- Al registrar una compra real se podrán seleccionar varios productos `En carrito`, marcarlos como `Comprado` y vincularlos a la compra en una sola operación.
+- Un producto no podrá pasar a `Comprado` sin precio real informado.
+- La lista conservará cantidad prevista y cantidad real para comparar diferencias.
+- Una compra real podrá incluir productos y tickets de distintas tiendas.
+- Los gastos manuales previstos serán movimientos independientes con importe, concepto, fecha estimada, notas y adjuntos.
+- Los ingresos previstos, aparte de cuotas y saldos, también podrán registrarse como movimientos independientes.
+- Los movimientos previstos se conservarán cuando exista un movimiento real relacionado; podrán revisarse sin perder el importe original.
+- Los movimientos previstos y reales serán registros independientes, enlazables entre sí, y la aplicación podrá mostrar la desviación frente a la previsión original y la revisada.
+- Las correcciones de previsiones y movimientos reales conservarán valores anteriores y nuevos mediante auditoría.
+- El importe real de una compra será siempre el introducido manualmente; los tickets no lo modificarán automáticamente.
+- Como mejora futura, la IA analizará los tickets para detectar posibles discrepancias entre documentos e importes registrados, generando avisos sin modificar datos automáticamente.
+- Cualquier resultado de IA requerirá confirmación manual de un editor de compras o del administrador antes de convertirse en un dato funcional.
+- Sólo los editores de compras y el administrador podrán ejecutar y consultar el análisis de tickets.
+- La confirmación o el rechazo de una propuesta de IA se registrará en auditoría.
+- Un fallo del análisis de IA no impedirá consultar ni gestionar normalmente el ticket o la compra.
 - La entidad `edición` será el eje de los datos anuales de presupuesto, compras, catering, inventario y sobrantes.
 - Miembros, cuentas, álbumes y contenido general serán entidades transversales y no dependerán de una edición, salvo sus relaciones específicas de participación o visibilidad.
 - La migración inicial importará todos los datos útiles del Excel: miembros, edición 2026, catering, derramas, inventario, sobrantes e historial, con limpieza manual cuando sea necesaria.
@@ -306,39 +331,46 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 
 ## 6. Decisiones pendientes
 
-Esta lista se mantiene deliberadamente corta. Las decisiones ya confirmadas durante el interrogatorio se consideran requisitos, aunque todavía puedan necesitar criterios de aceptación y diseño técnico.
+Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya están recogidas en las secciones anteriores y no deben volver a tratarse como preguntas bloqueantes.
 
 ### Producto y permisos
 
-- matriz completa de permisos por área para administrador, editores, lectores y miembros;
-- alcance exacto de las capacidades de los editores de presupuesto, compras/inventario y catering;
-- qué información puede consultar cada rol en cada área, especialmente pagos, tickets y datos históricos;
-- detalles restantes del ciclo de vida operativo de una edición y de sus datos cerrados.
+- criterios de aceptación detallados para cada permiso y flujo;
+- reglas excepcionales que puedan aparecer al probar cierres, reaperturas y cambios de permisos;
+- comportamiento exacto de los datos previstos cuando se revisen varias veces.
 
 ### Cuentas y seguridad
 
-- procedimiento concreto para provisionar, desactivar, reactivar y recuperar cuentas manuales;
-- reglas adicionales de contraseñas, sesiones, bloqueo y protección frente a intentos repetidos;
-- registro y revisión de acciones administrativas y cambios sensibles.
+- procedimiento operativo final para entregar credenciales y asignar la cuenta administradora;
+- límites concretos de tamaño y duración de sesiones que no estén fijados por el modelo técnico;
+- revisión de seguridad antes de la puesta en producción.
 
 ### Presupuesto y datos económicos
 
-- modelo definitivo de reembolsos y otros ajustes económicos;
-- reglas exactas para ingresos, gastos manuales, saldos, cuotas y pagos en los totales;
-- criterios de aceptación para cierres, reaperturas y correcciones excepcionales.
+- modelo relacional definitivo de cuotas, pagos, devoluciones, saldos, movimientos previstos y reales;
+- reglas de cálculo pendientes para casos límite de saldos, devoluciones y desviaciones;
+- modelo de una compra real que agrupa productos y varias tiendas;
+- criterios de aceptación de los saldos previsto y real.
 
 ### Fotos y documentos
 
-- proveedor de almacenamiento de fotos, tickets y justificantes;
-- modelo de álbumes, visibilidad pública y publicación de fotos;
-- límites de tamaño, formatos, eliminación y conservación de archivos.
+- fotos y álbumes quedan expresamente pospuestos y no bloquearán el MVP económico/operativo;
+- copia de seguridad de archivos de Vercel Blob, pospuesta para una fase posterior.
 
 ### Migración y tecnología
 
-- estrategia de importación, limpieza y validación del Excel;
-- modelo relacional definitivo y migraciones iniciales;
-- despliegue, copias de seguridad, observabilidad y pruebas;
-- criterios de aceptación y alcance exacto del MVP.
+- recepción y análisis de todos los Excel históricos disponibles;
+- modelo relacional definitivo, migraciones Drizzle y script idempotente de importación;
+- ejecución segura del cron de copias de Neon desde el PC;
+- observabilidad avanzada, incluido Sentry, pospuesta;
+- criterios de aceptación finales y alcance cerrado del MVP.
+
+### Mejoras posteriores al MVP
+
+- análisis de tickets mediante IA y revisión de discrepancias;
+- copias de seguridad de archivos de Vercel Blob;
+- fotos, álbumes y su modelo de visibilidad;
+- notificaciones y otros módulos todavía no especificados.
 
 ## 7. Criterio de trabajo SDD
 
