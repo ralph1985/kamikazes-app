@@ -153,7 +153,7 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Una operación que cambie varios campos generará un registro separado por cada campo modificado.
 - El historial no guardará dirección IP ni información del dispositivo.
 - Las acciones automáticas del sistema no generarán registros de auditoría.
-- La importación conservará trazabilidad hacia el dato original.
+- La migración se documentará mediante scripts e informes, pero la aplicación no conservará referencias detalladas a hoja, fila o columna del Excel.
 - El producto se diseñará para evolucionar a nuevas ediciones sin copiar hojas ni código.
 - Lo público se publicará explícitamente; el contenido privado será la opción segura por defecto.
 - Las fotos y otros contenidos tendrán visibilidad configurable; los álbumes no dependerán de la edición anual.
@@ -241,6 +241,51 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - La aplicación será mobile first, instalable como PWA y usará TanStack Query para caché, reintentos y sincronización del frontend.
 - Las listas móviles podrán paginarse mediante cursor y las tablas administrativas mediante `page/limit`, según la experiencia de cada pantalla.
 - Cada operación offline tendrá un `operationId` único persistido en Neon para impedir duplicados durante los reintentos.
+- Antes de implementar los hitos se configurará Codex mediante un `AGENTS.md` raíz y, cuando sea útil, instrucciones específicas por módulo.
+- Las instrucciones de Codex cubrirán arquitectura, SDD, Git, producción, seguridad, TDD/BDD y validaciones obligatorias.
+- Se podrán organizar agentes especializados para backend, frontend, datos/migraciones y QA, coordinados por el flujo común del proyecto.
+- Ningún agente realizará commits, pushes, cambios destructivos ni operaciones sobre producción sin autorización explícita.
+- Los editores se separarán por área: presupuesto, compras/inventario y catering; el administrador tendrá acceso global.
+- La entidad `edición` será el eje de los datos anuales de presupuesto, compras, catering, inventario y sobrantes.
+- Miembros, cuentas, álbumes y contenido general serán entidades transversales y no dependerán de una edición, salvo sus relaciones específicas de participación o visibilidad.
+- La migración inicial importará todos los datos útiles del Excel: miembros, edición 2026, catering, derramas, inventario, sobrantes e historial, con limpieza manual cuando sea necesaria.
+- También se importarán los Excel de 2025 y de años anteriores disponibles, convirtiendo cada año aplicable en su edición histórica correspondiente.
+- El modelo separará miembro, cuenta de acceso y participación en edición; desactivar una cuenta no eliminará el miembro ni su historial.
+- Las variaciones históricas de nombre se resolverán manualmente para vincularlas al mismo miembro cuando corresponda.
+- El historial de cambios antiguo del Excel no se importará como auditoría funcional; sólo se migrarán los datos de negocio.
+- Cuando falten datos en un Excel histórico, se importará lo disponible, se dejarán vacíos los campos ausentes y se incluirá el caso en el informe de migración.
+- Las ediciones históricas importadas quedarán cerradas desde el inicio; sólo el administrador podrá reabrirlas.
+- Los miembros podrán consultar las ediciones históricas cerradas según sus permisos normales de lectura.
+- La migración creará primero las ediciones históricas y después cargará cada registro vinculado a su año correspondiente.
+- Los campos opcionales ausentes se importarán vacíos; la ausencia de campos imprescindibles será un error bloqueante para el registro afectado.
+- Los conflictos graves impedirán importar sólo el registro afectado; la migración continuará con el resto y los detallará en el informe.
+- La migración será idempotente y podrá repetirse sin duplicar registros ya importados.
+- Las ediciones históricas se procesarán por separado, validando cada una antes de continuar con la siguiente.
+- Se mantendrá un archivo privado de correspondencias entre nombres históricos y UUID actuales de miembros para repetir la migración sin duplicados; permanecerá fuera de Git y del repositorio público.
+- Tras cada edición importada se revisará manualmente el informe antes de marcarla como migrada correctamente.
+- La migración creará cuentas de acceso para los miembros activos, con la contraseña inicial acordada y cambio obligatorio en el primer inicio de sesión.
+- Los nombres de usuario iniciales se generarán a partir de los datos de la migración; la cuenta administradora se identificará y asignará manualmente después.
+- Si el nombre de usuario generado ya existe, se añadirá un sufijo automático para mantener la unicidad.
+- Los miembros inactivos se importarán sin cuenta de acceso; podrán recibir una cuenta posteriormente si se reactivan.
+- Las colisiones de nombres de usuario se resolverán con sufijos numéricos consecutivos, como `usuario`, `usuario2` y `usuario3`.
+- La creación inicial generará un informe privado con usuario, miembro y contraseña temporal para su entrega manual; no se guardará en Git.
+- El informe de credenciales inicial se eliminará de forma segura después de entregar las credenciales.
+- Los nombres de usuario se normalizarán en minúsculas, sin espacios ni tildes, manteniendo su unicidad.
+- Al cambiar un nombre de usuario, el anterior quedará libre para reutilizarse.
+- Los cambios de nombre de usuario y nombre visible se registrarán en auditoría asociados al UUID inmutable del miembro.
+- Al desactivar un miembro se revocarán inmediatamente todas sus sesiones y se bloqueará la sincronización de sus operaciones offline pendientes.
+- La recuperación manual generará una contraseña temporal nueva, obligará a cambiarla en el siguiente acceso y eliminará de forma segura el registro privado de entrega.
+- Después de 3 intentos fallidos de acceso se bloqueará la cuenta; sólo un administrador podrá desbloquearla.
+- Neon almacenará únicamente hashes de tokens de sesión; el token real permanecerá en la cookie segura del dispositivo.
+- Un inicio de sesión correcto reiniciará el contador de intentos fallidos.
+- Al desbloquear una cuenta se revocarán sus sesiones existentes y será necesario iniciar sesión de nuevo.
+- Los bloqueos y desbloqueos de cuentas se registrarán en auditoría.
+- Sólo el administrador podrá modificar roles y permisos; no se exigirá una segunda confirmación administrativa para aplicarlos.
+- Las acciones destructivas del administrador mostrarán una confirmación explícita en la interfaz.
+- El administrador no podrá quitarse a sí mismo el último rol de administrador.
+- La migración tendrá primero un modo de análisis sin escritura que generará un informe de duplicados, datos incompletos y conflictos.
+- Los posibles duplicados de miembros se resolverán manualmente y no se fusionarán automáticamente.
+- El Excel original permanecerá fuera de Git y del repositorio público; el repositorio sólo contendrá scripts, esquema y documentación de migración.
 
 ## 6. Decisiones pendientes
 
@@ -289,3 +334,16 @@ Cada funcionalidad nueva deberá tener antes:
 5. estrategia de pruebas.
 
 No se considera cerrada una funcionalidad sólo porque se vea bien en pantalla.
+
+## 8. Estados de las especificaciones y definición de terminado
+
+Cada requisito o funcionalidad tendrá uno de estos estados:
+
+- `Propuesta`: idea pendiente de decisión.
+- `Aprobada`: comportamiento acordado y descrito en el SDD, pero aún no implementado.
+- `En desarrollo`: se está implementando mediante un hito.
+- `Implementada`: el código existe y las pruebas previstas están escritas.
+- `Verificada`: las pruebas automáticas pasan y se ha comprobado el comportamiento en el móvil cuando corresponda.
+- `Cerrada`: el usuario ha revisado la funcionalidad y no quedan tareas asociadas.
+
+Una especificación sólo se considerará terminada cuando esté en estado `Cerrada`. Para llegar ahí deberá tener reglas y criterios de aceptación definidos, implementación, pruebas TDD/BDD, validación técnica y revisión funcional. Las decisiones recogidas en este documento están aprobadas, pero no se considerarán implementadas hasta completar los hitos correspondientes.
