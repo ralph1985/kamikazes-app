@@ -6,10 +6,12 @@ Esta memoria es deliberadamente breve y segura para que una conversación nueva 
 
 - Repositorio público: `ralph1985/kamikazes-app`.
 - Rama principal: `main`.
-- El proyecto todavía está en fase de especificación; no hay aplicación implementada.
+- El proyecto ha superado la fase documental inicial y cuenta con la base técnica del Hito 0.
+- El Hito 0 está implementado y publicado en `main`.
+- La aplicación está desplegada en Vercel con el dominio público `https://kamikazes.conquense.dev/`.
 - La especificación completa está en `docs/spec.md`.
 - El roadmap de implementación está en `docs/roadmap.md`.
-- El siguiente trabajo previsto es preparar el Hito 0, no empezar todavía por una funcionalidad de negocio aislada.
+- El siguiente trabajo se decidirá después de revisar el despliegue inicial; no hay todavía un hito de negocio seleccionado.
 
 ## Producto
 
