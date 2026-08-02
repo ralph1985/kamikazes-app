@@ -10,4 +10,6 @@ test-results/
 *.local
 *.log
 *.tsbuildinfo
-drizzle/meta/
+.agents/skills/neon/
+.agents/skills/neon-postgres/
+skills-lock.json

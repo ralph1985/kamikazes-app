@@ -9,8 +9,9 @@
 
 La aplicación inicial no necesita conexión a Neon para mostrar la página ni
 para consultar `/api/v1/health`. Drizzle está configurado y el cliente sólo
-puede importarse desde servidor, pero todavía no hay tablas de negocio ni
-migraciones que ejecutar.
+puede importarse desde servidor. La migración de identidad se ha ejecutado en
+la base de producción recién creada; las futuras migraciones seguirán el mismo
+proceso manual y revisable.
 
 ## Comprobaciones
 
@@ -26,5 +27,6 @@ locales se ejecutan con `pnpm test:e2e` y levantan un servidor de desarrollo.
 - No se incluyen Excel originales, credenciales, tokens ni datos personales
   reales en fixtures, documentación o commits.
 - No se ejecutan `pnpm db:generate` ni `pnpm db:migrate` contra producción como
-  parte de las comprobaciones normales. La primera migración real tendrá que
-  acompañar al modelo aprobado del Hito 2.
+  parte de las comprobaciones normales. Las migraciones usan
+  `POSTGRES_URL_NON_POOLING` cuando está disponible y `DATABASE_URL` sólo como
+  fallback.
