@@ -28,6 +28,16 @@ export interface SessionIssuer {
   issue(memberId: string, now: Date, expiresAt: Date): Promise<Session>;
 }
 
+export type AuthenticatedMember = {
+  memberId: string;
+  displayName: string;
+  mustChangePassword: boolean;
+};
+
+export interface SessionReader {
+  findActiveMemberByTokenHash(tokenHash: string, now: Date): Promise<AuthenticatedMember | null>;
+}
+
 export interface IdentityAuditWriter {
   record(event: { memberId: string; action: IdentityErrorCode | "login_locked" }): Promise<void>;
 }

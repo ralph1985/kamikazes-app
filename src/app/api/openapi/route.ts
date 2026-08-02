@@ -44,6 +44,16 @@ const document = {
         },
       },
     },
+    "/auth/me": {
+      get: {
+        operationId: "getAuthenticatedMember",
+        responses: {
+          "200": { description: "Miembro autenticado" },
+          "401": { description: "Sesión ausente o inválida" },
+          "503": { description: "Autenticación no configurada" },
+        },
+      },
+    },
   },
   components: {
     schemas: {
