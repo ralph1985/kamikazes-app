@@ -16,7 +16,7 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
           <span className={styles.brandMark}>K</span>
           <span>Kamikazes</span>
         </div>
-        <nav className={styles.nav}>
+        <nav aria-label="Navegación principal" className={styles.nav}>
           <Link
             className={`${styles.navLink} ${pathname === "/" ? styles.active : ""}`}
             href="/"
