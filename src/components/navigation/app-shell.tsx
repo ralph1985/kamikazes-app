@@ -2,12 +2,43 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import styles from "./app-shell.module.css";
+
+type SessionMember = {
+  displayName: string;
+  mustChangePassword: boolean;
+};
 
 export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [member, setMember] = useState<SessionMember | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/v1/auth/me")
+      .then(async (response) =>
+        response.ok ? ((await response.json()).data as SessionMember) : null,
+      )
+      .then((currentMember) => {
+        if (active) setMember(currentMember);
+      })
+      .catch(() => {
+        if (active) setMember(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
+
+  async function handleLogout() {
+    await fetch("/api/v1/auth/logout", { method: "POST" });
+    setMember(null);
+    setIsOpen(false);
+    window.location.assign("/");
+  }
 
   return (
     <div className={`${styles.viewport} ${isOpen ? styles.open : ""}`}>
@@ -29,10 +60,17 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
             href="/login"
             onClick={() => setIsOpen(false)}
           >
-            Iniciar sesión
+            {member ? "Mi cuenta" : "Iniciar sesión"}
           </Link>
+          {member ? (
+            <button className={styles.navButton} onClick={handleLogout} type="button">
+              Cerrar sesión
+            </button>
+          ) : null}
         </nav>
-        <p className={styles.sidebarNote}>La vida de la peña, ordenada por ediciones.</p>
+        <p className={styles.sidebarNote}>
+          {member ? `Hola, ${member.displayName}.` : "La vida de la peña, ordenada por ediciones."}
+        </p>
       </aside>
 
       <div className={styles.page}>

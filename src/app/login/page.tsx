@@ -30,7 +30,7 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.assign("/");
+      window.location.assign(result.data?.mustChangePassword ? "/change-password" : "/");
     } catch {
       setError("No se ha podido conectar con Kamikazes.");
     } finally {

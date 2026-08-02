@@ -41,6 +41,8 @@ Primera rebanada verificable:
 - perfil y cambios auditados.
 - pantalla de login conectada al contrato REST de autenticación;
 - shell compartida con menú lateral y acceso visible al login.
+- cambio obligatorio de contraseña después del primer acceso;
+- consulta de sesión y cierre de sesión desde la navegación.
 
 Resultado: acceso real seguro para miembros, todavía sin módulos económicos.
 

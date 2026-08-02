@@ -1,0 +1,43 @@
+import { randomBytes, createHash } from "node:crypto";
+import { eq } from "drizzle-orm";
+import type { getDatabase } from "@/infrastructure/database/client";
+import { accounts, sessions } from "@/infrastructure/database/schema";
+import type { PasswordChangeWriter } from "../application/ports";
+
+type Database = ReturnType<typeof getDatabase>;
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export function createDatabasePasswordChangeWriter(db: Database): PasswordChangeWriter {
+  return {
+    async changePasswordAndRotateSession(input) {
+      const token = randomBytes(32).toString("base64url");
+
+      await db.transaction(async (tx) => {
+        await tx
+          .update(accounts)
+          .set({
+            passwordHash: input.passwordHash,
+            mustChangePassword: false,
+            updatedAt: input.now,
+          })
+          .where(eq(accounts.memberId, input.memberId));
+        await tx
+          .update(sessions)
+          .set({ revokedAt: input.now })
+          .where(eq(sessions.memberId, input.memberId));
+        await tx.insert(sessions).values({
+          memberId: input.memberId,
+          tokenHash: hashToken(token),
+          expiresAt: input.expiresAt,
+          createdAt: input.now,
+          lastSeenAt: input.now,
+        });
+      });
+
+      return { token, expiresAt: input.expiresAt };
+    },
+  };
+}

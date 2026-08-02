@@ -242,6 +242,8 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - La aplicación será mobile first, instalable como PWA y usará TanStack Query para caché, reintentos y sincronización del frontend.
 - La primera shell de navegación tendrá un menú lateral compartido entre las superficies públicas y privadas; al abrirlo, el contenido principal se desplazará para revelar el menú situado detrás.
 - El menú ofrecerá una entrada visible a la pantalla de inicio de sesión, que usará el contrato REST de autenticación y no expondrá credenciales al cliente más allá del envío HTTPS necesario.
+- Tras el login, una cuenta con cambio obligatorio pendiente sólo podrá acceder al flujo de cambio de contraseña; al completarlo, la sesión se rotará y la cuenta quedará activada para el acceso normal.
+- El menú mostrará el nombre visible de la persona autenticada y permitirá cerrar su sesión actual.
 - Las listas móviles podrán paginarse mediante cursor y las tablas administrativas mediante `page/limit`, según la experiencia de cada pantalla.
 - Cada operación offline tendrá un `operationId` único persistido en Neon para impedir duplicados durante los reintentos.
 - Antes de implementar los hitos se configurará Codex mediante un `AGENTS.md` raíz y, cuando sea útil, instrucciones específicas por módulo.

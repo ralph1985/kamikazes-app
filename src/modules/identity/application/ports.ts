@@ -48,6 +48,10 @@ export interface PasswordChangeWriter {
   }): Promise<Session>;
 }
 
+export interface SessionRevoker {
+  revoke(tokenHash: string, now: Date): Promise<void>;
+}
+
 export interface IdentityAuditWriter {
   record(event: { memberId: string; action: IdentityErrorCode | "login_locked" }): Promise<void>;
 }
