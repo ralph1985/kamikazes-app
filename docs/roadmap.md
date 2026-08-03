@@ -19,6 +19,7 @@ Estado: En desarrollo.
 - preparar el flujo de migraciones y convenciones de UUID, fechas e importes;
 - configurar Zod, OpenAPI, Vitest y Playwright;
 - preparar el pipeline de comprobaciones y el despliegue de Vercel.
+- preparar el comando de snapshot privado que se ejecutará durante el build sin publicar sus datos como archivos estáticos.
 
 Resultado: aplicación mínima desplegable con comprobaciones automáticas.
 
@@ -123,17 +124,30 @@ Resultado: módulo de catering separado del presupuesto general.
 
 Resultado: cierre del ciclo operativo de compras.
 
-## Hito 10 — Migración histórica
+## Hito 10 — Memoria histórica privada
+
+- álbumes y galerías privadas;
+- perfiles y apodos históricos de miembros;
+- libro de firmas y mensajes como archivo consultable;
+- permisos de lectura para miembros autenticados;
+- moderación y gestión reservadas al administrador o al área aprobada;
+- snapshot privado generado durante el build y servido sólo por rutas autenticadas;
+- pruebas que demuestren que una visita anónima no puede obtener el snapshot ni sus recursos.
+
+Resultado: memoria digital recuperada sin convertirla en contenido público ni consultar Neon en cada lectura.
+
+## Hito 11 — Migración histórica
 
 - análisis de todos los Excel disponibles sin escritura;
+- análisis del legado KDC sin escritura;
 - correspondencias privadas de miembros;
-- importación idempotente por edición;
+- importación idempotente por edición y por colección histórica;
 - revisión manual de cada informe;
 - creación de cuentas activas y ediciones históricas cerradas.
 
 Resultado: datos históricos incorporados sin duplicados ni pérdida de control.
 
-## Hito 11 — PWA y sincronización tolerante a desconexión
+## Hito 12 — PWA y sincronización tolerante a desconexión
 
 - instalación como PWA;
 - caché únicamente pública y versionada;
@@ -143,7 +157,7 @@ Resultado: datos históricos incorporados sin duplicados ni pérdida de control.
 
 Resultado: uso fiable en tiendas sin convertir pagos en operaciones offline.
 
-## Hito 12 — Endurecimiento y salida inicial
+## Hito 13 — Endurecimiento y salida inicial
 
 - pruebas BDD completas en móvil;
 - revisión de permisos y casos destructivos;
@@ -157,6 +171,6 @@ Resultado: primera versión operativa lista para uso real.
 
 - análisis de tickets con IA;
 - copias de archivos de Vercel Blob;
-- fotos y álbumes;
+- ampliaciones de la memoria histórica y nuevas colecciones;
 - Sentry u otra observabilidad avanzada;
 - nuevos módulos según necesidades de la peña.

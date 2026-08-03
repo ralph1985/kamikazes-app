@@ -74,9 +74,11 @@ El producto tendrá dos superficies de acceso:
 - **Pública:** información y contenidos que la peña decida mostrar a cualquier visitante sin iniciar sesión.
 - **Privada:** gestión económica, organización interna, álbumes restringidos y demás información disponible sólo para miembros según sus permisos.
 
-En el MVP, la superficie pública se limitará a información general de la peña. Presupuestos, compras, catering, inventario, sobrantes, derramas y demás datos internos no serán públicos. La visibilidad pública de álbumes se decidirá más adelante.
+En el MVP, la superficie pública se limitará a información general de la peña, incluyendo la historia y el logo. Presupuestos, compras, catering, inventario, sobrantes, derramas y memoria histórica no serán públicos.
 
-La información general pública sólo podrá modificarla el administrador durante el MVP. Incluirá una página de presentación con el logo de la peña, secciones de contenido configurables, su historia, su descripción y enlaces a las redes sociales de la peña como formas de contacto. El logo no se podrá cambiar desde la aplicación inicialmente. No habrá formulario público de contacto inicialmente. El administrador podrá configurar desde la aplicación qué redes aparecen y sus enlaces; cada entrada tendrá un nombre, una URL personalizada y un estado activo/inactivo para ocultarla sin borrarla. Cada sección tendrá título, texto con formato básico, imagen opcional, orden y estado visible/oculto; el administrador podrá crear, eliminar, ocultar y editar secciones, además de subir esas imágenes desde la aplicación.
+La información general pública sólo podrá modificarla el administrador durante el MVP. Incluirá una página de presentación con el logo de la peña, su historia y enlaces a las redes sociales de la peña como formas de contacto. El logo no se podrá cambiar desde la aplicación inicialmente. No habrá formulario público de contacto inicialmente. El administrador podrá configurar desde la aplicación qué redes aparecen y sus enlaces; cada entrada tendrá un nombre, una URL personalizada y un estado activo/inactivo para ocultarla sin borrarla. Cada sección tendrá título, texto con formato básico, imagen opcional, orden y estado visible/oculto; el administrador podrá crear, eliminar, ocultar y editar secciones, además de subir esas imágenes desde la aplicación.
+
+La memoria histórica de la peña formará parte del producto, pero será privada para miembros autenticados. Incluirá inicialmente fotografías, perfiles y apodos de miembros, libro de firmas, mensajes y otros recuerdos recuperables del legado. La historia general y el logo serán públicos; el resto del archivo histórico no aparecerá para visitantes anónimos aunque exista contenido relacionado con la peña.
 
 Los permisos deberán controlar tanto el acceso a módulos como la capacidad de leer, crear, modificar, publicar o administrar cada tipo de contenido.
 
@@ -204,6 +206,9 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Cada módulo tendrá sus propios casos de uso, validadores, repositorios y pruebas, manteniendo sus reglas separadas.
 - La incorporación posterior de nuevos módulos no requerirá modificar un servicio central monolítico.
 - El contenido público de baja frecuencia se generará de forma estática y se revalidará al publicar cambios desde administración.
+- La historia y el logo públicos se prerenderizarán y podrán servirse desde la caché pública.
+- La memoria histórica privada no se expondrá como HTML, JSON ni archivos estáticos públicos. Durante el proceso de build se generará un snapshot privado, almacenado sólo en el servidor, y las rutas autenticadas comprobarán la sesión y los permisos antes de leerlo.
+- El snapshot privado se regenerará al publicar cambios o en el siguiente build. El build podrá ejecutarse en Vercel de forma automática; el flujo local con artefactos preconstruidos será una alternativa operativa, no un requisito de arquitectura.
 - Las páginas públicas estáticas podrán conservarse en caché offline para consulta sin conexión.
 - La PWA sólo cacheará páginas públicas y recursos estáticos versionados; no cacheará sesiones, API privada, permisos, datos económicos ni tickets.
 - Las rutas autenticadas requerirán conexión con el servidor y las cachés del service worker tendrán versionado, limpieza automática y un mecanismo de recuperación controlado.
@@ -367,7 +372,7 @@ Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya es
 
 ### Fotos y documentos
 
-- fotos y álbumes quedan expresamente pospuestos y no bloquearán el MVP económico/operativo;
+- la memoria histórica privada forma parte del producto, aunque su importación y primera versión podrán entregarse después de la gestión económica/operativa;
 - copia de seguridad de archivos de Vercel Blob, pospuesta para una fase posterior.
 
 ### Migración y tecnología
