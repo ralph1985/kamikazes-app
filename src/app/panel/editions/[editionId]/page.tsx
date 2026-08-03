@@ -7,6 +7,7 @@ import { listEditions } from "@/modules/editions/application/list-editions";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import BudgetOverview from "./budget-overview";
 import styles from "./edition.module.css";
 
 export const dynamic = "force-dynamic";
@@ -88,7 +89,9 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
         ))}
       </nav>
       <section className={styles.content}>
-        {activeSection.available ? (
+        {activeSection.key === "budget" ? (
+          <BudgetOverview year={edition.year} />
+        ) : activeSection.available ? (
           <div className={styles.welcome}>
             <p className="eyebrow">Vista general</p>
             <h2>La edición empieza aquí.</h2>

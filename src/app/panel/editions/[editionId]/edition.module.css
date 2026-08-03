@@ -92,6 +92,92 @@
   padding: 28px;
 }
 
+.budgetLayout {
+  display: grid;
+  gap: 24px;
+}
+
+.budgetHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.budgetHeader h2 {
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  margin: 12px 0 8px;
+}
+
+.budgetHeader p:last-child {
+  color: #687169;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.budgetState {
+  background: #fff2df;
+  border-radius: 999px;
+  color: #8a5a20;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.summaryCard {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 14px;
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+}
+
+.summaryCard span,
+.summaryCard small {
+  color: #687169;
+}
+
+.summaryCard span {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.summaryCard strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.summaryCard small {
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.emptyModule {
+  background: #f1ede5;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.emptyModule h3 {
+  font-size: 1.35rem;
+  margin: 12px 0;
+}
+
+.emptyModule p:last-child {
+  color: #687169;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 680px;
+}
+
 .welcome h2,
 .comingSoon h2 {
   font-size: clamp(1.6rem, 4vw, 2.5rem);
@@ -131,5 +217,13 @@
     margin-right: -24px;
     padding-left: 14px;
     padding-right: 14px;
+  }
+
+  .budgetHeader {
+    flex-direction: column;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
   }
 }
