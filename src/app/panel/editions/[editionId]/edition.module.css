@@ -178,6 +178,42 @@
   max-width: 680px;
 }
 
+.participantList {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.participantRow {
+  align-items: center;
+  border-bottom: 1px solid #eee8de;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 16px 20px;
+}
+
+.participantRow:last-child {
+  border-bottom: 0;
+}
+.participantRow span {
+  display: grid;
+  gap: 4px;
+}
+.participantRow small {
+  color: #687169;
+}
+.participantRow input {
+  accent-color: #8b2e2e;
+  block-size: 20px;
+  inline-size: 20px;
+}
+.error {
+  color: #8b2e2e;
+  margin: 0;
+}
+
 .welcome h2,
 .comingSoon h2 {
   font-size: clamp(1.6rem, 4vw, 2.5rem);

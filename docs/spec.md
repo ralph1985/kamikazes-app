@@ -332,6 +332,8 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - El administrador no podrá quitarse a sí mismo el último rol de administrador.
 - La migración tendrá primero un modo de análisis sin escritura que generará un informe de duplicados, datos incompletos y conflictos.
 - Los posibles duplicados de miembros se resolverán manualmente y no se fusionarán automáticamente.
+- La participación de un miembro en una edición será una relación independiente de su cuenta y de su participación económica o de catering.
+- La primera pantalla operativa de participantes permitirá consultar todos los miembros y activar o desactivar su participación anual sólo a administradores y editores de ediciones, mientras la edición permanezca abierta.
 - El Excel original permanecerá fuera de Git y del repositorio público; el repositorio sólo contendrá scripts, esquema y documentación de migración.
 
 ## 6. Decisiones pendientes

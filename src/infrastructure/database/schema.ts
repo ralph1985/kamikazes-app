@@ -73,6 +73,24 @@ export const editions = pgTable(
   ],
 );
 
+export const editionParticipants = pgTable(
+  "edition_participants",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("edition_participants_edition_member_unique").on(table.editionId, table.memberId),
+  ],
+);
+
 export const roleAssignments = pgTable(
   "role_assignments",
   {

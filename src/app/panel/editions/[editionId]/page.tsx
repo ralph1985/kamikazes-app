@@ -92,7 +92,7 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
       </nav>
       <section className={styles.content}>
         {activeSection.key === "participants" ? (
-          <ParticipantsOverview year={edition.year} />
+          <ParticipantsOverview editionId={edition.id} year={edition.year} />
         ) : activeSection.key === "budget" ? (
           <BudgetOverview year={edition.year} />
         ) : activeSection.available ? (
