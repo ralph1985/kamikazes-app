@@ -80,6 +80,86 @@ La información general pública sólo podrá modificarla el administrador duran
 
 La memoria histórica de la peña formará parte del producto, pero será privada para miembros autenticados. Incluirá inicialmente fotografías, perfiles y apodos de miembros, libro de firmas, mensajes y otros recuerdos recuperables del legado. La historia general y el logo serán públicos; el resto del archivo histórico no aparecerá para visitantes anónimos aunque exista contenido relacionado con la peña.
 
+La migración inicial incorporará todas las fotografías históricas recuperadas de la galería KDC como contenido privado. La limpieza posterior se realizará desde la aplicación, mientras los miembros autorizados revisan las imágenes, sin exigir una selección manual previa a la importación.
+
+Todas las fotos históricas serán visibles para cualquier miembro activo autenticado. La primera versión no restringirá galerías por grupos ni permisos; esa segmentación queda como mejora posterior.
+
+La migración conservará, cuando existan, el álbum de origen, título, descripción, fecha y autor histórico de cada fotografía. Las correspondencias entre autores históricos y miembros actuales se resolverán manualmente y no se fusionarán automáticamente; si no hay correspondencia segura, se conservará únicamente la referencia histórica.
+
+La organización original de álbumes de KDC se conservará durante la importación inicial, incluyendo el nombre y el orden disponible, para permitir una revisión posterior desde la aplicación.
+
+Los textos históricos se limpiarán y adaptarán durante la migración. Se conservará el contenido legible, pero no el HTML antiguo, etiquetas obsoletas ni marcado potencialmente inseguro.
+
+La navegación privada tendrá un apartado único llamado `Memoria`, visible dentro de la sesión, con la galería histórica y los perfiles/apodos históricos de miembros activos. La historia pública y el logo se mantendrán fuera de este apartado, en la superficie pública.
+
+El apartado `Memoria` sólo aparecerá en la navegación después de iniciar sesión; los visitantes anónimos no verán una opción bloqueada ni un acceso directo a esa zona privada.
+
+La sección `Perfiles` mostrará a todos los miembros activos, aunque no tengan material histórico asociado.
+
+Cada perfil mostrará primero los datos actuales del miembro y, cuando existan, sus apodos y textos históricos debajo, sin sustituir la información vigente.
+
+Las fotografías históricas de miembros permanecerán sin asignar después de la migración inicial. No habrá una herramienta de asociación desde la web en la primera versión; su revisión y eventual vinculación se hará manualmente con Rafa en una fase posterior.
+
+La historia pública se elaborará recuperando y adaptando los textos propios de la web antigua. No se copiará literalmente el HTML ni se conservará su formato técnico; el contenido se revisará para encajar con la identidad y la estructura actuales.
+
+La historia pública se organizará por secciones editoriales, con una estructura inicial de `Quiénes somos`, `Cómo empezó`, `La peña` y `Palomares`, ampliable desde la administración.
+
+Durante la preparación inicial, Rafa autoriza la adaptación directa de los textos históricos y su publicación en las secciones públicas correspondientes, manteniendo después la edición ordinaria bajo el control del administrador.
+
+La nueva identidad visual conservará como base la paleta negra, roja y dorada de KDC, aplicada a un diseño actual y responsive.
+
+También se conservará la estética oscura y tecnológica como referencia, pero se modernizará para priorizar legibilidad, accesibilidad, responsive design y comodidad de uso en móvil.
+
+El sistema de marca tendrá un logotipo completo con nombre y emblema, una versión horizontal, una versión compacta basada sólo en el emblema y una variante monocroma para fondos, documentos e impresión.
+
+El emblema nuevo conservará la idea circular y futurista del símbolo antiguo, pero se redibujará con un acabado actual y adaptable a distintos tamaños.
+
+Los cambios administrativos de la memoria privada solicitarán automáticamente un nuevo despliegue de Vercel para regenerar el snapshot privado durante el build.
+
+Los cambios sucesivos se agruparán antes de solicitar el despliegue, evitando lanzar un build independiente por cada eliminación o modificación de contenido.
+
+La ventana de agrupación será de 5 minutos desde el primer cambio pendiente.
+
+El panel de administración mostrará el estado de la regeneración de memoria privada: pendiente, en proceso, correcta o error.
+
+Cuando la regeneración falle, el panel ofrecerá una acción explícita de `Reintentar`.
+
+Si una regeneración falla, se conservará visible la última versión correcta del snapshot privado hasta que una nueva regeneración termine correctamente.
+
+Los comentarios y votos antiguos de las fotografías no formarán parte de la migración inicial; se conservarán únicamente las imágenes y sus metadatos.
+
+Las fotografías antiguas asociadas a perfiles de miembros se importarán también como fotos históricas privadas, pero no se asignarán automáticamente a los perfiles actuales. Quedarán sin asignar para su revisión posterior desde la aplicación.
+
+Los apodos y textos de perfil antiguos se conservarán como información histórica separada de los perfiles actuales y no sobrescribirán ningún dato vigente del miembro.
+
+Los apodos y textos de perfil antiguos sólo se importarán cuando correspondan a miembros actuales activos. Los perfiles de personas que ya no estén activas se descartarán, aunque sus fotografías históricas se conservarán sin asignar.
+
+El libro de firmas antiguo no se importará en la primera migración histórica.
+
+Los mensajes de comunidad y los mensajes privados del legado tampoco se importarán, por tratarse de conversaciones antiguas que no forman parte del archivo fotográfico seleccionado y pueden contener información personal.
+
+Los enlaces y recomendaciones de la antigua Zona YouTube no se importarán en la primera migración histórica.
+
+Las 40 fotografías históricas de Palomares y sus lugares se conservarán como contenido público de la historia de la peña, manteniendo sus nombres y contexto disponible cuando exista.
+
+La antigua sección de noticias y sus feeds externos no se importarán. Sólo se valorarían en el futuro textos editoriales propios, si aparecieran en otra fuente histórica.
+
+El calendario antiguo tampoco se importará en la primera migración histórica.
+
+Los minijuegos antiguos tampoco se importarán ni se mantendrán como parte de la memoria histórica inicial.
+
+La radio y el reproductor de música antiguos tampoco se importarán; no se conservarán sus enlaces a emisoras externas.
+
+La sección de descargas y las estadísticas históricas de visitas tampoco se importarán.
+
+El logo antiguo de KDC no se utilizará como logo actual. Servirá únicamente como referencia para diseñar una identidad visual nueva inspirada en él.
+
+El logo antiguo se conservará como pieza del archivo histórico privado, separado de la identidad visual actual.
+
+La tipografía y los iconos antiguos no se incorporarán al diseño actual; sólo el logo se utilizará como referencia visual para la nueva identidad.
+
+El borrado de una fotografía histórica será definitivo, no utilizará papelera y exigirá una confirmación explícita. La acción quedará registrada en auditoría junto con la identificación de la fotografía eliminada. En la primera versión, esta capacidad estará reservada exclusivamente a Rafa, como administrador principal protegido, aunque existan otros administradores.
+
 Los permisos deberán controlar tanto el acceso a módulos como la capacidad de leer, crear, modificar, publicar o administrar cada tipo de contenido.
 
 Las tres áreas funcionales compartirán el mismo sistema de identidad, inicio de sesión y sesión activa. El usuario no tendrá que autenticarse de nuevo al pasar entre gestión, fotos y catering; la autorización seguirá evaluándose de forma independiente para cada área.
