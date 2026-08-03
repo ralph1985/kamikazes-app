@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { getDatabase } from "@/infrastructure/database/client";
 import { createDatabaseEditionReader } from "@/modules/editions/adapters/database-edition-reader";
 import { listEditions } from "@/modules/editions/application/list-editions";
+import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import CreateEditionForm from "./create-edition-form";
 import styles from "./panel.module.css";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +24,7 @@ export default async function PanelPage() {
     });
     if (member.mustChangePassword) redirect("/change-password");
 
+    const isAdmin = await createDatabaseGlobalAdminReader(database).isGlobalAdmin(member.memberId);
     const editions = await listEditions(createDatabaseEditionReader(database));
 
     return (
@@ -32,7 +35,10 @@ export default async function PanelPage() {
             <h1>Ediciones</h1>
             <p className={styles.intro}>Todo lo que organizamos, año a año.</p>
           </div>
-          <span className={styles.member}>Hola, {member.displayName}</span>
+          <div className={styles.headingActions}>
+            <span className={styles.member}>Hola, {member.displayName}</span>
+            {isAdmin ? <CreateEditionForm initialYear={new Date().getFullYear()} /> : null}
+          </div>
         </div>
         <section aria-label="Ediciones de Kamikazes" className={styles.grid}>
           {editions.length ? (

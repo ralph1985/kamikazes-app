@@ -52,6 +52,10 @@ export interface SessionRevoker {
   revoke(tokenHash: string, now: Date): Promise<void>;
 }
 
+export interface GlobalAdminReader {
+  isGlobalAdmin(memberId: string): Promise<boolean>;
+}
+
 export interface IdentityAuditWriter {
   record(event: { memberId: string; action: IdentityErrorCode | "login_locked" }): Promise<void>;
 }

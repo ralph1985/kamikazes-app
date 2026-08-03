@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { accounts, editions, members, roleAssignments, sessions } from "./schema";
+import { accounts, auditEvents, editions, members, roleAssignments, sessions } from "./schema";
 
 describe("esquema de identidad", () => {
   it("define miembros, cuentas y sesiones como tablas separadas", () => {
     expect(members).toBeDefined();
     expect(accounts).toBeDefined();
     expect(sessions).toBeDefined();
+    expect(auditEvents).toBeDefined();
     expect(editions).toBeDefined();
     expect(roleAssignments).toBeDefined();
   });

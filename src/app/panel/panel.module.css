@@ -28,6 +28,48 @@
   white-space: nowrap;
 }
 
+.headingActions {
+  align-items: flex-end;
+  display: grid;
+  gap: 20px;
+  justify-items: end;
+}
+
+.createForm {
+  display: grid;
+  gap: 8px;
+}
+
+.createForm label {
+  color: #687169;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.createControls {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.createControls input {
+  background: #fffdf9;
+  border: 1px solid #cfc8bd;
+  border-radius: 8px;
+  color: #1f2421;
+  font: inherit;
+  padding: 11px 12px;
+  width: 100px;
+}
+
+.createError {
+  color: #8b2e2e;
+  font-size: 0.78rem;
+  margin: 0;
+  max-width: 260px;
+  text-align: right;
+}
+
 .grid {
   display: grid;
   gap: 16px;
@@ -99,5 +141,15 @@
   .heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .headingActions {
+    align-items: start;
+    justify-items: start;
+    width: 100%;
+  }
+
+  .createError {
+    text-align: left;
   }
 }

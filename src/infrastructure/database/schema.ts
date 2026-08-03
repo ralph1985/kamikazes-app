@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -102,3 +103,17 @@ export const roleAssignments = pgTable(
     ),
   ],
 );
+
+export const auditEvents = pgTable("audit_events", {
+  id: primaryKey(),
+  memberId: uuid("member_id")
+    .notNull()
+    .references(() => members.id, { onDelete: "restrict" }),
+  action: text("action").notNull(),
+  area: text("area").notNull(),
+  entity: text("entity").notNull(),
+  entityId: uuid("entity_id").notNull(),
+  beforeValue: jsonb("before_value"),
+  afterValue: jsonb("after_value"),
+  createdAt: createdAt(),
+});

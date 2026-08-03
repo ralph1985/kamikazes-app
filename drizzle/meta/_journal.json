@@ -15,6 +15,13 @@
       "when": 1785704075024,
       "tag": "0001_numerous_titania",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785720938331,
+      "tag": "0002_flippant_talkback",
+      "breakpoints": true
     }
   ]
 }

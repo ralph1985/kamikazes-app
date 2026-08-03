@@ -9,6 +9,16 @@ export type RoleAssignment = {
   role: AuthorizationRole;
 };
 
+export function isGlobalAdministrator(assignments: RoleAssignment[], memberId: string): boolean {
+  return assignments.some(
+    (assignment) =>
+      assignment.memberId === memberId &&
+      assignment.editionId === null &&
+      assignment.area === "global" &&
+      assignment.role === "admin",
+  );
+}
+
 export function canRead(
   assignments: RoleAssignment[],
   memberId: string,
