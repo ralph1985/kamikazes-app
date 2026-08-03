@@ -131,7 +131,7 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
           {member ? `Hola, ${member.displayName}.` : "La vida de la peña, ordenada por ediciones."}
         </p>
         <p className={styles.credit}>
-          Hecho por Rafa ·{" "}
+          Made with ❤️ -{" "}
           <a href="https://conquense.dev/" rel="noreferrer" target="_blank">
             conquense.dev
           </a>
