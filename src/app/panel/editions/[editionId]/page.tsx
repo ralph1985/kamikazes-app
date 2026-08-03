@@ -18,8 +18,8 @@ const sections = [
   { key: "participants", label: "Participantes", available: true },
   { key: "budget", label: "Presupuesto", available: true },
   { key: "shopping", label: "Compras", available: false },
-  { key: "catering", label: "Catering", available: false },
   { key: "inventory", label: "Inventario", available: false },
+  { key: "catering", label: "Catering", available: false },
 ] as const;
 
 type PageProps = {
