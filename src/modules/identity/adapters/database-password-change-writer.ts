@@ -15,27 +15,27 @@ export function createDatabasePasswordChangeWriter(db: Database): PasswordChange
     async changePasswordAndRotateSession(input) {
       const token = randomBytes(32).toString("base64url");
 
-      await db.transaction(async (tx) => {
-        await tx
+      await db.batch([
+        db
           .update(accounts)
           .set({
             passwordHash: input.passwordHash,
             mustChangePassword: false,
             updatedAt: input.now,
           })
-          .where(eq(accounts.memberId, input.memberId));
-        await tx
+          .where(eq(accounts.memberId, input.memberId)),
+        db
           .update(sessions)
           .set({ revokedAt: input.now })
-          .where(eq(sessions.memberId, input.memberId));
-        await tx.insert(sessions).values({
+          .where(eq(sessions.memberId, input.memberId)),
+        db.insert(sessions).values({
           memberId: input.memberId,
           tokenHash: hashToken(token),
           expiresAt: input.expiresAt,
           createdAt: input.now,
           lastSeenAt: input.now,
-        });
-      });
+        }),
+      ]);
 
       return { token, expiresAt: input.expiresAt };
     },
