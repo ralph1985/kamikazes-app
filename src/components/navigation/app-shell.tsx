@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import packageJson from "../../../package.json";
 import styles from "./app-shell.module.css";
 
 type SessionMember = {
@@ -150,6 +151,7 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
             conquense.dev
           </a>
         </p>
+        <p className={styles.version}>v{packageJson.version}</p>
       </aside>
 
       <div className={styles.page}>
