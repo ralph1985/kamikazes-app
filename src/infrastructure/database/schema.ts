@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { createdAt, primaryKey, updatedAt } from "./columns";
+import { createdAt, money, primaryKey, updatedAt } from "./columns";
 
 export const members = pgTable("members", {
   id: primaryKey(),
@@ -88,6 +88,40 @@ export const editionParticipants = pgTable(
   },
   (table) => [
     uniqueIndex("edition_participants_edition_member_unique").on(table.editionId, table.memberId),
+  ],
+);
+
+export const budgetRates = pgTable(
+  "budget_rates",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    amount: money("amount").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [uniqueIndex("budget_rates_edition_name_unique").on(table.editionId, table.name)],
+);
+
+export const budgetParticipants = pgTable(
+  "budget_participants",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "restrict" }),
+    rateId: uuid("rate_id").references(() => budgetRates.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("budget_participants_edition_member_unique").on(table.editionId, table.memberId),
   ],
 );
 
