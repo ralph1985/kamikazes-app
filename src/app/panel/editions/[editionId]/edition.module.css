@@ -53,12 +53,16 @@
 }
 
 .sectionNav {
+  background: rgb(247 244 239 / 96%);
   border-bottom: 1px solid #ded8ce;
   display: flex;
   gap: 4px;
   margin-top: 42px;
   overflow-x: auto;
+  position: sticky;
+  top: var(--app-header-height, 58px);
   scrollbar-width: none;
+  z-index: 20;
 }
 
 .sectionNav::-webkit-scrollbar {
