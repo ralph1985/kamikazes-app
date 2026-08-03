@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getDatabase } from "@/infrastructure/database/client";
+import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { authenticateSession } from "@/modules/identity/application/session";
@@ -11,11 +12,13 @@ export async function GET(request: NextRequest) {
   const token = request.cookies.get("kamikazes_session")?.value;
 
   try {
+    const database = getDatabase();
     const member = await authenticateSession(token, {
-      sessions: createDatabaseSessionReader(getDatabase()),
+      sessions: createDatabaseSessionReader(database),
       clock: { now: () => new Date() },
     });
-    return apiSuccess(member);
+    const isAdmin = await createDatabaseGlobalAdminReader(database).isGlobalAdmin(member.memberId);
+    return apiSuccess({ ...member, isAdmin });
   } catch (error) {
     if (error instanceof IdentityError) {
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);

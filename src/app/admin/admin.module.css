@@ -1,0 +1,48 @@
+.page {
+  margin: 0 auto;
+  max-width: 1000px;
+  padding: 5vh 24px 12vh;
+}
+
+.page h1 {
+  margin: 16px 0 12px;
+}
+
+.intro {
+  color: #687169;
+  font-size: 1.05rem;
+  margin: 0 0 42px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.cardEyebrow {
+  color: #8b2e2e;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.card h2 {
+  font-size: 1.45rem;
+  margin: 12px 0 8px;
+}
+
+.card p:not(.cardEyebrow) {
+  color: #687169;
+  line-height: 1.5;
+  margin: 0 0 24px;
+}

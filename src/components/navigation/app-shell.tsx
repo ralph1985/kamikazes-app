@@ -7,6 +7,7 @@ import styles from "./app-shell.module.css";
 
 type SessionMember = {
   displayName: string;
+  isAdmin: boolean;
   mustChangePassword: boolean;
 };
 
@@ -110,6 +111,15 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
                 </div>
               ) : null}
             </div>
+          ) : null}
+          {member?.isAdmin ? (
+            <Link
+              className={`${styles.navLink} ${pathname === "/admin" ? styles.active : ""}`}
+              href="/admin"
+              onClick={() => setIsOpen(false)}
+            >
+              Administración
+            </Link>
           ) : null}
           {member ? (
             <button className={styles.navButton} onClick={handleLogout} type="button">
