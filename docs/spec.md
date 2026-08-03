@@ -377,6 +377,14 @@ Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya es
 - fotos, álbumes y su modelo de visibilidad;
 - notificaciones y otros módulos todavía no especificados.
 
+### Calidad y pruebas
+
+- La ampliación de las pruebas E2E autenticadas de administrador y editor queda
+  pospuesta hasta que la interfaz y los módulos principales hayan avanzado más.
+- Cuando se retome, se preparará un entorno aislado con cuentas sintéticas y
+  estados de sesión de Playwright; no se usarán credenciales ni datos de Neon
+  Production en esas pruebas.
+
 ## 7. Criterio de trabajo SDD
 
 Cada funcionalidad nueva deberá tener antes:

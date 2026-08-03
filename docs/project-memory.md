@@ -45,3 +45,4 @@ Kamikazes gestionará una peña con ediciones anuales, miembros permanentes, cue
 - El usuario prefiere avanzar por hitos y no hacer commits continuamente; commit/push sólo cuando lo solicite.
 - Las preguntas de requisitos pueden hacerse de una o dos en una, pero el interrogatorio se puede pausar para implementar.
 - Las decisiones pendientes están documentadas en `docs/spec.md`; no repetir preguntas ya respondidas.
+- La ampliación de E2E autenticados admin/editor queda pospuesta hasta que avance más la interfaz; al retomarla se usará un entorno aislado con cuentas sintéticas, nunca Neon Production.
