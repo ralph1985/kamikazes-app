@@ -14,51 +14,15 @@ export default async function PanelPage() {
   const token = (await cookies()).get("kamikazes_session")?.value;
   if (!token) redirect("/login");
 
+  let member: Awaited<ReturnType<typeof authenticateSession>>;
+  let editions: Awaited<ReturnType<typeof listEditions>>;
   try {
     const database = getDatabase();
-    const member = await authenticateSession(token, {
+    member = await authenticateSession(token, {
       sessions: createDatabaseSessionReader(database),
       clock: { now: () => new Date() },
     });
-    if (member.mustChangePassword) redirect("/change-password");
-
-    const editions = await listEditions(createDatabaseEditionReader(database));
-
-    return (
-      <div className={styles.page}>
-        <div className={styles.heading}>
-          <div>
-            <p className="eyebrow">Espacio privado</p>
-            <h1>Ediciones</h1>
-            <p className={styles.intro}>Todo lo que organizamos, año a año.</p>
-          </div>
-          <div className={styles.headingActions}>
-            <span className={styles.member}>Hola, {member.displayName}</span>
-          </div>
-        </div>
-        <section aria-label="Ediciones de Kamikazes" className={styles.grid}>
-          {editions.length ? (
-            editions.map((edition) => (
-              <article className={styles.card} id={`edition-${edition.id}`} key={edition.id}>
-                <div className={styles.cardTopline}>
-                  <span className={`${styles.badge} ${styles[edition.status]}`}>
-                    {edition.status === "open" ? "Abierta" : "Cerrada"}
-                  </span>
-                  <span className={styles.year}>Edición</span>
-                </div>
-                <h2>{edition.year}</h2>
-                <p>{edition.status === "open" ? "En curso" : "Sólo lectura"}</p>
-              </article>
-            ))
-          ) : (
-            <div className={styles.empty}>
-              <h2>Aún no hay ediciones</h2>
-              <p>Cuando creemos la primera, aparecerá aquí.</p>
-            </div>
-          )}
-        </section>
-      </div>
-    );
+    editions = await listEditions(createDatabaseEditionReader(database));
   } catch (error) {
     if (error instanceof IdentityError) redirect("/login");
 
@@ -72,4 +36,42 @@ export default async function PanelPage() {
       </div>
     );
   }
+
+  if (member.mustChangePassword) redirect("/change-password");
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.heading}>
+        <div>
+          <p className="eyebrow">Espacio privado</p>
+          <h1>Ediciones</h1>
+          <p className={styles.intro}>Todo lo que organizamos, año a año.</p>
+        </div>
+        <div className={styles.headingActions}>
+          <span className={styles.member}>Hola, {member.displayName}</span>
+        </div>
+      </div>
+      <section aria-label="Ediciones de Kamikazes" className={styles.grid}>
+        {editions.length ? (
+          editions.map((edition) => (
+            <article className={styles.card} id={`edition-${edition.id}`} key={edition.id}>
+              <div className={styles.cardTopline}>
+                <span className={`${styles.badge} ${styles[edition.status]}`}>
+                  {edition.status === "open" ? "Abierta" : "Cerrada"}
+                </span>
+                <span className={styles.year}>Edición</span>
+              </div>
+              <h2>{edition.year}</h2>
+              <p>{edition.status === "open" ? "En curso" : "Sólo lectura"}</p>
+            </article>
+          ))
+        ) : (
+          <div className={styles.empty}>
+            <h2>Aún no hay ediciones</h2>
+            <p>Cuando creemos la primera, aparecerá aquí.</p>
+          </div>
+        )}
+      </section>
+    </div>
+  );
 }
