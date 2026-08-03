@@ -6,6 +6,7 @@ import { createDatabaseSessionReader } from "@/modules/identity/adapters/databas
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import CreateEditionForm from "@/app/panel/create-edition-form";
+import MembersManager from "./members-manager";
 import styles from "./admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -50,12 +51,8 @@ export default async function AdminPage() {
           <p>Abre el año y prepara su organización.</p>
           <CreateEditionForm initialYear={new Date().getFullYear()} />
         </article>
-        <article className={styles.card}>
-          <p className={styles.cardEyebrow}>Próximamente</p>
-          <h2>Miembros y permisos</h2>
-          <p>La gestión de cuentas y roles se incorporará aquí.</p>
-        </article>
       </section>
+      <MembersManager />
     </div>
   );
 }

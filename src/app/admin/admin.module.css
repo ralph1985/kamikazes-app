@@ -46,3 +46,109 @@
   line-height: 1.5;
   margin: 0 0 24px;
 }
+
+.membersCard {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 16px;
+  margin-top: 16px;
+  padding: 24px;
+}
+
+.membersHeader {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.membersHeader h2 {
+  font-size: 1.45rem;
+  margin: 12px 0 8px;
+}
+.membersHeader p:last-child {
+  color: #687169;
+  margin: 0 0 20px;
+}
+.memberCount {
+  background: #f1ede5;
+  border-radius: 999px;
+  color: #8b2e2e;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+.membersList {
+  border-top: 1px solid #eee8de;
+}
+.memberRow {
+  align-items: center;
+  border-bottom: 1px solid #eee8de;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+.memberRow div {
+  display: grid;
+  gap: 5px;
+}
+.memberRow span {
+  color: #687169;
+  font-size: 0.9rem;
+}
+.memberRow button,
+.memberActions button {
+  background: #8b2e2e;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  padding: 9px 13px;
+}
+.memberActions {
+  display: flex;
+  gap: 8px;
+}
+.memberActions button:last-child {
+  background: #eee8de;
+  color: #1f2421;
+}
+.memberEditor {
+  border-bottom: 1px solid #eee8de;
+  display: grid;
+  gap: 12px;
+  padding: 18px 0;
+}
+.memberEditor label {
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 6px;
+}
+.memberEditor input:not([type="checkbox"]) {
+  border: 1px solid #cfc7ba;
+  border-radius: 8px;
+  font: inherit;
+  padding: 9px 10px;
+}
+.checkboxLabel {
+  align-items: center;
+  display: flex !important;
+  gap: 8px !important;
+}
+.checkboxLabel input {
+  accent-color: #8b2e2e;
+}
+.message {
+  color: #35633b;
+  margin: 0 0 12px;
+}
+
+@media (max-width: 600px) {
+  .memberRow {
+    align-items: start;
+    flex-direction: column;
+  }
+  .memberRow button {
+    width: 100%;
+  }
+}

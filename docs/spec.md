@@ -334,6 +334,7 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Los posibles duplicados de miembros se resolverán manualmente y no se fusionarán automáticamente.
 - La participación de un miembro en una edición será una relación independiente de su cuenta y de su participación económica o de catering.
 - La primera pantalla operativa de participantes permitirá consultar todos los miembros y activar o desactivar su participación anual sólo a administradores y editores de ediciones, mientras la edición permanezca abierta.
+- El panel de administración permitirá consultar todos los miembros y editar su nombre visible, nombre de usuario y estado de acceso; sólo el administrador podrá realizar esos cambios y cada campo modificado quedará auditado.
 - El Excel original permanecerá fuera de Git y del repositorio público; el repositorio sólo contendrá scripts, esquema y documentación de migración.
 
 ## 6. Decisiones pendientes
