@@ -58,6 +58,20 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
     };
   }, [pathname]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   async function handleLogout() {
     await fetch("/api/v1/auth/logout", { method: "POST" });
     setMember(null);
@@ -139,6 +153,14 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
       </aside>
 
       <div className={styles.page}>
+        {isOpen ? (
+          <button
+            aria-label="Cerrar menú"
+            className={styles.backdrop}
+            onClick={() => setIsOpen(false)}
+            type="button"
+          />
+        ) : null}
         <header className={styles.header}>
           <button
             aria-controls="main-navigation"

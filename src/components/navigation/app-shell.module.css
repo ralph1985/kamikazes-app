@@ -135,9 +135,25 @@
 
 .header {
   align-items: center;
+  background: rgb(247 244 239 / 94%);
+  border-bottom: 1px solid rgb(222 216 206 / 80%);
   display: flex;
   gap: 14px;
-  padding: 22px 24px;
+  min-height: 58px;
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.backdrop {
+  background: transparent;
+  border: 0;
+  cursor: default;
+  inset: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 20;
 }
 
 .menuButton {
@@ -172,6 +188,7 @@
 
 @media (min-width: 900px) {
   .header {
-    padding-left: 48px;
+    padding-left: 32px;
+    padding-right: 32px;
   }
 }
