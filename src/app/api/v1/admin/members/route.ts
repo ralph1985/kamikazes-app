@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     const assignments = await database
       .select({
         memberId: roleAssignments.memberId,
+        editionId: roleAssignments.editionId,
         role: roleAssignments.role,
         area: roleAssignments.area,
       })
@@ -63,6 +64,8 @@ export async function GET(request: NextRequest) {
         accountActive: row.accountActive ?? false,
         mustChangePassword: row.mustChangePassword ?? false,
         roles: [...(rolesByMember.get(row.id) ?? new Set(["Lector"]))],
+        assignments: assignments.filter((assignment) => assignment.memberId === row.id),
+        protectedAdmin: row.id === actor.memberId,
       })),
     );
   } catch (error) {

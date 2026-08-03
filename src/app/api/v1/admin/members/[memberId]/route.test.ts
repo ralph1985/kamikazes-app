@@ -9,7 +9,12 @@ describe("PATCH /api/v1/admin/members/:memberId", () => {
   it("rechaza un identificador inválido antes de consultar Neon", async () => {
     const request = new NextRequest("http://localhost/api/v1/admin/members/not-a-uuid", {
       method: "PATCH",
-      body: JSON.stringify({ displayName: "Rafa", username: "rafa", accountActive: true }),
+      body: JSON.stringify({
+        displayName: "Rafa",
+        username: "rafa",
+        accountActive: true,
+        assignments: [],
+      }),
       headers: { "content-type": "application/json" },
     });
 
@@ -23,7 +28,12 @@ describe("PATCH /api/v1/admin/members/:memberId", () => {
       "http://localhost/api/v1/admin/members/123e4567-e89b-12d3-a456-426614174000",
       {
         method: "PATCH",
-        body: JSON.stringify({ displayName: "Rafa", username: "rafa", accountActive: true }),
+        body: JSON.stringify({
+          displayName: "Rafa",
+          username: "rafa",
+          accountActive: true,
+          assignments: [],
+        }),
         headers: { "content-type": "application/json" },
       },
     );

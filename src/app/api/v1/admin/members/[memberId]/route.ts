@@ -2,7 +2,13 @@ import { eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getDatabase } from "@/infrastructure/database/client";
-import { accounts, auditEvents, members } from "@/infrastructure/database/schema";
+import {
+  accounts,
+  auditEvents,
+  editions,
+  members,
+  roleAssignments,
+} from "@/infrastructure/database/schema";
 import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
@@ -15,6 +21,15 @@ const updateInputSchema = z.object({
   displayName: z.string().trim().min(1).max(120),
   username: z.string().trim().min(1).max(60),
   accountActive: z.boolean(),
+  assignments: z
+    .array(
+      z.object({
+        editionId: z.uuid().nullable(),
+        area: z.enum(["editions", "budget", "shopping", "catering", "global"]),
+        role: z.enum(["admin", "editor"]),
+      }),
+    )
+    .max(40),
 });
 
 export async function PATCH(
@@ -71,6 +86,51 @@ export async function PATCH(
         .limit(1);
       if (current.length === 0) throw new Error("member_not_found");
 
+      const requestedGlobalAdmin = input.data.assignments.some(
+        (assignment) =>
+          assignment.area === "global" &&
+          assignment.role === "admin" &&
+          assignment.editionId === null,
+      );
+      if (actor.memberId === memberId && !requestedGlobalAdmin) {
+        throw new Error("last_admin_protection");
+      }
+      if (
+        input.data.assignments.some(
+          (assignment) =>
+            assignment.area === "global" &&
+            (assignment.role !== "admin" || assignment.editionId !== null),
+        )
+      )
+        throw new Error("invalid_assignment");
+      if (
+        input.data.assignments.some(
+          (assignment) =>
+            assignment.area !== "global" &&
+            (assignment.role !== "editor" || assignment.editionId === null),
+        )
+      )
+        throw new Error("invalid_assignment");
+      const availableEditionIds = new Set(
+        (await tx.select({ id: editions.id }).from(editions)).map((edition) => edition.id),
+      );
+      if (
+        input.data.assignments.some(
+          (assignment) =>
+            assignment.editionId !== null && !availableEditionIds.has(assignment.editionId),
+        )
+      )
+        throw new Error("invalid_assignment");
+      const beforeAssignments = await tx
+        .select({
+          id: roleAssignments.id,
+          editionId: roleAssignments.editionId,
+          area: roleAssignments.area,
+          role: roleAssignments.role,
+        })
+        .from(roleAssignments)
+        .where(eq(roleAssignments.memberId, memberId));
+
       const before = current[0];
       if (before.displayName !== input.data.displayName) {
         await tx
@@ -115,11 +175,58 @@ export async function PATCH(
           });
         }
       }
+      await tx.delete(roleAssignments).where(eq(roleAssignments.memberId, memberId));
+      if (input.data.assignments.length > 0) {
+        await tx
+          .insert(roleAssignments)
+          .values(input.data.assignments.map((assignment) => ({ ...assignment, memberId })));
+      }
+      const beforeRoleKeys = new Set(
+        beforeAssignments.map(
+          (assignment) =>
+            `${assignment.editionId ?? "global"}:${assignment.area}:${assignment.role}`,
+        ),
+      );
+      const afterRoleKeys = new Set(
+        input.data.assignments.map(
+          (assignment) =>
+            `${assignment.editionId ?? "global"}:${assignment.area}:${assignment.role}`,
+        ),
+      );
+      for (const key of beforeRoleKeys) {
+        if (!afterRoleKeys.has(key))
+          await tx
+            .insert(auditEvents)
+            .values({
+              memberId: actor.memberId,
+              action: "update",
+              area: "identity",
+              entity: "role_assignment",
+              entityId: memberId,
+              beforeValue: { assignment: key },
+              afterValue: null,
+            });
+      }
+      for (const key of afterRoleKeys) {
+        if (!beforeRoleKeys.has(key))
+          await tx
+            .insert(auditEvents)
+            .values({
+              memberId: actor.memberId,
+              action: "update",
+              area: "identity",
+              entity: "role_assignment",
+              entityId: memberId,
+              beforeValue: null,
+              afterValue: { assignment: key },
+            });
+      }
       return {
         id: memberId,
         displayName: input.data.displayName,
         username,
         accountActive: input.data.accountActive,
+        assignments: input.data.assignments,
       };
     });
     return apiSuccess(result);
@@ -128,6 +235,14 @@ export async function PATCH(
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);
     if (error instanceof Error && error.message === "member_not_found")
       return apiFailure("not_found", "No encontrado", 404);
+    if (error instanceof Error && error.message === "last_admin_protection")
+      return apiFailure(
+        "last_admin_protection",
+        "No puedes quitarte el último acceso de administrador",
+        409,
+      );
+    if (error instanceof Error && error.message === "invalid_assignment")
+      return apiFailure("invalid_assignment", "La asignación de permisos no es válida", 400);
     if (typeof error === "object" && error !== null && "code" in error && error.code === "23505") {
       return apiFailure("username_exists", "Ese nombre de usuario ya está en uso", 409);
     }

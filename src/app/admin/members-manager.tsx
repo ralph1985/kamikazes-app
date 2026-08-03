@@ -20,6 +20,17 @@ type Member = {
   accountActive: boolean;
   mustChangePassword: boolean;
   roles: SharedRole[];
+  assignments: RoleAssignment[];
+  protectedAdmin: boolean;
+};
+
+type RoleAssignment = { memberId: string; editionId: string | null; area: string; role: string };
+type AdminEdition = { id: string; year: number; status: string };
+const areaLabels: Record<string, string> = {
+  editions: "Ediciones",
+  budget: "Presupuesto",
+  shopping: "Compras e inventario",
+  catering: "Catering",
 };
 
 export default function MembersManager() {
@@ -29,14 +40,26 @@ export default function MembersManager() {
   const [message, setMessage] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [availableEditions, setAvailableEditions] = useState<AdminEdition[]>([]);
+  const [draftAssignments, setDraftAssignments] = useState<RoleAssignment[]>([]);
 
   useEffect(() => {
-    fetch("/api/v1/admin/members")
-      .then(async (response) => {
-        const result = (await response.json()) as { data?: Member[]; error?: { message: string } };
-        if (!response.ok || !result.data)
-          throw new Error(result.error?.message ?? "No se pudieron cargar los miembros");
-        setMembers(result.data);
+    Promise.all([fetch("/api/v1/admin/members"), fetch("/api/v1/admin/roles")])
+      .then(async ([membersResponse, rolesResponse]) => {
+        const membersResult = (await membersResponse.json()) as {
+          data?: Member[];
+          error?: { message: string };
+        };
+        const rolesResult = (await rolesResponse.json()) as {
+          data?: { editions: AdminEdition[] };
+          error?: { message: string };
+        };
+        if (!membersResponse.ok || !membersResult.data)
+          throw new Error(membersResult.error?.message ?? "No se pudieron cargar los miembros");
+        if (!rolesResponse.ok || !rolesResult.data)
+          throw new Error(rolesResult.error?.message ?? "No se pudieron cargar los permisos");
+        setMembers(membersResult.data);
+        setAvailableEditions(rolesResult.data.editions);
       })
       .catch((error: unknown) =>
         setMessage(error instanceof Error ? error.message : "No se pudieron cargar los miembros"),
@@ -51,7 +74,40 @@ export default function MembersManager() {
       username: member.username,
       accountActive: member.accountActive,
     });
+    setDraftAssignments(member.assignments);
     setMessage(null);
+  }
+
+  function hasAssignment(area: string, editionId: string | null) {
+    return draftAssignments.some(
+      (assignment) =>
+        assignment.area === area &&
+        assignment.editionId === editionId &&
+        assignment.role === "editor",
+    );
+  }
+
+  function isGlobalAdmin() {
+    return draftAssignments.some(
+      (assignment) =>
+        assignment.area === "global" &&
+        assignment.editionId === null &&
+        assignment.role === "admin",
+    );
+  }
+
+  function toggleAssignment(area: string, editionId: string | null, enabled: boolean) {
+    setDraftAssignments((current) => {
+      const filtered = current.filter(
+        (assignment) => !(assignment.area === area && assignment.editionId === editionId),
+      );
+      return enabled
+        ? [
+            ...filtered,
+            { memberId: "", area, editionId, role: area === "global" ? "admin" : "editor" },
+          ]
+        : filtered;
+    });
   }
 
   const filteredMembers = members.filter((member) =>
@@ -65,7 +121,14 @@ export default function MembersManager() {
     const response = await fetch(`/api/v1/admin/members/${memberId}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(draft),
+      body: JSON.stringify({
+        ...draft,
+        assignments: draftAssignments.map(({ editionId, area, role }) => ({
+          editionId,
+          area,
+          role,
+        })),
+      }),
     });
     const result = (await response.json()) as { data?: Member; error?: { message: string } };
     if (!response.ok || !result.data) {
@@ -136,6 +199,35 @@ export default function MembersManager() {
                   />{" "}
                   Cuenta activa
                 </label>
+                <fieldset className={styles.rolesFieldset}>
+                  <legend>Permisos</legend>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      checked={isGlobalAdmin()}
+                      disabled={member.protectedAdmin}
+                      onChange={(event) => toggleAssignment("global", null, event.target.checked)}
+                      type="checkbox"
+                    />{" "}
+                    Administrador global{member.protectedAdmin ? " · protegido" : ""}
+                  </label>
+                  {availableEditions.map((edition) => (
+                    <div className={styles.editionRoles} key={edition.id}>
+                      <strong>{edition.year}</strong>
+                      {Object.entries(areaLabels).map(([area, label]) => (
+                        <label className={styles.checkboxLabel} key={area}>
+                          <input
+                            checked={hasAssignment(area, edition.id)}
+                            onChange={(event) =>
+                              toggleAssignment(area, edition.id, event.target.checked)
+                            }
+                            type="checkbox"
+                          />{" "}
+                          Editor de {label.toLowerCase()}
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </fieldset>
                 <div className={styles.memberActions}>
                   <button onClick={() => void save(member.id)} type="button">
                     Guardar

@@ -143,6 +143,30 @@
   margin: 0 0 12px;
 }
 
+.rolesFieldset {
+  border: 1px solid #ded8ce;
+  border-radius: 10px;
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 12px;
+}
+.rolesFieldset legend {
+  color: #687169;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0 5px;
+}
+.editionRoles {
+  border-top: 1px solid #eee8de;
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+}
+.editionRoles strong {
+  font-size: 0.88rem;
+}
+
 @media (max-width: 600px) {
   .memberRow {
     align-items: start;
