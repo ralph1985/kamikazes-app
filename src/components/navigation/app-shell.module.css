@@ -1,7 +1,7 @@
 .viewport {
   --app-header-height: 58px;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   position: relative;
 }
 
