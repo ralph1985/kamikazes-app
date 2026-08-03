@@ -167,6 +167,9 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - La API se expondrá mediante Route Handlers de Next.js con una interfaz REST explícita.
 - El frontend y la API se implementarán como una aplicación única de Next.js con TypeScript.
 - Los estilos del frontend usarán CSS Modules por componente y un `globals.css` limitado a variables de diseño y estilos base; no se adoptará un framework CSS externo en el MVP.
+- Las listas privadas y administrativas seguirán un patrón visual común de filas compactas y reutilizables: contenido principal a la izquierda, metadatos y roles visibles en el primer vistazo, y acciones con iconos accesibles a la derecha.
+- Este patrón se implementará mediante componentes compartidos, no mediante estilos o estructuras duplicadas por pantalla. Las variantes sólo añadirán el comportamiento propio de cada módulo.
+- Los roles se mostrarán con una presentación homogénea (`Administrador`, `Editor` o `Lector`) y los botones de acción tendrán siempre nombre accesible, estado visible y comportamiento responsive.
 - El acceso a Neon y las migraciones se gestionarán con Drizzle ORM.
 - Se usará una única base de datos Neon de producción; no se crearán ramas persistentes de Neon para previews.
 - Las sesiones se persistirán en Neon para poder invalidarlas al desactivar miembros.
