@@ -13,7 +13,7 @@ El sistema deberá contemplar, como mínimo:
 - ediciones anuales del evento;
 - usuarios, miembros y participación en una edición;
 - miembros permanentes con estado de cuenta activable o desactivable;
-- participación anual independiente, incluyendo años sin participación económica;
+- participación anual y económica unificadas, incluyendo años sin participación;
 - tarifas configurables por edición y asignables a los miembros participantes de ese año;
 - autenticación y autorización por roles;
 - alta inicial de miembros realizada manualmente por el propietario del proyecto;
@@ -335,10 +335,10 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - El administrador no podrá quitarse a sí mismo el último rol de administrador.
 - La migración tendrá primero un modo de análisis sin escritura que generará un informe de duplicados, datos incompletos y conflictos.
 - Los posibles duplicados de miembros se resolverán manualmente y no se fusionarán automáticamente.
-- La participación de un miembro en una edición será una relación independiente de su cuenta y de su participación económica o de catering.
-- La primera pantalla operativa de participantes permitirá consultar todos los miembros y activar o desactivar su participación anual sólo a administradores y editores de ediciones, mientras la edición permanezca abierta.
-- La participación económica será independiente de la participación anual: sólo los miembros incluidos en una edición podrán activarse económicamente, asignarse a una tarifa de esa edición y aparecer en el total previsto.
-- La primera rebanada de presupuesto permitirá crear tarifas con nombre e importe, activar o desactivar la participación económica y asignar una tarifa; sólo administrador y editor de presupuesto podrán modificarlo mientras la edición esté abierta.
+- La participación de un miembro en una edición implica su participación económica en esa edición y es independiente de su cuenta y del catering.
+- La primera pantalla operativa de participantes permitirá consultar todos los miembros, activar o desactivar su participación anual/económica y asignar su tarifa; sólo administradores y editores de presupuesto podrán modificarla mientras la edición permanezca abierta.
+- El catering tendrá su propia relación independiente: una persona podrá participar sólo en presupuesto, sólo en catering o en ambos.
+- La primera rebanada de presupuesto permitirá crear tarifas con nombre e importe y mostrará el resumen económico; la asignación individual se hará desde Participantes.
 - El panel de administración permitirá consultar todos los miembros y editar su nombre visible, nombre de usuario y estado de acceso; sólo el administrador podrá realizar esos cambios y cada campo modificado quedará auditado.
 - El Excel original permanecerá fuera de Git y del repositorio público; el repositorio sólo contendrá scripts, esquema y documentación de migración.
 

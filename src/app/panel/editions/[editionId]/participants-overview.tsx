@@ -9,10 +9,9 @@ type Participant = {
   memberId: string;
   displayName: string;
   participating: boolean;
-  economicParticipating: boolean;
   rateId: string | null;
 };
-type BudgetParticipant = { memberId: string; participating: boolean; rateId: string | null };
+type BudgetParticipant = { memberId: string; rateId: string | null };
 
 export default function ParticipantsOverview({
   editionId,
@@ -40,18 +39,15 @@ export default function ParticipantsOverview({
         if (!participantsResponse.ok || !participantsResult.data)
           throw new Error(participantsResult.error?.message ?? "No se pudo cargar la lista");
         if (!budgetResponse.ok || !budgetResult.data)
-          throw new Error(
-            budgetResult.error?.message ?? "No se pudo cargar la configuración económica",
-          );
-        const budgetByMember = new Map(
-          budgetResult.data.participants.map((item) => [item.memberId, item]),
+          throw new Error(budgetResult.error?.message ?? "No se pudo cargar las tarifas");
+        const ratesByMember = new Map(
+          budgetResult.data.participants.map((item) => [item.memberId, item.rateId]),
         );
         setRates(budgetResult.data.rates);
         setParticipants(
           participantsResult.data.map((item) => ({
             ...item,
-            economicParticipating: budgetByMember.get(item.memberId)?.participating ?? false,
-            rateId: budgetByMember.get(item.memberId)?.rateId ?? null,
+            rateId: ratesByMember.get(item.memberId) ?? null,
           })),
         );
       })
@@ -76,52 +72,42 @@ export default function ParticipantsOverview({
     setParticipants((current) =>
       current.map((item) =>
         item.memberId === memberId
-          ? {
-              ...item,
-              participating,
-              economicParticipating: participating ? item.economicParticipating : false,
-              rateId: participating ? item.rateId : null,
-            }
+          ? { ...item, participating, rateId: participating ? item.rateId : null }
           : item,
       ),
     );
   }
 
-  async function updateEconomic(memberId: string, participating: boolean, rateId: string | null) {
+  async function updateRate(memberId: string, rateId: string | null) {
     setError(null);
     const response = await fetch(`/api/v1/editions/${editionId}/budget`, {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ memberId, participating, rateId }),
+      body: JSON.stringify({ memberId, rateId }),
     });
     if (!response.ok) {
       const result = (await response.json()) as { error?: { message: string } };
-      setError(result.error?.message ?? "No se pudo actualizar la participación económica");
+      setError(result.error?.message ?? "No se pudo asignar la tarifa");
       return;
     }
     setParticipants((current) =>
-      current.map((item) =>
-        item.memberId === memberId
-          ? { ...item, economicParticipating: participating, rateId: participating ? rateId : null }
-          : item,
-      ),
+      current.map((item) => (item.memberId === memberId ? { ...item, rateId } : item)),
     );
   }
 
-  const annualCount = participants.filter((item) => item.participating).length;
-  const economicCount = participants.filter((item) => item.economicParticipating).length;
-
+  const count = participants.filter((item) => item.participating).length;
   return (
     <div className={styles.budgetLayout}>
       <div className={styles.budgetHeader}>
         <div>
           <p className="eyebrow">Organización de la edición</p>
           <h2>Participantes {year}</h2>
-          <p>En esta lista se decide tanto la participación anual como la económica y su tarifa.</p>
+          <p>
+            Participar en la edición implica participar en su presupuesto. El catering se gestionará
+            aparte.
+          </p>
         </div>
-        <span className={styles.budgetState}>
-          {annualCount} edición · {economicCount} presupuesto
-        </span>
+        <span className={styles.budgetState}>{count} participantes</span>
       </div>
       {error ? (
         <p role="alert" className={styles.error}>
@@ -136,48 +122,27 @@ export default function ParticipantsOverview({
         <CompactList>
           {participants.map((participant) => (
             <CompactListRow
-              key={participant.memberId}
               action={
-                <div className={styles.participantControls}>
-                  <label>
-                    <input
-                      aria-label={`Incluir a ${participant.displayName} en la edición`}
-                      checked={participant.participating}
-                      onChange={(event) =>
-                        void updateAnnual(participant.memberId, event.target.checked)
-                      }
-                      type="checkbox"
-                    />{" "}
-                    Edición
-                  </label>
-                  <label>
-                    <input
-                      aria-label={`Incluir a ${participant.displayName} en el presupuesto`}
-                      checked={participant.economicParticipating}
-                      disabled={!participant.participating}
-                      onChange={(event) =>
-                        void updateEconomic(
-                          participant.memberId,
-                          event.target.checked,
-                          participant.rateId,
-                        )
-                      }
-                      type="checkbox"
-                    />{" "}
-                    Presupuesto
-                  </label>
-                </div>
+                <input
+                  aria-label={`Incluir a ${participant.displayName} en la edición`}
+                  checked={participant.participating}
+                  onChange={(event) =>
+                    void updateAnnual(participant.memberId, event.target.checked)
+                  }
+                  type="checkbox"
+                />
               }
+              key={participant.memberId}
               meta={
                 <select
                   aria-label={`Tarifa de ${participant.displayName}`}
-                  disabled={!participant.economicParticipating}
+                  disabled={!participant.participating}
                   onChange={(event) =>
-                    void updateEconomic(participant.memberId, true, event.target.value || null)
+                    void updateRate(participant.memberId, event.target.value || null)
                   }
                   value={participant.rateId ?? ""}
                 >
-                  <option value="">Sin tarifa</option>
+                  <option value="">Sin asignar</option>
                   {rates.map((rate) => (
                     <option key={rate.id} value={rate.id}>
                       {rate.name}
@@ -189,9 +154,9 @@ export default function ParticipantsOverview({
               <strong>{participant.displayName}</strong>
               <small>
                 {participant.participating
-                  ? participant.economicParticipating
+                  ? participant.rateId
                     ? "Participa en edición y presupuesto"
-                    : "Sólo participa en la edición"
+                    : "Participa · tarifa sin asignar"
                   : "No participa este año"}
               </small>
             </CompactListRow>

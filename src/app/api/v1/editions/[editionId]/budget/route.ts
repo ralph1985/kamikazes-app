@@ -5,7 +5,6 @@ import { z } from "zod";
 import { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
-  budgetParticipants,
   budgetRates,
   editionParticipants,
   editions,
@@ -19,17 +18,11 @@ import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
-
 const rateInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
   amount: z.number().finite().min(0).max(9999999999.99),
 });
-
-const participantInputSchema = z.object({
-  memberId: z.uuid(),
-  participating: z.boolean(),
-  rateId: z.uuid().nullable(),
-});
+const rateAssignmentSchema = z.object({ memberId: z.uuid(), rateId: z.uuid().nullable() });
 
 async function authenticate(request: NextRequest) {
   const token = request.cookies.get("kamikazes_session")?.value;
@@ -82,8 +75,7 @@ export async function GET(
         .select({
           memberId: members.id,
           displayName: members.displayName,
-          participating: budgetParticipants.memberId,
-          rateId: budgetParticipants.rateId,
+          rateId: editionParticipants.rateId,
           rateName: budgetRates.name,
           rateAmount: budgetRates.amount,
         })
@@ -95,19 +87,12 @@ export async function GET(
             eq(editionParticipants.editionId, editionId),
           ),
         )
-        .leftJoin(
-          budgetParticipants,
-          and(
-            eq(budgetParticipants.memberId, members.id),
-            eq(budgetParticipants.editionId, editionId),
-          ),
-        )
-        .leftJoin(budgetRates, eq(budgetRates.id, budgetParticipants.rateId))
+        .leftJoin(budgetRates, eq(budgetRates.id, editionParticipants.rateId))
         .orderBy(asc(members.displayName)),
     ]);
     return apiSuccess({
       rates,
-      participants: rows.map((row) => ({ ...row, participating: row.participating !== null })),
+      participants: rows.map((row) => ({ ...row, participating: true })),
     });
   } catch (error) {
     if (error instanceof IdentityError)
@@ -151,17 +136,15 @@ export async function POST(
         amount: input.data.amount.toFixed(2),
       };
       await tx.insert(budgetRates).values(rate);
-      await tx
-        .insert(auditEvents)
-        .values({
-          memberId: member.memberId,
-          action: "create",
-          area: "budget",
-          entity: "budget_rate",
-          entityId: rateId,
-          beforeValue: null,
-          afterValue: rate,
-        });
+      await tx.insert(auditEvents).values({
+        memberId: member.memberId,
+        action: "create",
+        area: "budget",
+        entity: "budget_rate",
+        entityId: rateId,
+        beforeValue: null,
+        afterValue: rate,
+      });
       return rate;
     });
     return apiSuccess(result, 201);
@@ -191,9 +174,9 @@ export async function PUT(
   } catch {
     return apiFailure("invalid_request", "El cuerpo debe ser JSON válido", 400);
   }
-  const input = participantInputSchema.safeParse(body);
+  const input = rateAssignmentSchema.safeParse(body);
   if (!input.success)
-    return apiFailure("invalid_request", "La participación económica no es válida", 400);
+    return apiFailure("invalid_request", "La asignación de tarifa no es válida", 400);
   try {
     const { database, member } = await authenticate(request);
     if (!(await canEditBudget(database, member.memberId, editionId)))
@@ -206,8 +189,8 @@ export async function PUT(
         .limit(1);
       if (edition.length === 0) throw new Error("edition_not_found");
       if (edition[0].status === "closed") throw new Error("edition_closed");
-      const annual = await tx
-        .select({ id: editionParticipants.id })
+      const participant = await tx
+        .select({ id: editionParticipants.id, rateId: editionParticipants.rateId })
         .from(editionParticipants)
         .where(
           and(
@@ -216,7 +199,7 @@ export async function PUT(
           ),
         )
         .limit(1);
-      if (annual.length === 0) throw new Error("not_annual_participant");
+      if (participant.length === 0) throw new Error("not_annual_participant");
       if (input.data.rateId) {
         const rate = await tx
           .select({ id: budgetRates.id })
@@ -225,48 +208,20 @@ export async function PUT(
           .limit(1);
         if (rate.length === 0) throw new Error("rate_not_found");
       }
-      const before = await tx
-        .select({ id: budgetParticipants.id, rateId: budgetParticipants.rateId })
-        .from(budgetParticipants)
-        .where(
-          and(
-            eq(budgetParticipants.editionId, editionId),
-            eq(budgetParticipants.memberId, input.data.memberId),
-          ),
-        )
-        .limit(1);
-      if (input.data.participating) {
-        if (before.length === 0)
-          await tx
-            .insert(budgetParticipants)
-            .values({ editionId, memberId: input.data.memberId, rateId: input.data.rateId });
-        else
-          await tx
-            .update(budgetParticipants)
-            .set({ rateId: input.data.rateId, updatedAt: new Date() })
-            .where(eq(budgetParticipants.id, before[0].id));
-      } else if (before.length > 0)
-        await tx.delete(budgetParticipants).where(eq(budgetParticipants.id, before[0].id));
       await tx
-        .insert(auditEvents)
-        .values({
-          memberId: member.memberId,
-          action: "update",
-          area: "budget",
-          entity: "budget_participant",
-          entityId: input.data.memberId,
-          beforeValue: { participating: before.length > 0, rateId: before[0]?.rateId ?? null },
-          afterValue: {
-            participating: input.data.participating,
-            rateId: input.data.participating ? input.data.rateId : null,
-            editionId,
-          },
-        });
-      return {
-        memberId: input.data.memberId,
-        participating: input.data.participating,
-        rateId: input.data.participating ? input.data.rateId : null,
-      };
+        .update(editionParticipants)
+        .set({ rateId: input.data.rateId, updatedAt: new Date() })
+        .where(eq(editionParticipants.id, participant[0].id));
+      await tx.insert(auditEvents).values({
+        memberId: member.memberId,
+        action: "update",
+        area: "budget",
+        entity: "edition_participant",
+        entityId: input.data.memberId,
+        beforeValue: { rateId: participant[0].rateId },
+        afterValue: { rateId: input.data.rateId, editionId },
+      });
+      return { memberId: input.data.memberId, rateId: input.data.rateId };
     });
     return apiSuccess(result);
   } catch (error) {
@@ -280,10 +235,6 @@ export async function PUT(
       return apiFailure("invalid_request", "El miembro no participa en esta edición", 409);
     if (error instanceof Error && error.message === "rate_not_found")
       return apiFailure("invalid_request", "La tarifa no pertenece a esta edición", 409);
-    return apiFailure(
-      "budget_unavailable",
-      "No se ha podido actualizar la participación económica",
-      503,
-    );
+    return apiFailure("budget_unavailable", "No se ha podido actualizar la tarifa", 503);
   }
 }

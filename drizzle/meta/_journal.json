@@ -36,6 +36,13 @@
       "when": 1785781247754,
       "tag": "0004_mighty_whirlwind",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785784562528,
+      "tag": "0005_even_bloodstrike",
+      "breakpoints": true
     }
   ]
 }

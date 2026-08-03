@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   accounts,
   auditEvents,
-  budgetParticipants,
   budgetRates,
   editionParticipants,
   editions,
@@ -21,6 +20,5 @@ describe("esquema de identidad", () => {
     expect(roleAssignments).toBeDefined();
     expect(editionParticipants).toBeDefined();
     expect(budgetRates).toBeDefined();
-    expect(budgetParticipants).toBeDefined();
   });
 });
