@@ -25,3 +25,8 @@ test("el panel de administración redirige al login sin sesión", async ({ page 
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/login$/);
 });
+
+test("el detalle de una edición redirige al login sin sesión", async ({ page }) => {
+  await page.goto("/panel/editions/edition-2026");
+  await expect(page).toHaveURL(/\/login$/);
+});

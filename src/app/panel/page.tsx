@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDatabase } from "@/infrastructure/database/client";
 import { createDatabaseEditionReader } from "@/modules/editions/adapters/database-edition-reader";
@@ -54,16 +55,23 @@ export default async function PanelPage() {
       <section aria-label="Ediciones de Kamikazes" className={styles.grid}>
         {editions.length ? (
           editions.map((edition) => (
-            <article className={styles.card} id={`edition-${edition.id}`} key={edition.id}>
-              <div className={styles.cardTopline}>
-                <span className={`${styles.badge} ${styles[edition.status]}`}>
-                  {edition.status === "open" ? "Abierta" : "Cerrada"}
-                </span>
-                <span className={styles.year}>Edición</span>
-              </div>
-              <h2>{edition.year}</h2>
-              <p>{edition.status === "open" ? "En curso" : "Sólo lectura"}</p>
-            </article>
+            <Link
+              className={styles.cardLink}
+              href={`/panel/editions/${edition.id}`}
+              key={edition.id}
+            >
+              <article className={styles.card}>
+                <div className={styles.cardTopline}>
+                  <span className={`${styles.badge} ${styles[edition.status]}`}>
+                    {edition.status === "open" ? "Abierta" : "Cerrada"}
+                  </span>
+                  <span className={styles.year}>Edición</span>
+                </div>
+                <h2>{edition.year}</h2>
+                <p>{edition.status === "open" ? "En curso" : "Sólo lectura"}</p>
+                <span className={styles.cardAction}>Ver edición →</span>
+              </article>
+            </Link>
           ))
         ) : (
           <div className={styles.empty}>

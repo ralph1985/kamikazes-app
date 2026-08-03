@@ -1,0 +1,135 @@
+.page {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 4vh 24px 12vh;
+}
+
+.backLink {
+  color: #687169;
+  display: inline-block;
+  font-size: 0.88rem;
+  margin-bottom: 38px;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: #8b2e2e;
+}
+
+.header {
+  align-items: flex-end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.header h1 {
+  margin: 16px 0 10px;
+}
+
+.description {
+  color: #687169;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.status {
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
+.open {
+  background: #e3f0e4;
+  color: #35633b;
+}
+
+.closed {
+  background: #ece9e3;
+  color: #687169;
+}
+
+.sectionNav {
+  border-bottom: 1px solid #ded8ce;
+  display: flex;
+  gap: 4px;
+  margin-top: 42px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sectionNav::-webkit-scrollbar {
+  display: none;
+}
+
+.sectionNav a {
+  border-bottom: 3px solid transparent;
+  color: #687169;
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+  padding: 13px 14px 11px;
+  text-decoration: none;
+}
+
+.sectionNav a:hover,
+.sectionNav a.selected {
+  border-bottom-color: #d95d39;
+  color: #1f2421;
+}
+
+.content {
+  padding-top: 28px;
+}
+
+.welcome,
+.comingSoon {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 18px;
+  padding: 28px;
+}
+
+.welcome h2,
+.comingSoon h2 {
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  margin: 12px 0;
+}
+
+.welcome p:last-child,
+.comingSoon p:last-child {
+  color: #687169;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 620px;
+}
+
+.comingSoon {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+}
+
+.sectionNumber {
+  color: #d95d39;
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  line-height: 0.9;
+}
+
+@media (max-width: 600px) {
+  .header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .sectionNav {
+    margin-left: -24px;
+    margin-right: -24px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

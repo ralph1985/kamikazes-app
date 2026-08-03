@@ -101,7 +101,7 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
                   {editions.map((edition) => (
                     <Link
                       className={styles.submenuLink}
-                      href={`/panel#edition-${edition.id}`}
+                      href={`/panel/editions/${edition.id}`}
                       key={edition.id}
                       onClick={() => setIsOpen(false)}
                     >
