@@ -256,6 +256,23 @@
   margin-top: 18px;
 }
 
+.participantControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.participantControls label {
+  align-items: center;
+  color: #687169;
+  display: inline-flex;
+  font-size: 0.72rem;
+  gap: 4px;
+  white-space: nowrap;
+}
+.participantControls input {
+  accent-color: #8b2e2e;
+}
+
 .welcome h2,
 .comingSoon h2 {
   font-size: clamp(1.6rem, 4vw, 2.5rem);

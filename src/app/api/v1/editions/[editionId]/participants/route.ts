@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
+  budgetParticipants,
   editionParticipants,
   editions,
   roleAssignments,
@@ -119,6 +120,14 @@ export async function PUT(
         });
       } else if (!input.data.participating && before.length > 0) {
         await tx.delete(editionParticipants).where(eq(editionParticipants.id, before[0].id));
+        await tx
+          .delete(budgetParticipants)
+          .where(
+            and(
+              eq(budgetParticipants.editionId, editionId),
+              eq(budgetParticipants.memberId, input.data.memberId),
+            ),
+          );
       }
       await tx.insert(auditEvents).values({
         memberId: actor.memberId,
