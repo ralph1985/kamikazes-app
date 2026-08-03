@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CompactList, CompactListRow } from "@/components/lists/compact-list";
 import styles from "./edition.module.css";
 
 type Participant = {
@@ -70,28 +71,28 @@ export default function ParticipantsOverview({
           {error}
         </p>
       ) : null}
-      <div className={styles.participantList}>
+      <CompactList>
         {participants.map((participant) => (
-          <label className={styles.participantRow} key={participant.memberId}>
-            <span>
-              <strong>{participant.displayName}</strong>
-              <small>
-                {participant.participating
-                  ? "Forma parte de esta edición"
-                  : "No participa este año"}
-              </small>
-            </span>
-            <input
-              aria-label={`Incluir a ${participant.displayName}`}
-              checked={participant.participating}
-              onChange={(event) =>
-                void toggleParticipant(participant.memberId, event.target.checked)
-              }
-              type="checkbox"
-            />
-          </label>
+          <CompactListRow
+            action={
+              <input
+                aria-label={`Incluir a ${participant.displayName}`}
+                checked={participant.participating}
+                onChange={(event) =>
+                  void toggleParticipant(participant.memberId, event.target.checked)
+                }
+                type="checkbox"
+              />
+            }
+            key={participant.memberId}
+          >
+            <strong>{participant.displayName}</strong>
+            <small>
+              {participant.participating ? "Forma parte de esta edición" : "No participa este año"}
+            </small>
+          </CompactListRow>
         ))}
-      </div>
+      </CompactList>
     </div>
   );
 }

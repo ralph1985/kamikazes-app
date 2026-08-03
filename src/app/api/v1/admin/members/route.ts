@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { getDatabase } from "@/infrastructure/database/client";
-import { accounts, members } from "@/infrastructure/database/schema";
+import { accounts, members, roleAssignments } from "@/infrastructure/database/schema";
 import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
@@ -36,7 +36,35 @@ export async function GET(request: NextRequest) {
       .leftJoin(accounts, eq(accounts.memberId, members.id))
       .orderBy(asc(members.displayName));
 
-    return apiSuccess(rows);
+    const assignments = await database
+      .select({
+        memberId: roleAssignments.memberId,
+        role: roleAssignments.role,
+        area: roleAssignments.area,
+      })
+      .from(roleAssignments);
+    const rolesByMember = new Map<string, Set<string>>();
+    for (const assignment of assignments) {
+      const roles = rolesByMember.get(assignment.memberId) ?? new Set<string>();
+      roles.add(
+        assignment.role === "admin" && assignment.area === "global"
+          ? "Administrador"
+          : assignment.role === "editor"
+            ? "Editor"
+            : "Lector",
+      );
+      rolesByMember.set(assignment.memberId, roles);
+    }
+
+    return apiSuccess(
+      rows.map((row) => ({
+        ...row,
+        username: row.username ?? "sin cuenta",
+        accountActive: row.accountActive ?? false,
+        mustChangePassword: row.mustChangePassword ?? false,
+        roles: [...(rolesByMember.get(row.id) ?? new Set(["Lector"]))],
+      })),
+    );
   } catch (error) {
     if (error instanceof IdentityError)
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);

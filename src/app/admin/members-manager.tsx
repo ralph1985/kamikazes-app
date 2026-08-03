@@ -1,6 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  CompactList,
+  CompactListRow,
+  EditIcon,
+  IconButton,
+  RoleBadge,
+  StatusBadge,
+  type SharedRole,
+} from "@/components/lists/compact-list";
 import styles from "./admin.module.css";
 
 type Member = {
@@ -9,6 +18,7 @@ type Member = {
   username: string;
   accountActive: boolean;
   mustChangePassword: boolean;
+  roles: SharedRole[];
 };
 
 export default function MembersManager() {
@@ -74,7 +84,7 @@ export default function MembersManager() {
           {message}
         </p>
       ) : null}
-      <div className={styles.membersList}>
+      <CompactList>
         {members.map((member) =>
           editing === member.id ? (
             <div className={styles.memberEditor} key={member.id}>
@@ -110,21 +120,31 @@ export default function MembersManager() {
               </div>
             </div>
           ) : (
-            <div className={styles.memberRow} key={member.id}>
-              <div>
-                <strong>{member.displayName}</strong>
-                <span>
-                  {member.username} ·{" "}
-                  {member.accountActive ? "Acceso activo" : "Acceso desactivado"}
-                </span>
-              </div>
-              <button onClick={() => startEditing(member)} type="button">
-                Editar
-              </button>
-            </div>
+            <CompactListRow
+              action={
+                <IconButton
+                  label={`Editar a ${member.displayName}`}
+                  onClick={() => startEditing(member)}
+                >
+                  <EditIcon />
+                </IconButton>
+              }
+              key={member.id}
+              meta={
+                <>
+                  {member.roles.map((role) => (
+                    <RoleBadge key={role} role={role} />
+                  ))}
+                  <StatusBadge active={member.accountActive} />
+                </>
+              }
+            >
+              <strong>{member.displayName}</strong>
+              <small>{member.username}</small>
+            </CompactListRow>
           ),
         )}
-      </div>
+      </CompactList>
     </section>
   );
 }

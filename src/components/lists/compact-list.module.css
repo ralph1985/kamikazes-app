@@ -1,0 +1,112 @@
+.list {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.row {
+  align-items: center;
+  border-bottom: 1px solid #eee8de;
+  display: flex;
+  gap: 14px;
+  min-height: 62px;
+  padding: 10px 14px 10px 18px;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.content {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 0;
+}
+.content strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.content small {
+  color: #687169;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+}
+.action {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+.badge,
+.status {
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+.administrador {
+  background: #f7ded8;
+  color: #8b2e2e;
+}
+.editor {
+  background: #fff0d6;
+  color: #8a5a20;
+}
+.lector {
+  background: #e8eee8;
+  color: #35633b;
+}
+.status {
+  font-weight: 600;
+}
+.active {
+  background: #e3f0e4;
+  color: #35633b;
+}
+.inactive {
+  background: #ece9e3;
+  color: #687169;
+}
+.iconButton {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #687169;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 7px;
+}
+.iconButton:hover,
+.iconButton:focus-visible {
+  background: #f1ede5;
+  border-color: #ded8ce;
+  color: #8b2e2e;
+  outline: none;
+}
+@media (max-width: 600px) {
+  .row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .meta {
+    justify-content: flex-start;
+    order: 3;
+    padding-left: 0;
+    width: 100%;
+  }
+  .action {
+    margin-left: auto;
+  }
+}
