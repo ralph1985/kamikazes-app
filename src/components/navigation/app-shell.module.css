@@ -72,6 +72,32 @@
   text-align: left;
 }
 
+.submenuGroup {
+  display: grid;
+  gap: 3px;
+}
+
+.submenu {
+  border-left: 1px solid #4d584f;
+  display: grid;
+  gap: 2px;
+  margin-left: 20px;
+  padding-left: 12px;
+}
+
+.submenuLink {
+  border-radius: 6px;
+  color: #9ba59e;
+  font-size: 0.88rem;
+  padding: 8px 10px;
+  text-decoration: none;
+}
+
+.submenuLink:hover {
+  background: #343d37;
+  color: #fff8ef;
+}
+
 .sidebarNote {
   color: #9ba59e;
   font-size: 0.82rem;

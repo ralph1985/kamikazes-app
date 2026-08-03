@@ -43,7 +43,7 @@ export default async function PanelPage() {
         <section aria-label="Ediciones de Kamikazes" className={styles.grid}>
           {editions.length ? (
             editions.map((edition) => (
-              <article className={styles.card} key={edition.id}>
+              <article className={styles.card} id={`edition-${edition.id}`} key={edition.id}>
                 <div className={styles.cardTopline}>
                   <span className={`${styles.badge} ${styles[edition.status]}`}>
                     {edition.status === "open" ? "Abierta" : "Cerrada"}

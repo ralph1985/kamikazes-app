@@ -10,10 +10,16 @@ type SessionMember = {
   mustChangePassword: boolean;
 };
 
+type Edition = {
+  id: string;
+  year: number;
+};
+
 export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [member, setMember] = useState<SessionMember | null>(null);
+  const [editions, setEditions] = useState<Edition[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -22,10 +28,28 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
         response.ok ? ((await response.json()).data as SessionMember) : null,
       )
       .then((currentMember) => {
-        if (active) setMember(currentMember);
+        if (!active) return;
+        setMember(currentMember);
+        if (!currentMember) {
+          setEditions([]);
+          return;
+        }
+        void fetch("/api/v1/editions")
+          .then(async (response) =>
+            response.ok ? ((await response.json()).data as Edition[]) : [],
+          )
+          .then((currentEditions) => {
+            if (active) setEditions(currentEditions);
+          })
+          .catch(() => {
+            if (active) setEditions([]);
+          });
       })
       .catch(() => {
-        if (active) setMember(null);
+        if (active) {
+          setMember(null);
+          setEditions([]);
+        }
       });
 
     return () => {
@@ -63,13 +87,29 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
             {member ? "Mi cuenta" : "Iniciar sesión"}
           </Link>
           {member ? (
-            <Link
-              className={`${styles.navLink} ${pathname === "/panel" ? styles.active : ""}`}
-              href="/panel"
-              onClick={() => setIsOpen(false)}
-            >
-              Ediciones
-            </Link>
+            <div className={styles.submenuGroup}>
+              <Link
+                className={`${styles.navLink} ${pathname === "/panel" ? styles.active : ""}`}
+                href="/panel"
+                onClick={() => setIsOpen(false)}
+              >
+                Ediciones
+              </Link>
+              {editions.length ? (
+                <div className={styles.submenu} aria-label="Ediciones">
+                  {editions.map((edition) => (
+                    <Link
+                      className={styles.submenuLink}
+                      href={`/panel#edition-${edition.id}`}
+                      key={edition.id}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {edition.year}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           ) : null}
           {member ? (
             <button className={styles.navButton} onClick={handleLogout} type="button">
