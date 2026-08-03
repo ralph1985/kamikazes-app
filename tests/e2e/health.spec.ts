@@ -14,3 +14,9 @@ test("el menú lateral revela el login", async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("heading", { name: /iniciar sesión/i })).toBeVisible();
 });
+
+test("el panel privado redirige al login sin sesión", async ({ page }) => {
+  await page.goto("/panel");
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: /iniciar sesión/i })).toBeVisible();
+});

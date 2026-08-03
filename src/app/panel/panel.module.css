@@ -1,0 +1,103 @@
+.page {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 5vh 24px 12vh;
+}
+
+.heading {
+  align-items: flex-end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 42px;
+}
+
+.heading h1 {
+  margin: 16px 0 12px;
+}
+
+.intro {
+  color: #687169;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.member {
+  color: #687169;
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.card,
+.empty {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 16px;
+  padding: 22px;
+}
+
+.card {
+  min-height: 180px;
+}
+
+.cardTopline {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.badge {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 6px 9px;
+}
+
+.open {
+  background: #e3f0e4;
+  color: #35633b;
+}
+
+.closed {
+  background: #ece9e3;
+  color: #687169;
+}
+
+.year {
+  color: #9ba59e;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+}
+
+.card h2 {
+  font-size: 2.5rem;
+  margin: 28px 0 4px;
+}
+
+.card p,
+.empty p {
+  color: #687169;
+  margin: 0;
+}
+
+.empty {
+  grid-column: 1 / -1;
+}
+
+.empty h1,
+.empty h2 {
+  margin-top: 12px;
+}
+
+@media (max-width: 600px) {
+  .heading {
+    align-items: start;
+    flex-direction: column;
+  }
+}

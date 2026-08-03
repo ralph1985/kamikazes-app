@@ -60,6 +60,7 @@ Primera rebanada verificable:
 - ediciones anuales y estados abierta/cerrada;
 - roles y permisos por área y edición;
 - protección de API y rutas privadas;
+- panel privado inicial con listado de ediciones;
 - bloqueo de edición cuando una edición está cerrada;
 - auditoría común.
 

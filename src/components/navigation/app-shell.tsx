@@ -63,6 +63,15 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
             {member ? "Mi cuenta" : "Iniciar sesión"}
           </Link>
           {member ? (
+            <Link
+              className={`${styles.navLink} ${pathname === "/panel" ? styles.active : ""}`}
+              href="/panel"
+              onClick={() => setIsOpen(false)}
+            >
+              Ediciones
+            </Link>
+          ) : null}
+          {member ? (
             <button className={styles.navButton} onClick={handleLogout} type="button">
               Cerrar sesión
             </button>
