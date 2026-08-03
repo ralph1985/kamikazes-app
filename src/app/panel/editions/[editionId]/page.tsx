@@ -8,13 +8,15 @@ import { createDatabaseSessionReader } from "@/modules/identity/adapters/databas
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import BudgetOverview from "./budget-overview";
+import ParticipantsOverview from "./participants-overview";
 import styles from "./edition.module.css";
 
 export const dynamic = "force-dynamic";
 
 const sections = [
   { key: "summary", label: "Resumen", available: true },
-  { key: "budget", label: "Presupuesto", available: false },
+  { key: "participants", label: "Participantes", available: true },
+  { key: "budget", label: "Presupuesto", available: true },
   { key: "shopping", label: "Compras", available: false },
   { key: "catering", label: "Catering", available: false },
   { key: "inventory", label: "Inventario", available: false },
@@ -89,7 +91,9 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
         ))}
       </nav>
       <section className={styles.content}>
-        {activeSection.key === "budget" ? (
+        {activeSection.key === "participants" ? (
+          <ParticipantsOverview year={edition.year} />
+        ) : activeSection.key === "budget" ? (
           <BudgetOverview year={edition.year} />
         ) : activeSection.available ? (
           <div className={styles.welcome}>

@@ -13,9 +13,9 @@ export default function BudgetOverview({ year }: Readonly<{ year: number }>) {
       </div>
       <div className={styles.summaryGrid}>
         <article className={styles.summaryCard}>
-          <span>Participantes</span>
+          <span>Cuotas previstas</span>
           <strong>—</strong>
-          <small>Sin asignaciones todavía</small>
+          <small>Se calculará al configurar tarifas</small>
         </article>
         <article className={styles.summaryCard}>
           <span>Pagado</span>
