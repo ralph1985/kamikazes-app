@@ -151,3 +151,28 @@ export const auditEvents = pgTable("audit_events", {
   afterValue: jsonb("after_value"),
   createdAt: createdAt(),
 });
+
+export const publicSections = pgTable(
+  "public_sections",
+  {
+    id: primaryKey(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    imageUrl: text("image_url"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    isVisible: boolean("is_visible").notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [uniqueIndex("public_sections_title_unique").on(table.title)],
+);
+
+export const publicSocialLinks = pgTable("public_social_links", {
+  id: primaryKey(),
+  label: text("label").notNull(),
+  url: text("url").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});

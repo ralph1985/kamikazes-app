@@ -11,6 +11,7 @@ import { InternalNav } from "@/components/navigation/internal-nav";
 import CreateEditionForm from "@/app/panel/create-edition-form";
 import EditionStatusManager from "./edition-status-manager";
 import MembersManager from "./members-manager";
+import PublicContentManager from "./public-content-manager";
 import styles from "./admin.module.css";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export default async function AdminPage({
   if (!isAdmin) notFound();
 
   const { section = "editions" } = await searchParams;
-  const activeSection = section === "members" ? "members" : "editions";
+  const activeSection = section === "members" || section === "public" ? section : "editions";
 
   return (
     <div className={styles.page}>
@@ -70,6 +71,11 @@ export default async function AdminPage({
             label: "Miembros",
             active: activeSection === "members",
           },
+          {
+            href: "/admin?section=public",
+            label: "Contenido público",
+            active: activeSection === "public",
+          },
         ]}
       />
       {activeSection === "editions" ? (
@@ -82,8 +88,10 @@ export default async function AdminPage({
             <EditionStatusManager initialEditions={editions} />
           </article>
         </section>
-      ) : (
+      ) : activeSection === "members" ? (
         <MembersManager />
+      ) : (
+        <PublicContentManager />
       )}
     </div>
   );

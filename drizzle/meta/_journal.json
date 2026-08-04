@@ -43,6 +43,13 @@
       "when": 1785784562528,
       "tag": "0005_even_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785841735047,
+      "tag": "0006_exotic_ogun",
+      "breakpoints": true
     }
   ]
 }

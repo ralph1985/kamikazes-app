@@ -55,6 +55,8 @@ Resultado: acceso real seguro para miembros, todavía sin módulos económicos.
 
 Estado: En desarrollo.
 
+Pendiente de validación funcional por Rafa.
+
 Primera rebanada verificable:
 
 - ediciones anuales con estado abierta/cerrada;
@@ -82,10 +84,20 @@ Resultado: base de autorización sobre la que pueden construirse todos los módu
 
 ## Hito 4 — Espacio público
 
+Estado: En desarrollo.
+
 - página pública inicial;
 - logo, historia, redes y secciones configurables;
 - publicación administrada;
 - generación estática, revalidación y caché pública controlada.
+
+Criterios de aceptación de la primera rebanada:
+
+- una persona anónima puede consultar la presentación, historia, logo y enlaces sociales activos;
+- la información privada, la API de administración y los enlaces sociales inactivos no se exponen públicamente;
+- sólo el administrador global puede crear, editar, ocultar y eliminar secciones y enlaces sociales;
+- cada cambio editorial queda auditado con valor anterior y nuevo;
+- la página pública usa contenido cacheable y las respuestas públicas no incluyen datos de miembros ni económicos.
 
 Resultado: primera parte visible para personas anónimas.
 

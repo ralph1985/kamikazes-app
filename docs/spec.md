@@ -489,6 +489,11 @@ Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya es
   estados de sesión de Playwright; no se usarán credenciales ni datos de Neon
   Production en esas pruebas.
 
+### Estado de validación de hitos
+
+- El Hito 3 queda implementado en su primera rebanada, pero pendiente de validación funcional por Rafa.
+- El Hito 4 se implementa con contenido público cacheable y administración exclusiva del administrador global.
+
 ## 7. Criterio de trabajo SDD
 
 Cada funcionalidad nueva deberá tener antes:

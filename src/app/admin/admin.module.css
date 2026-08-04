@@ -190,6 +190,102 @@
   opacity: 0.6;
 }
 
+.contentManager {
+  background: #fffdf9;
+  border: 1px solid #ded8ce;
+  border-radius: 16px;
+  margin-top: 16px;
+  padding: 24px;
+}
+.contentManager h3 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+.contentActions,
+.inlineActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.contentActions button,
+.inlineActions button,
+.publicEditor button {
+  background: #8b2e2e;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  padding: 9px 12px;
+}
+.contentActions button:last-child {
+  background: #eee8de;
+  color: #1f2421;
+}
+.contentColumns {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 24px;
+}
+.contentList {
+  border-top: 1px solid #eee8de;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.contentItem {
+  align-items: center;
+  border-bottom: 1px solid #eee8de;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+.contentItem > span:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.contentItem small {
+  color: #687169;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inlineActions button {
+  background: #eee8de;
+  color: #1f2421;
+  font-size: 0.78rem;
+  padding: 7px 9px;
+}
+.publicEditor {
+  display: grid;
+  gap: 14px;
+}
+.publicEditor label {
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 6px;
+}
+.publicEditor input,
+.publicEditor textarea {
+  border: 1px solid #cfc7ba;
+  border-radius: 8px;
+  font: inherit;
+  padding: 9px 10px;
+  width: 100%;
+}
+.publicEditor textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+.publicEditor button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .rolesFieldset {
   border: 1px solid #ded8ce;
   border-radius: 10px;
