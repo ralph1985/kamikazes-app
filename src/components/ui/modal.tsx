@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import styles from "./modal.module.css";
 
 export function Modal({
@@ -33,7 +34,7 @@ export function Modal({
     if (event.target === event.currentTarget) onClose();
   }
 
-  return (
+  const modal = (
     <div className={styles.backdrop} onMouseDown={handleBackdropClick}>
       <div aria-labelledby={titleId} aria-modal="true" className={styles.dialog} role="dialog">
         <div className={styles.header}>
@@ -54,4 +55,6 @@ export function Modal({
       </div>
     </div>
   );
+
+  return typeof document === "undefined" ? null : createPortal(modal, document.body);
 }
