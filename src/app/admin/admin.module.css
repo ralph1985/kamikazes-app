@@ -130,6 +130,13 @@
   font: inherit;
   padding: 9px 10px;
 }
+.memberEditor select {
+  background: #fffdf9;
+  border: 1px solid #cfc7ba;
+  border-radius: 8px;
+  font: inherit;
+  padding: 9px 10px;
+}
 .checkboxLabel {
   align-items: center;
   display: flex !important;
@@ -141,6 +148,46 @@
 .message {
   color: #35633b;
   margin: 0 0 12px;
+}
+
+.editionManager {
+  border-top: 1px solid #eee8de;
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.editionManager h3 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+.muted {
+  color: #687169;
+}
+.editionList {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.editionList li {
+  align-items: center;
+  border-bottom: 1px solid #eee8de;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.editionList button {
+  background: #eee8de;
+  border: 0;
+  border-radius: 8px;
+  color: #1f2421;
+  cursor: pointer;
+  padding: 8px 11px;
+}
+.editionList button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .rolesFieldset {

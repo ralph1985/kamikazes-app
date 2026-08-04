@@ -69,6 +69,15 @@ Primera rebanada verificable:
 - bloqueo de edición cuando una edición está cerrada;
 - auditoría común.
 
+Criterios de aceptación de la primera rebanada:
+
+- sólo un administrador global puede crear, cerrar y reabrir ediciones;
+- una edición cerrada conserva la lectura para miembros activos, pero rechaza sus mutaciones;
+- los permisos de lector y editor se asignan por área y edición, y se comprueban en servidor;
+- retirar un permiso no modifica los datos ni la auditoría existente;
+- cada cambio de estado de edición y de permisos genera auditoría con valores anterior y nuevo;
+- las pruebas cubren visitante anónimo, miembro activo, lector, editor, administrador, edición cerrada y cuenta desactivada.
+
 Resultado: base de autorización sobre la que pueden construirse todos los módulos.
 
 ## Hito 4 — Espacio público

@@ -240,6 +240,15 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Lo público se publicará explícitamente; el contenido privado será la opción segura por defecto.
 - Las fotos y otros contenidos tendrán visibilidad configurable; los álbumes no dependerán de la edición anual.
 
+### Criterios de aceptación del Hito 3
+
+- sólo el administrador global podrá crear, cerrar y reabrir ediciones;
+- las ediciones cerradas seguirán siendo consultables por miembros activos, pero cualquier mutación será rechazada hasta reabrirlas;
+- los permisos de lector y editor se asignarán por área y edición, y el servidor será la autoridad para permitir o rechazar cada operación;
+- retirar un permiso no modificará los datos ni la auditoría existente;
+- los cambios de estado de una edición y de sus asignaciones de permisos conservarán auditoría con valor anterior y nuevo;
+- se cubrirán los casos de visitante anónimo, miembro activo, lector, editor, administrador, edición cerrada y cuenta desactivada.
+
 ## 5.1 Decisiones técnicas iniciales
 
 - La aplicación se desplegará en Vercel.

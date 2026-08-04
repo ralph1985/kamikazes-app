@@ -2,11 +2,14 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getDatabase } from "@/infrastructure/database/client";
 import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
+import { createDatabaseEditionReader } from "@/modules/editions/adapters/database-edition-reader";
+import { listEditions } from "@/modules/editions/application/list-editions";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { InternalNav } from "@/components/navigation/internal-nav";
 import CreateEditionForm from "@/app/panel/create-edition-form";
+import EditionStatusManager from "./edition-status-manager";
 import MembersManager from "./members-manager";
 import styles from "./admin.module.css";
 
@@ -22,6 +25,7 @@ export default async function AdminPage({
 
   let member: Awaited<ReturnType<typeof authenticateSession>>;
   let isAdmin: boolean;
+  let editions: Awaited<ReturnType<typeof listEditions>>;
   try {
     const database = getDatabase();
     member = await authenticateSession(token, {
@@ -29,6 +33,7 @@ export default async function AdminPage({
       clock: { now: () => new Date() },
     });
     isAdmin = await createDatabaseGlobalAdminReader(database).isGlobalAdmin(member.memberId);
+    editions = await listEditions(createDatabaseEditionReader(database));
   } catch (error) {
     if (error instanceof IdentityError) redirect("/login");
 
@@ -74,6 +79,7 @@ export default async function AdminPage({
             <h2>Crear una edición</h2>
             <p>Abre el año y prepara su organización.</p>
             <CreateEditionForm initialYear={new Date().getFullYear()} />
+            <EditionStatusManager initialEditions={editions} />
           </article>
         </section>
       ) : (

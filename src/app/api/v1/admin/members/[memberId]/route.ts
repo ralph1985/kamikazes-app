@@ -28,7 +28,7 @@ const updateInputSchema = z.object({
       z.object({
         editionId: z.uuid().nullable(),
         area: z.enum(["editions", "budget", "shopping", "catering", "global"]),
-        role: z.enum(["admin", "editor"]),
+        role: z.enum(["admin", "editor", "reader"]),
       }),
     )
     .max(40),
@@ -109,8 +109,10 @@ export async function PATCH(
     if (
       input.data.assignments.some(
         (assignment) =>
-          assignment.area !== "global" &&
-          (assignment.role !== "editor" || assignment.editionId === null),
+          (assignment.area !== "global" &&
+            assignment.role !== "editor" &&
+            assignment.role !== "reader") ||
+          assignment.editionId === null,
       )
     )
       throw new Error("invalid_assignment");

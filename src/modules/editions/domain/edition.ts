@@ -16,6 +16,20 @@ export function canModifyEdition(status: EditionStatus): boolean {
   return status === "open";
 }
 
+export function assertEditionStatus(status: string): asserts status is EditionStatus {
+  if (status !== "open" && status !== "closed") {
+    throw new Error("El estado de la edición no es válido");
+  }
+}
+
+export function transitionEditionStatus(
+  currentStatus: EditionStatus,
+  nextStatus: EditionStatus,
+): EditionStatus {
+  if (currentStatus === nextStatus) return currentStatus;
+  return nextStatus;
+}
+
 export function canAdministratorReopenEdition(role: "admin" | "editor" | "reader"): boolean {
   return role === "admin";
 }

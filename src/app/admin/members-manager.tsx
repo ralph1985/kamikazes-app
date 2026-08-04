@@ -79,12 +79,11 @@ export default function MembersManager() {
     setMessage(null);
   }
 
-  function hasAssignment(area: string, editionId: string | null) {
-    return draftAssignments.some(
-      (assignment) =>
-        assignment.area === area &&
-        assignment.editionId === editionId &&
-        assignment.role === "editor",
+  function assignmentRole(area: string, editionId: string | null) {
+    return (
+      draftAssignments.find(
+        (assignment) => assignment.area === area && assignment.editionId === editionId,
+      )?.role ?? "none"
     );
   }
 
@@ -97,17 +96,12 @@ export default function MembersManager() {
     );
   }
 
-  function toggleAssignment(area: string, editionId: string | null, enabled: boolean) {
+  function setAssignmentRole(area: string, editionId: string | null, role: string) {
     setDraftAssignments((current) => {
       const filtered = current.filter(
         (assignment) => !(assignment.area === area && assignment.editionId === editionId),
       );
-      return enabled
-        ? [
-            ...filtered,
-            { memberId: "", area, editionId, role: area === "global" ? "admin" : "editor" },
-          ]
-        : filtered;
+      return role !== "none" ? [...filtered, { memberId: "", area, editionId, role }] : filtered;
     });
   }
 
@@ -235,7 +229,9 @@ export default function MembersManager() {
                 <input
                   checked={isGlobalAdmin()}
                   disabled={editingMember.protectedAdmin}
-                  onChange={(event) => toggleAssignment("global", null, event.target.checked)}
+                  onChange={(event) =>
+                    setAssignmentRole("global", null, event.target.checked ? "admin" : "none")
+                  }
                   type="checkbox"
                 />{" "}
                 Administrador global{editingMember.protectedAdmin ? " · protegido" : ""}
@@ -244,15 +240,19 @@ export default function MembersManager() {
                 <div className={styles.editionRoles} key={edition.id}>
                   <strong>{edition.year}</strong>
                   {Object.entries(areaLabels).map(([area, label]) => (
-                    <label className={styles.checkboxLabel} key={area}>
-                      <input
-                        checked={hasAssignment(area, edition.id)}
+                    <label key={area}>
+                      {label}
+                      <select
+                        aria-label={`${label} para ${edition.year}`}
                         onChange={(event) =>
-                          toggleAssignment(area, edition.id, event.target.checked)
+                          setAssignmentRole(area, edition.id, event.target.value)
                         }
-                        type="checkbox"
-                      />{" "}
-                      Editor de {label.toLowerCase()}
+                        value={assignmentRole(area, edition.id)}
+                      >
+                        <option value="none">Sin acceso</option>
+                        <option value="reader">Lector</option>
+                        <option value="editor">Editor</option>
+                      </select>
                     </label>
                   ))}
                 </div>
