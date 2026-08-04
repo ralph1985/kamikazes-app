@@ -1,7 +1,7 @@
 import { randomBytes, createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { getDatabase } from "@/infrastructure/database/client";
-import { accounts, sessions } from "@/infrastructure/database/schema";
+import { accounts, auditEvents, sessions } from "@/infrastructure/database/schema";
 import type { PasswordChangeWriter } from "../application/ports";
 
 type Database = ReturnType<typeof getDatabase>;
@@ -34,6 +34,15 @@ export function createDatabasePasswordChangeWriter(db: Database): PasswordChange
           expiresAt: input.expiresAt,
           createdAt: input.now,
           lastSeenAt: input.now,
+        }),
+        db.insert(auditEvents).values({
+          memberId: input.memberId,
+          action: "change_password",
+          area: "identity",
+          entity: "account",
+          entityId: input.memberId,
+          beforeValue: { passwordSet: true },
+          afterValue: { passwordSet: true },
         }),
       ]);
 

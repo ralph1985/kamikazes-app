@@ -5,13 +5,18 @@ import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/dat
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import { InternalNav } from "@/components/navigation/internal-nav";
 import CreateEditionForm from "@/app/panel/create-edition-form";
 import MembersManager from "./members-manager";
 import styles from "./admin.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ section?: string }>;
+}) {
   const token = (await cookies()).get("kamikazes_session")?.value;
   if (!token) redirect("/login");
 
@@ -39,20 +44,41 @@ export default async function AdminPage() {
   if (member.mustChangePassword) redirect("/change-password");
   if (!isAdmin) notFound();
 
+  const { section = "editions" } = await searchParams;
+  const activeSection = section === "members" ? "members" : "editions";
+
   return (
     <div className={styles.page}>
       <p className="eyebrow">Sólo administrador</p>
       <h1>Administración</h1>
       <p className={styles.intro}>Configuración global de Kamikazes.</p>
-      <section className={styles.grid}>
-        <article className={styles.card}>
-          <p className={styles.cardEyebrow}>Ediciones</p>
-          <h2>Crear una edición</h2>
-          <p>Abre el año y prepara su organización.</p>
-          <CreateEditionForm initialYear={new Date().getFullYear()} />
-        </article>
-      </section>
-      <MembersManager />
+      <InternalNav
+        ariaLabel="Secciones de administración"
+        items={[
+          {
+            href: "/admin?section=editions",
+            label: "Ediciones",
+            active: activeSection === "editions",
+          },
+          {
+            href: "/admin?section=members",
+            label: "Miembros",
+            active: activeSection === "members",
+          },
+        ]}
+      />
+      {activeSection === "editions" ? (
+        <section className={styles.grid}>
+          <article className={styles.card}>
+            <p className={styles.cardEyebrow}>Ediciones</p>
+            <h2>Crear una edición</h2>
+            <p>Abre el año y prepara su organización.</p>
+            <CreateEditionForm initialYear={new Date().getFullYear()} />
+          </article>
+        </section>
+      ) : (
+        <MembersManager />
+      )}
     </div>
   );
 }

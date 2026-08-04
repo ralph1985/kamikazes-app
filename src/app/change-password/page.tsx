@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { InternalNav } from "@/components/navigation/internal-nav";
 
 export default function ChangePasswordPage() {
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
@@ -20,7 +22,7 @@ export default function ChangePasswordPage() {
 
     try {
       const response = await fetch("/api/v1/auth/change-password", {
-        body: JSON.stringify({ newPassword }),
+        body: JSON.stringify({ currentPassword, newPassword }),
         headers: { "content-type": "application/json" },
         method: "POST",
       });
@@ -44,44 +46,63 @@ export default function ChangePasswordPage() {
         <h1>Una contraseña sólo tuya.</h1>
         <p className="intro">Cambia la contraseña de acceso cuando lo necesites.</p>
       </div>
-      <form className="loginCard" onSubmit={handleSubmit}>
-        <div>
-          <p className="formEyebrow">Seguridad de la cuenta</p>
-          <h2>Cambiar contraseña</h2>
-        </div>
-        <label>
-          Nueva contraseña
-          <input
-            autoComplete="new-password"
-            minLength={1}
-            onChange={(event) => setNewPassword(event.target.value)}
-            required
-            type="password"
-            value={newPassword}
-          />
-        </label>
-        <label>
-          Repite la contraseña
-          <input
-            autoComplete="new-password"
-            onChange={(event) => setConfirmation(event.target.value)}
-            required
-            type="password"
-            value={confirmation}
-          />
-        </label>
-        {error ? (
-          <p className="formError" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <button className="primaryAction" disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Guardando…" : "Guardar contraseña"}
-        </button>
-        <Link className="backLink" href="/">
-          Volver al inicio
-        </Link>
-      </form>
+      <div className="accountContent">
+        <InternalNav
+          ariaLabel="Secciones de mi cuenta"
+          items={[
+            { href: "/profile", label: "Perfil" },
+            { href: "/change-password", label: "Seguridad", active: true },
+          ]}
+        />
+        <form className="loginCard" onSubmit={handleSubmit}>
+          <div>
+            <p className="formEyebrow">Seguridad de la cuenta</p>
+            <h2>Cambiar contraseña</h2>
+          </div>
+          <label>
+            Contraseña actual
+            <input
+              autoComplete="current-password"
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              required
+              type="password"
+              value={currentPassword}
+            />
+          </label>
+          <label>
+            Nueva contraseña
+            <input
+              autoComplete="new-password"
+              minLength={1}
+              onChange={(event) => setNewPassword(event.target.value)}
+              required
+              type="password"
+              value={newPassword}
+            />
+          </label>
+          <label>
+            Repite la contraseña
+            <input
+              autoComplete="new-password"
+              onChange={(event) => setConfirmation(event.target.value)}
+              required
+              type="password"
+              value={confirmation}
+            />
+          </label>
+          {error ? (
+            <p className="formError" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <button className="primaryAction" disabled={isSubmitting} type="submit">
+            {isSubmitting ? "Guardando…" : "Guardar contraseña"}
+          </button>
+          <Link className="backLink" href="/">
+            Volver al inicio
+          </Link>
+        </form>
+      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { listEditions } from "@/modules/editions/application/list-editions";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import { InternalNav } from "@/components/navigation/internal-nav";
 import BudgetOverview from "./budget-overview";
 import ParticipantsOverview from "./participants-overview";
 import styles from "./edition.module.css";
@@ -78,18 +79,14 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
           {edition.status === "open" ? "Abierta" : "Cerrada"}
         </span>
       </header>
-      <nav aria-label={`Secciones de la edición ${edition.year}`} className={styles.sectionNav}>
-        {sections.map((item) => (
-          <Link
-            aria-current={item.key === activeSection.key ? "page" : undefined}
-            className={item.key === activeSection.key ? styles.selected : undefined}
-            href={`/panel/editions/${edition.id}?section=${item.key}`}
-            key={item.key}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <InternalNav
+        ariaLabel={`Secciones de la edición ${edition.year}`}
+        items={sections.map((item) => ({
+          href: `/panel/editions/${edition.id}?section=${item.key}`,
+          label: item.label,
+          active: item.key === activeSection.key,
+        }))}
+      />
       <section className={styles.content}>
         {activeSection.key === "participants" ? (
           <ParticipantsOverview editionId={edition.id} year={edition.year} />

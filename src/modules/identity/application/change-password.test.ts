@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { changePassword } from "./change-password";
-import type { PasswordChangeWriter, PasswordHasher } from "./ports";
+import type { PasswordChangeWriter, PasswordHasher, PasswordReader } from "./ports";
 import { hashSessionToken } from "./session";
 
 describe("cambio obligatorio de contraseña", () => {
@@ -16,11 +16,19 @@ describe("cambio obligatorio de contraseña", () => {
       hash: async (password) => `argon2id:${password}`,
       verify: async () => true,
     };
+    const passwordReader: PasswordReader = {
+      findHashByMemberId: async () => "current-hash",
+    };
     const now = new Date("2026-08-02T12:00:00.000Z");
 
     const session = await changePassword(
-      { memberId: "member-1", currentToken: "old-session", newPassword: "nueva" },
-      { passwords, writer, clock: { now: () => now } },
+      {
+        memberId: "member-1",
+        currentToken: "old-session",
+        currentPassword: "actual",
+        newPassword: "nueva",
+      },
+      { passwords, passwordReader, writer, clock: { now: () => now } },
     );
 
     expect(received).toMatchObject({
@@ -46,8 +54,47 @@ describe("cambio obligatorio de contraseña", () => {
 
     await expect(
       changePassword(
-        { memberId: "member-1", currentToken: "old-session", newPassword: "" },
-        { passwords, writer, clock: { now: () => new Date() } },
+        {
+          memberId: "member-1",
+          currentToken: "old-session",
+          currentPassword: "actual",
+          newPassword: "",
+        },
+        {
+          passwords,
+          passwordReader: { findHashByMemberId: async () => "hash" },
+          writer,
+          clock: { now: () => new Date() },
+        },
+      ),
+    ).rejects.toMatchObject({ code: "invalid_password" });
+  });
+
+  it("rechaza la contraseña actual incorrecta antes de cambiarla", async () => {
+    const writer: PasswordChangeWriter = {
+      changePasswordAndRotateSession: async () => {
+        throw new Error("no debe ejecutarse");
+      },
+    };
+    const passwords: PasswordHasher = {
+      hash: async () => "no debe ejecutarse",
+      verify: async () => false,
+    };
+
+    await expect(
+      changePassword(
+        {
+          memberId: "member-1",
+          currentToken: "old-session",
+          currentPassword: "incorrecta",
+          newPassword: "nueva",
+        },
+        {
+          passwords,
+          passwordReader: { findHashByMemberId: async () => "hash" },
+          writer,
+          clock: { now: () => new Date() },
+        },
       ),
     ).rejects.toMatchObject({ code: "invalid_password" });
   });

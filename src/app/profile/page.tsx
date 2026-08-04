@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { InternalNav } from "@/components/navigation/internal-nav";
 
 type Profile = { displayName: string; username: string };
 
@@ -68,38 +69,47 @@ export default function ProfilePage() {
         <h1>Tu perfil.</h1>
         <p className="intro">Aquí puedes mantener tus datos de acceso y tu nombre visible.</p>
       </div>
-      <form className="loginCard" onSubmit={save}>
-        <label>
-          Nombre visible
-          <input
-            value={profile.displayName}
-            onChange={(event) => setProfile({ ...profile, displayName: event.target.value })}
-          />
-        </label>
-        <label>
-          Nombre de usuario
-          <input
-            autoComplete="username"
-            value={profile.username}
-            onChange={(event) => setProfile({ ...profile, username: event.target.value })}
-          />
-        </label>
-        {message ? <p role="status">{message}</p> : null}
-        {error ? (
-          <p className="formError" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <button className="primaryAction" disabled={saving} type="submit">
-          {saving ? "Guardando…" : "Guardar cambios"}
-        </button>
-        <Link className="backLink" href="/change-password">
-          Cambiar contraseña
-        </Link>
-        <button className="backLink" onClick={() => void logoutAll()} type="button">
-          Cerrar todas las sesiones
-        </button>
-      </form>
+      <div className="accountContent">
+        <InternalNav
+          ariaLabel="Secciones de mi cuenta"
+          items={[
+            { href: "/profile", label: "Perfil", active: true },
+            { href: "/change-password", label: "Seguridad" },
+          ]}
+        />
+        <form className="loginCard" onSubmit={save}>
+          <label>
+            Nombre visible
+            <input
+              value={profile.displayName}
+              onChange={(event) => setProfile({ ...profile, displayName: event.target.value })}
+            />
+          </label>
+          <label>
+            Nombre de usuario
+            <input
+              autoComplete="username"
+              value={profile.username}
+              onChange={(event) => setProfile({ ...profile, username: event.target.value })}
+            />
+          </label>
+          {message ? <p role="status">{message}</p> : null}
+          {error ? (
+            <p className="formError" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <button className="primaryAction" disabled={saving} type="submit">
+            {saving ? "Guardando…" : "Guardar cambios"}
+          </button>
+          <Link className="backLink" href="/change-password">
+            Cambiar contraseña
+          </Link>
+          <button className="backLink" onClick={() => void logoutAll()} type="button">
+            Cerrar todas las sesiones
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

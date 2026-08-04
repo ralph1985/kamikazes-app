@@ -209,7 +209,7 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Cada miembro tendrá un `id` interno permanente e inmutable que se utilizará para relacionar todos sus datos históricos.
 - El miembro podrá cambiar desde su perfil su nombre visible y su nombre de usuario.
 - El nombre de usuario seguirá siendo único y el sistema comprobará que no esté ocupado antes de guardarlo.
-- El miembro podrá cambiar su contraseña desde el perfil en cualquier momento.
+- El miembro podrá cambiar su contraseña desde el perfil en cualquier momento, pero siempre deberá introducir la contraseña actual antes de aceptar la nueva.
 - No se exigirá una longitud mínima para las nuevas contraseñas, pero nunca podrán estar vacías; las demás reglas de validación quedan pendientes de definir.
 - La recuperación de acceso será manual durante la primera etapa y la gestionaremos nosotros.
 - Un restablecimiento manual asignará una nueva contraseña temporal y volverá a exigir el cambio en el siguiente inicio de sesión.
@@ -332,6 +332,7 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - El menú ofrecerá una entrada visible a la pantalla de inicio de sesión, que usará el contrato REST de autenticación y no expondrá credenciales al cliente más allá del envío HTTPS necesario.
 - Tras el login, una cuenta con cambio obligatorio pendiente sólo podrá acceder al flujo de cambio de contraseña; al completarlo, la sesión se rotará y la cuenta quedará activada para el acceso normal.
 - El menú mostrará el nombre visible de la persona autenticada y permitirá cerrar su sesión actual.
+- Las vistas que tengan navegación interna reutilizarán un componente compartido y mantendrán el mismo patrón visual y de interacción. Como mínimo, administración y perfil mostrarán navegación interna consistente con la navegación interna de ediciones.
 - Las listas móviles podrán paginarse mediante cursor y las tablas administrativas mediante `page/limit`, según la experiencia de cada pantalla.
 - Cada operación offline tendrá un `operationId` único persistido en Neon para impedir duplicados durante los reintentos.
 - Antes de implementar los hitos se configurará Codex mediante un `AGENTS.md` raíz y, cuando sea útil, instrucciones específicas por módulo.

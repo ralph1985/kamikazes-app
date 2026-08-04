@@ -1,0 +1,31 @@
+.nav {
+  background: rgb(247 244 239 / 96%);
+  border-bottom: 1px solid #ded8ce;
+  display: flex;
+  gap: 4px;
+  margin: 28px 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky;
+  top: var(--app-header-height, 58px);
+  z-index: 20;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.link {
+  border-bottom: 3px solid transparent;
+  color: #687169;
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+  padding: 13px 14px 11px;
+  text-decoration: none;
+}
+
+.link:hover,
+.active {
+  border-bottom-color: #d95d39;
+  color: #1f2421;
+}

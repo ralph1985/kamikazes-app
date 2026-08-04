@@ -13,6 +13,7 @@ Esta memoria es deliberadamente breve y segura para que una conversación nueva 
 - El roadmap de implementación está en `docs/roadmap.md`.
 - La base técnica del Hito 1 está implementada y verificada localmente, sin migrar tablas de negocio.
 - El Hito 2 tiene implementada su primera rebanada verificable: login, cambio obligatorio de contraseña, sesiones, perfil, cierre de sesiones y migración de identidad aplicada en Neon; las tablas están vacías y aún no se han creado cuentas reales.
+- El cambio de contraseña desde el perfil exige la contraseña actual; la navegación interna de cualquier vista se construye con componentes reutilizables y sigue un patrón común, incluido administración, perfil y ediciones.
 
 ## Producto
 

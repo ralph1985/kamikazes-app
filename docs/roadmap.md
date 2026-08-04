@@ -45,6 +45,7 @@ Primera rebanada verificable:
 - cambio obligatorio de contraseña después del primer acceso;
 - consulta de sesión y cierre de sesión desde la navegación.
 - perfil autenticado para actualizar nombre visible y usuario, con auditoría transaccional;
+- cambio de contraseña desde el perfil protegido por la contraseña actual;
 - cierre de todas las sesiones activas desde el perfil;
 - revocación inmediata de sesiones al desactivar una cuenta.
 

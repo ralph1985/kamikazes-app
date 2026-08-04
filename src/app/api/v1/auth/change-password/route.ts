@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getDatabase } from "@/infrastructure/database/client";
 import { createDatabasePasswordChangeWriter } from "@/modules/identity/adapters/database-password-change-writer";
+import { createDatabasePasswordReader } from "@/modules/identity/adapters/database-password-reader";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { argon2PasswordHasher } from "@/modules/identity/adapters/argon2-password-hasher";
 import { changePassword } from "@/modules/identity/application/change-password";
@@ -11,7 +12,7 @@ import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
 
-const inputSchema = z.object({ newPassword: z.string() });
+const inputSchema = z.object({ currentPassword: z.string(), newPassword: z.string() });
 const SESSION_COOKIE = "kamikazes_session";
 const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   const input = inputSchema.safeParse(body);
   if (!input.success) {
-    return apiFailure("invalid_request", "newPassword es obligatorio", 400);
+    return apiFailure("invalid_request", "currentPassword y newPassword son obligatorios", 400);
   }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
@@ -38,9 +39,15 @@ export async function POST(request: NextRequest) {
       clock: { now: () => new Date() },
     });
     const session = await changePassword(
-      { memberId: member.memberId, currentToken: token, newPassword: input.data.newPassword },
+      {
+        memberId: member.memberId,
+        currentToken: token,
+        currentPassword: input.data.currentPassword,
+        newPassword: input.data.newPassword,
+      },
       {
         passwords: argon2PasswordHasher,
+        passwordReader: createDatabasePasswordReader(database),
         writer: createDatabasePasswordChangeWriter(database),
         clock: { now: () => new Date() },
       },

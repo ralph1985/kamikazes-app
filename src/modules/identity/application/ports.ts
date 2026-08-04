@@ -22,6 +22,10 @@ export interface PasswordHasher {
   hash(password: string): Promise<string>;
 }
 
+export interface PasswordReader {
+  findHashByMemberId(memberId: string): Promise<string | null>;
+}
+
 export type Session = { token: string; expiresAt: Date };
 
 export interface SessionIssuer {

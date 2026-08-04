@@ -54,6 +54,22 @@ const document = {
         },
       },
     },
+    "/auth/change-password": {
+      post: {
+        operationId: "changePassword",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: { $ref: "#/components/schemas/ChangePasswordInput" } },
+          },
+        },
+        responses: {
+          "200": { description: "Contraseña actualizada y sesión rotada" },
+          "400": { description: "Entrada inválida o contraseña actual incorrecta" },
+          "401": { description: "Sesión ausente o inválida" },
+        },
+      },
+    },
     "/auth/profile": {
       get: {
         operationId: "getProfile",
@@ -113,6 +129,14 @@ const document = {
         properties: {
           displayName: { type: "string" },
           username: { type: "string" },
+        },
+      },
+      ChangePasswordInput: {
+        type: "object",
+        required: ["currentPassword", "newPassword"],
+        properties: {
+          currentPassword: { type: "string", format: "password" },
+          newPassword: { type: "string", format: "password" },
         },
       },
     },

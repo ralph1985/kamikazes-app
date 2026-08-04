@@ -9,7 +9,7 @@ describe("POST /api/v1/auth/change-password", () => {
   it("rechaza el cambio sin sesión", async () => {
     const request = new NextRequest("http://localhost/api/v1/auth/change-password", {
       method: "POST",
-      body: JSON.stringify({ newPassword: "nueva" }),
+      body: JSON.stringify({ currentPassword: "actual", newPassword: "nueva" }),
       headers: { "content-type": "application/json" },
     });
 
@@ -21,7 +21,7 @@ describe("POST /api/v1/auth/change-password", () => {
   it("valida el cuerpo antes de consultar Neon", async () => {
     const request = new NextRequest("http://localhost/api/v1/auth/change-password", {
       method: "POST",
-      body: JSON.stringify({ newPassword: 123 }),
+      body: JSON.stringify({ currentPassword: "actual", newPassword: 123 }),
       headers: { "content-type": "application/json" },
     });
 

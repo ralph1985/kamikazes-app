@@ -95,6 +95,11 @@ h1 {
   max-width: 460px;
   padding: 28px;
 }
+.accountContent {
+  align-content: start;
+  display: grid;
+  gap: 22px;
+}
 .loginCard h2 {
   font-size: 1.6rem;
   margin: 8px 0 0;
