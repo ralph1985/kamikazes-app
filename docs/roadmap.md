@@ -103,11 +103,29 @@ Resultado: primera parte visible para personas anónimas.
 
 ## Hito 5 — Presupuesto y participación económica
 
+Estado: En desarrollo.
+
+Primera rebanada verificable:
+
 - tarifas y participación por edición;
-- cuotas, pagos, devoluciones y saldos;
+- cuotas derivadas de la tarifa asignada, pagos y devoluciones;
+- saldo pendiente y estado `Pendiente`, `Parcial` o `Pagado`;
+- pagos y devoluciones corregibles, no eliminables, con método y auditoría;
+
+Siguiente bloque del hito:
+
+- saldos iniciales y trasladables;
 - movimientos previstos y reales;
 - saldo previsto y saldo real;
 - cierre y reapertura administrativa.
+
+Criterios de aceptación de la primera rebanada:
+
+- sólo editores de presupuesto y administradores pueden registrar o corregir pagos y devoluciones;
+- los lectores pueden consultar el detalle sin poder modificarlo;
+- una devolución no puede superar el importe neto pagado de la cuota;
+- una edición cerrada rechaza pagos, devoluciones y correcciones;
+- cada mutación conserva auditoría con valor anterior y nuevo.
 
 Resultado: gestión económica completa con auditoría.
 

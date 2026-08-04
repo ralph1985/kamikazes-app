@@ -176,3 +176,37 @@ export const publicSocialLinks = pgTable("public_social_links", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+export const budgetTransactions = pgTable(
+  "budget_transactions",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "restrict" }),
+    kind: text("kind").notNull(),
+    amount: money("amount").notNull(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true, mode: "date" }).notNull(),
+    method: text("method").notNull(),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    check(
+      "budget_transactions_kind_allowed",
+      sql`${table.kind} in ('payment', 'refund')`,
+    ),
+    check(
+      "budget_transactions_method_allowed",
+      sql`${table.method} in ('cash', 'bizum', 'transfer')`,
+    ),
+    check(
+      "budget_transactions_amount_sign",
+      sql`(${table.kind} = 'payment' and ${table.amount} >= 0) or (${table.kind} = 'refund' and ${table.amount} <= 0)`,
+    ),
+  ],
+);
