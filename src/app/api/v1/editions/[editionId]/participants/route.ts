@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getDatabase } from "@/infrastructure/database/client";
@@ -93,34 +94,39 @@ export async function PUT(
       return apiFailure("forbidden", "No tienes permiso para editar participantes", 403);
     }
 
-    const result = await database.transaction(async (tx) => {
-      const edition = await tx
-        .select({ status: editions.status })
-        .from(editions)
-        .where(eq(editions.id, editionId))
-        .limit(1);
-      if (edition.length === 0) throw new Error("edition_not_found");
-      if (edition[0].status === "closed") throw new Error("edition_closed");
+    const edition = await database
+      .select({ status: editions.status })
+      .from(editions)
+      .where(eq(editions.id, editionId))
+      .limit(1);
+    if (edition.length === 0) throw new Error("edition_not_found");
+    if (edition[0].status === "closed") throw new Error("edition_closed");
 
-      const before = await tx
-        .select({ id: editionParticipants.id })
-        .from(editionParticipants)
-        .where(
-          and(
-            eq(editionParticipants.editionId, editionId),
-            eq(editionParticipants.memberId, input.data.memberId),
-          ),
-        )
-        .limit(1);
-      if (input.data.participating && before.length === 0) {
-        await tx.insert(editionParticipants).values({
+    const before = await database
+      .select({ id: editionParticipants.id })
+      .from(editionParticipants)
+      .where(
+        and(
+          eq(editionParticipants.editionId, editionId),
+          eq(editionParticipants.memberId, input.data.memberId),
+        ),
+      )
+      .limit(1);
+    const statements: BatchItem<"pg">[] = [];
+    if (input.data.participating && before.length === 0) {
+      statements.push(
+        database.insert(editionParticipants).values({
           editionId,
           memberId: input.data.memberId,
-        });
-      } else if (!input.data.participating && before.length > 0) {
-        await tx.delete(editionParticipants).where(eq(editionParticipants.id, before[0].id));
-      }
-      await tx.insert(auditEvents).values({
+        }),
+      );
+    } else if (!input.data.participating && before.length > 0) {
+      statements.push(
+        database.delete(editionParticipants).where(eq(editionParticipants.id, before[0].id)),
+      );
+    }
+    statements.push(
+      database.insert(auditEvents).values({
         memberId: actor.memberId,
         action: "update",
         area: "editions",
@@ -128,9 +134,10 @@ export async function PUT(
         entityId: input.data.memberId,
         beforeValue: { participating: before.length > 0 },
         afterValue: { participating: input.data.participating, editionId },
-      });
-      return { participating: input.data.participating };
-    });
+      }),
+    );
+    const result = { participating: input.data.participating };
+    await database.batch(statements as [BatchItem<"pg">, ...BatchItem<"pg">[]]);
     return apiSuccess(result);
   } catch (error) {
     if (error instanceof IdentityError)

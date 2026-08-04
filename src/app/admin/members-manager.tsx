@@ -10,7 +10,8 @@ import {
   StatusBadge,
   type SharedRole,
 } from "@/components/lists/compact-list";
-import { EditPanel, ListState, ListToolbar } from "@/components/lists/list-patterns";
+import { ListState, ListToolbar } from "@/components/lists/list-patterns";
+import { Modal } from "@/components/ui/modal";
 import styles from "./admin.module.css";
 
 type Member = {
@@ -115,6 +116,7 @@ export default function MembersManager() {
       .toLocaleLowerCase()
       .includes(query.toLocaleLowerCase()),
   );
+  const editingMember = members.find((member) => member.id === editing) ?? null;
 
   async function save(memberId: string) {
     setMessage(null);
@@ -172,98 +174,101 @@ export default function MembersManager() {
         />
       ) : (
         <CompactList>
-          {filteredMembers.map((member) =>
-            editing === member.id ? (
-              <EditPanel key={member.id} title={`Editar ${member.displayName}`}>
-                <label>
-                  Nombre visible
-                  <input
-                    value={draft.displayName}
-                    onChange={(event) => setDraft({ ...draft, displayName: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Usuario
-                  <input
-                    value={draft.username}
-                    onChange={(event) => setDraft({ ...draft, username: event.target.value })}
-                  />
-                </label>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    checked={draft.accountActive}
-                    onChange={(event) =>
-                      setDraft({ ...draft, accountActive: event.target.checked })
-                    }
-                    type="checkbox"
-                  />{" "}
-                  Cuenta activa
-                </label>
-                <fieldset className={styles.rolesFieldset}>
-                  <legend>Permisos</legend>
-                  <label className={styles.checkboxLabel}>
-                    <input
-                      checked={isGlobalAdmin()}
-                      disabled={member.protectedAdmin}
-                      onChange={(event) => toggleAssignment("global", null, event.target.checked)}
-                      type="checkbox"
-                    />{" "}
-                    Administrador global{member.protectedAdmin ? " · protegido" : ""}
-                  </label>
-                  {availableEditions.map((edition) => (
-                    <div className={styles.editionRoles} key={edition.id}>
-                      <strong>{edition.year}</strong>
-                      {Object.entries(areaLabels).map(([area, label]) => (
-                        <label className={styles.checkboxLabel} key={area}>
-                          <input
-                            checked={hasAssignment(area, edition.id)}
-                            onChange={(event) =>
-                              toggleAssignment(area, edition.id, event.target.checked)
-                            }
-                            type="checkbox"
-                          />{" "}
-                          Editor de {label.toLowerCase()}
-                        </label>
-                      ))}
-                    </div>
+          {filteredMembers.map((member) => (
+            <CompactListRow
+              action={
+                <IconButton
+                  label={`Editar a ${member.displayName}`}
+                  onClick={() => startEditing(member)}
+                >
+                  <EditIcon />
+                </IconButton>
+              }
+              key={member.id}
+              meta={
+                <>
+                  {member.roles.map((role) => (
+                    <RoleBadge key={role} role={role} />
                   ))}
-                </fieldset>
-                <div className={styles.memberActions}>
-                  <button onClick={() => void save(member.id)} type="button">
-                    Guardar
-                  </button>
-                  <button onClick={() => setEditing(null)} type="button">
-                    Cancelar
-                  </button>
-                </div>
-              </EditPanel>
-            ) : (
-              <CompactListRow
-                action={
-                  <IconButton
-                    label={`Editar a ${member.displayName}`}
-                    onClick={() => startEditing(member)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                }
-                key={member.id}
-                meta={
-                  <>
-                    {member.roles.map((role) => (
-                      <RoleBadge key={role} role={role} />
-                    ))}
-                    <StatusBadge active={member.accountActive} />
-                  </>
-                }
-              >
-                <strong>{member.displayName}</strong>
-                <small>{member.username}</small>
-              </CompactListRow>
-            ),
-          )}
+                  <StatusBadge active={member.accountActive} />
+                </>
+              }
+            >
+              <strong>{member.displayName}</strong>
+              <small>{member.username}</small>
+            </CompactListRow>
+          ))}
         </CompactList>
       )}
+      <Modal
+        onClose={() => setEditing(null)}
+        open={editingMember !== null}
+        title={editingMember ? `Editar ${editingMember.displayName}` : "Editar miembro"}
+      >
+        {editingMember ? (
+          <div className={styles.memberEditor}>
+            <label>
+              Nombre visible
+              <input
+                value={draft.displayName}
+                onChange={(event) => setDraft({ ...draft, displayName: event.target.value })}
+              />
+            </label>
+            <label>
+              Usuario
+              <input
+                value={draft.username}
+                onChange={(event) => setDraft({ ...draft, username: event.target.value })}
+              />
+            </label>
+            <label className={styles.checkboxLabel}>
+              <input
+                checked={draft.accountActive}
+                onChange={(event) => setDraft({ ...draft, accountActive: event.target.checked })}
+                type="checkbox"
+              />{" "}
+              Cuenta activa
+            </label>
+            <fieldset className={styles.rolesFieldset}>
+              <legend>Permisos</legend>
+              <label className={styles.checkboxLabel}>
+                <input
+                  checked={isGlobalAdmin()}
+                  disabled={editingMember.protectedAdmin}
+                  onChange={(event) => toggleAssignment("global", null, event.target.checked)}
+                  type="checkbox"
+                />{" "}
+                Administrador global{editingMember.protectedAdmin ? " · protegido" : ""}
+              </label>
+              {availableEditions.map((edition) => (
+                <div className={styles.editionRoles} key={edition.id}>
+                  <strong>{edition.year}</strong>
+                  {Object.entries(areaLabels).map(([area, label]) => (
+                    <label className={styles.checkboxLabel} key={area}>
+                      <input
+                        checked={hasAssignment(area, edition.id)}
+                        onChange={(event) =>
+                          toggleAssignment(area, edition.id, event.target.checked)
+                        }
+                        type="checkbox"
+                      />{" "}
+                      Editor de {label.toLowerCase()}
+                    </label>
+                  ))}
+                </div>
+              ))}
+            </fieldset>
+            <div className={styles.memberActions}>
+              <button onClick={() => void save(editingMember.id)} type="button">
+                Guardar
+              </button>
+              <button onClick={() => setEditing(null)} type="button">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
     </section>
   );
 }

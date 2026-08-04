@@ -8,6 +8,7 @@ import {
   ListState,
   MoneyCell,
 } from "@/components/lists/list-patterns";
+import { Modal } from "@/components/ui/modal";
 import styles from "./edition.module.css";
 
 type Rate = { id: string; name: string; amount: string };
@@ -30,6 +31,7 @@ export default function BudgetOverview({
   const [error, setError] = useState<string | null>(null);
   const [rateName, setRateName] = useState("");
   const [rateAmount, setRateAmount] = useState("");
+  const [rateModalOpen, setRateModalOpen] = useState(false);
 
   useEffect(() => {
     fetch(`/api/v1/editions/${editionId}/budget`)
@@ -82,6 +84,7 @@ export default function BudgetOverview({
     );
     setRateName("");
     setRateAmount("");
+    setRateModalOpen(false);
   }
 
   return (
@@ -124,30 +127,13 @@ export default function BudgetOverview({
           </div>
           <ListDetailLayout
             aside={
-              <EditPanel title="Nueva tarifa">
-                <form className={styles.rateForm} onSubmit={(event) => void createRate(event)}>
-                  <label>
-                    Nombre
-                    <input
-                      onChange={(event) => setRateName(event.target.value)}
-                      required
-                      value={rateName}
-                    />
-                  </label>
-                  <label>
-                    Importe
-                    <input
-                      min="0"
-                      onChange={(event) => setRateAmount(event.target.value)}
-                      required
-                      step="0.01"
-                      type="number"
-                      value={rateAmount}
-                    />
-                  </label>
-                  <button type="submit">Crear tarifa</button>
-                </form>
-              </EditPanel>
+              <button
+                className="primaryAction"
+                onClick={() => setRateModalOpen(true)}
+                type="button"
+              >
+                Nueva tarifa
+              </button>
             }
           >
             <EditPanel title="Tarifas configuradas">
@@ -168,6 +154,30 @@ export default function BudgetOverview({
               )}
             </EditPanel>
           </ListDetailLayout>
+          <Modal onClose={() => setRateModalOpen(false)} open={rateModalOpen} title="Nueva tarifa">
+            <form className={styles.rateForm} onSubmit={(event) => void createRate(event)}>
+              <label>
+                Nombre
+                <input
+                  onChange={(event) => setRateName(event.target.value)}
+                  required
+                  value={rateName}
+                />
+              </label>
+              <label>
+                Importe
+                <input
+                  min="0"
+                  onChange={(event) => setRateAmount(event.target.value)}
+                  required
+                  step="0.01"
+                  type="number"
+                  value={rateAmount}
+                />
+              </label>
+              <button type="submit">Crear tarifa</button>
+            </form>
+          </Modal>
         </>
       )}
     </div>

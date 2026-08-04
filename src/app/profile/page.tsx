@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { InternalNav } from "@/components/navigation/internal-nav";
+import { Modal } from "@/components/ui/modal";
 
 type Profile = { displayName: string; username: string };
 
@@ -12,6 +13,7 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     void fetch("/api/v1/auth/profile")
@@ -42,6 +44,7 @@ export default function ProfilePage() {
       if (!response.ok || !result.data)
         throw new Error(result.error?.message ?? "No se pudo guardar el perfil.");
       setProfile(result.data);
+      setEditing(false);
       setMessage("Perfil actualizado.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "No se pudo guardar el perfil.");
@@ -77,30 +80,25 @@ export default function ProfilePage() {
             { href: "/change-password", label: "Seguridad" },
           ]}
         />
-        <form className="loginCard" onSubmit={save}>
-          <label>
-            Nombre visible
-            <input
-              value={profile.displayName}
-              onChange={(event) => setProfile({ ...profile, displayName: event.target.value })}
-            />
-          </label>
-          <label>
-            Nombre de usuario
-            <input
-              autoComplete="username"
-              value={profile.username}
-              onChange={(event) => setProfile({ ...profile, username: event.target.value })}
-            />
-          </label>
+        <article className="loginCard">
+          <p>
+            <strong>Nombre visible</strong>
+            <br />
+            {profile.displayName}
+          </p>
+          <p>
+            <strong>Nombre de usuario</strong>
+            <br />
+            {profile.username}
+          </p>
           {message ? <p role="status">{message}</p> : null}
           {error ? (
             <p className="formError" role="alert">
               {error}
             </p>
           ) : null}
-          <button className="primaryAction" disabled={saving} type="submit">
-            {saving ? "Guardando…" : "Guardar cambios"}
+          <button className="primaryAction" onClick={() => setEditing(true)} type="button">
+            Editar perfil
           </button>
           <Link className="backLink" href="/change-password">
             Cambiar contraseña
@@ -108,7 +106,34 @@ export default function ProfilePage() {
           <button className="backLink" onClick={() => void logoutAll()} type="button">
             Cerrar todas las sesiones
           </button>
-        </form>
+        </article>
+        <Modal onClose={() => setEditing(false)} open={editing} title="Editar perfil">
+          <form className="loginCard" onSubmit={save}>
+            <label>
+              Nombre visible
+              <input
+                value={profile.displayName}
+                onChange={(event) => setProfile({ ...profile, displayName: event.target.value })}
+              />
+            </label>
+            <label>
+              Nombre de usuario
+              <input
+                autoComplete="username"
+                value={profile.username}
+                onChange={(event) => setProfile({ ...profile, username: event.target.value })}
+              />
+            </label>
+            {error ? (
+              <p className="formError" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <button className="primaryAction" disabled={saving} type="submit">
+              {saving ? "Guardando…" : "Guardar cambios"}
+            </button>
+          </form>
+        </Modal>
       </div>
     </div>
   );

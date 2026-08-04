@@ -121,22 +121,22 @@ export async function POST(
     if (!(await canEditBudget(database, member.memberId, editionId)))
       return apiFailure("forbidden", "No tienes permiso para editar el presupuesto", 403);
     const rateId = randomUUID();
-    const result = await database.transaction(async (tx) => {
-      const edition = await tx
-        .select({ status: editions.status })
-        .from(editions)
-        .where(eq(editions.id, editionId))
-        .limit(1);
-      if (edition.length === 0) throw new Error("edition_not_found");
-      if (edition[0].status === "closed") throw new Error("edition_closed");
-      const rate = {
-        id: rateId,
-        editionId,
-        name: input.data.name,
-        amount: input.data.amount.toFixed(2),
-      };
-      await tx.insert(budgetRates).values(rate);
-      await tx.insert(auditEvents).values({
+    const edition = await database
+      .select({ status: editions.status })
+      .from(editions)
+      .where(eq(editions.id, editionId))
+      .limit(1);
+    if (edition.length === 0) throw new Error("edition_not_found");
+    if (edition[0].status === "closed") throw new Error("edition_closed");
+    const rate = {
+      id: rateId,
+      editionId,
+      name: input.data.name,
+      amount: input.data.amount.toFixed(2),
+    };
+    await database.batch([
+      database.insert(budgetRates).values(rate),
+      database.insert(auditEvents).values({
         memberId: member.memberId,
         action: "create",
         area: "budget",
@@ -144,9 +144,9 @@ export async function POST(
         entityId: rateId,
         beforeValue: null,
         afterValue: rate,
-      });
-      return rate;
-    });
+      }),
+    ]);
+    const result = rate;
     return apiSuccess(result, 201);
   } catch (error) {
     if (error instanceof IdentityError)
@@ -181,38 +181,39 @@ export async function PUT(
     const { database, member } = await authenticate(request);
     if (!(await canEditBudget(database, member.memberId, editionId)))
       return apiFailure("forbidden", "No tienes permiso para editar el presupuesto", 403);
-    const result = await database.transaction(async (tx) => {
-      const edition = await tx
-        .select({ status: editions.status })
-        .from(editions)
-        .where(eq(editions.id, editionId))
+    const edition = await database
+      .select({ status: editions.status })
+      .from(editions)
+      .where(eq(editions.id, editionId))
+      .limit(1);
+    if (edition.length === 0) throw new Error("edition_not_found");
+    if (edition[0].status === "closed") throw new Error("edition_closed");
+    const participant = await database
+      .select({ id: editionParticipants.id, rateId: editionParticipants.rateId })
+      .from(editionParticipants)
+      .where(
+        and(
+          eq(editionParticipants.editionId, editionId),
+          eq(editionParticipants.memberId, input.data.memberId),
+        ),
+      )
+      .limit(1);
+    if (participant.length === 0) throw new Error("not_annual_participant");
+    if (input.data.rateId) {
+      const rate = await database
+        .select({ id: budgetRates.id })
+        .from(budgetRates)
+        .where(and(eq(budgetRates.id, input.data.rateId), eq(budgetRates.editionId, editionId)))
         .limit(1);
-      if (edition.length === 0) throw new Error("edition_not_found");
-      if (edition[0].status === "closed") throw new Error("edition_closed");
-      const participant = await tx
-        .select({ id: editionParticipants.id, rateId: editionParticipants.rateId })
-        .from(editionParticipants)
-        .where(
-          and(
-            eq(editionParticipants.editionId, editionId),
-            eq(editionParticipants.memberId, input.data.memberId),
-          ),
-        )
-        .limit(1);
-      if (participant.length === 0) throw new Error("not_annual_participant");
-      if (input.data.rateId) {
-        const rate = await tx
-          .select({ id: budgetRates.id })
-          .from(budgetRates)
-          .where(and(eq(budgetRates.id, input.data.rateId), eq(budgetRates.editionId, editionId)))
-          .limit(1);
-        if (rate.length === 0) throw new Error("rate_not_found");
-      }
-      await tx
+      if (rate.length === 0) throw new Error("rate_not_found");
+    }
+    const result = { memberId: input.data.memberId, rateId: input.data.rateId };
+    await database.batch([
+      database
         .update(editionParticipants)
         .set({ rateId: input.data.rateId, updatedAt: new Date() })
-        .where(eq(editionParticipants.id, participant[0].id));
-      await tx.insert(auditEvents).values({
+        .where(eq(editionParticipants.id, participant[0].id)),
+      database.insert(auditEvents).values({
         memberId: member.memberId,
         action: "update",
         area: "budget",
@@ -220,9 +221,8 @@ export async function PUT(
         entityId: input.data.memberId,
         beforeValue: { rateId: participant[0].rateId },
         afterValue: { rateId: input.data.rateId, editionId },
-      });
-      return { memberId: input.data.memberId, rateId: input.data.rateId };
-    });
+      }),
+    ]);
     return apiSuccess(result);
   } catch (error) {
     if (error instanceof IdentityError)

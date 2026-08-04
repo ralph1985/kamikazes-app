@@ -196,11 +196,20 @@
   font-weight: 700;
   gap: 6px;
 }
-.rateForm input {
+.rateForm input:not([type="checkbox"]),
+.rateForm select {
   border: 1px solid #cfc7ba;
   border-radius: 8px;
   font: inherit;
   padding: 9px 10px;
+}
+.rateForm .checkboxLabel {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+.rateForm input[type="checkbox"] {
+  accent-color: #8b2e2e;
 }
 .rateForm button {
   background: #8b2e2e;

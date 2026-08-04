@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CompactList, CompactListRow } from "@/components/lists/compact-list";
+import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
+import { Modal } from "@/components/ui/modal";
 import styles from "./edition.module.css";
 
 type Rate = { id: string; name: string; amount: string };
@@ -21,6 +22,9 @@ export default function ParticipantsOverview({
   const [rates, setRates] = useState<Rate[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [draftParticipating, setDraftParticipating] = useState(false);
+  const [draftRateId, setDraftRateId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -67,7 +71,7 @@ export default function ParticipantsOverview({
     if (!response.ok) {
       const result = (await response.json()) as { error?: { message: string } };
       setError(result.error?.message ?? "No se pudo actualizar el participante");
-      return;
+      return false;
     }
     setParticipants((current) =>
       current.map((item) =>
@@ -76,6 +80,7 @@ export default function ParticipantsOverview({
           : item,
       ),
     );
+    return true;
   }
 
   async function updateRate(memberId: string, rateId: string | null) {
@@ -88,14 +93,37 @@ export default function ParticipantsOverview({
     if (!response.ok) {
       const result = (await response.json()) as { error?: { message: string } };
       setError(result.error?.message ?? "No se pudo asignar la tarifa");
-      return;
+      return false;
     }
     setParticipants((current) =>
       current.map((item) => (item.memberId === memberId ? { ...item, rateId } : item)),
     );
+    return true;
+  }
+
+  function startEditing(memberId: string) {
+    const participant = participants.find((item) => item.memberId === memberId);
+    if (!participant) return;
+    setEditingMemberId(memberId);
+    setDraftParticipating(participant.participating);
+    setDraftRateId(participant.rateId);
+    setError(null);
+  }
+
+  async function saveParticipant() {
+    const participant = participants.find((item) => item.memberId === editingMemberId);
+    if (!participant || !editingMemberId) return;
+    if (participant.participating !== draftParticipating) {
+      if (!(await updateAnnual(editingMemberId, draftParticipating))) return;
+    }
+    const nextRateId = draftParticipating ? draftRateId : null;
+    if (participant.rateId !== nextRateId && !(await updateRate(editingMemberId, nextRateId)))
+      return;
+    setEditingMemberId(null);
   }
 
   const count = participants.filter((item) => item.participating).length;
+  const editingParticipant = participants.find((item) => item.memberId === editingMemberId);
   return (
     <div className={styles.budgetLayout}>
       <div className={styles.budgetHeader}>
@@ -123,33 +151,15 @@ export default function ParticipantsOverview({
           {participants.map((participant) => (
             <CompactListRow
               action={
-                <input
-                  aria-label={`Incluir a ${participant.displayName} en la edición`}
-                  checked={participant.participating}
-                  onChange={(event) =>
-                    void updateAnnual(participant.memberId, event.target.checked)
-                  }
-                  type="checkbox"
-                />
+                <IconButton
+                  label={`Editar participación de ${participant.displayName}`}
+                  onClick={() => startEditing(participant.memberId)}
+                >
+                  <EditIcon />
+                </IconButton>
               }
               key={participant.memberId}
-              meta={
-                <select
-                  aria-label={`Tarifa de ${participant.displayName}`}
-                  disabled={!participant.participating}
-                  onChange={(event) =>
-                    void updateRate(participant.memberId, event.target.value || null)
-                  }
-                  value={participant.rateId ?? ""}
-                >
-                  <option value="">Sin asignar</option>
-                  {rates.map((rate) => (
-                    <option key={rate.id} value={rate.id}>
-                      {rate.name}
-                    </option>
-                  ))}
-                </select>
-              }
+              meta={participant.participating ? "Participa" : "No participa"}
             >
               <strong>{participant.displayName}</strong>
               <small>
@@ -163,6 +173,44 @@ export default function ParticipantsOverview({
           ))}
         </CompactList>
       )}
+      <Modal
+        onClose={() => setEditingMemberId(null)}
+        open={editingParticipant !== undefined}
+        title={
+          editingParticipant ? `Editar ${editingParticipant.displayName}` : "Editar participación"
+        }
+      >
+        {editingParticipant ? (
+          <div className={styles.rateForm}>
+            <label className={styles.checkboxLabel}>
+              <input
+                checked={draftParticipating}
+                onChange={(event) => setDraftParticipating(event.target.checked)}
+                type="checkbox"
+              />{" "}
+              Participa en la edición
+            </label>
+            <label>
+              Tarifa
+              <select
+                disabled={!draftParticipating}
+                onChange={(event) => setDraftRateId(event.target.value || null)}
+                value={draftRateId ?? ""}
+              >
+                <option value="">Sin asignar</option>
+                {rates.map((rate) => (
+                  <option key={rate.id} value={rate.id}>
+                    {rate.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button onClick={() => void saveParticipant()} type="button">
+              Guardar cambios
+            </button>
+          </div>
+        ) : null}
+      </Modal>
     </div>
   );
 }

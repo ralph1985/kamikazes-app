@@ -333,6 +333,7 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - Tras el login, una cuenta con cambio obligatorio pendiente sólo podrá acceder al flujo de cambio de contraseña; al completarlo, la sesión se rotará y la cuenta quedará activada para el acceso normal.
 - El menú mostrará el nombre visible de la persona autenticada y permitirá cerrar su sesión actual.
 - Las vistas que tengan navegación interna reutilizarán un componente compartido y mantendrán el mismo patrón visual y de interacción. Como mínimo, administración y perfil mostrarán navegación interna consistente con la navegación interna de ediciones.
+- Las acciones de edición de datos se abrirán en ventanas modales mediante un componente compartido, con cierre accesible, Escape y comportamiento responsive. Esto aplica a miembros, perfil, tarifas y participantes, y se extenderá a los módulos siguientes.
 - Las listas móviles podrán paginarse mediante cursor y las tablas administrativas mediante `page/limit`, según la experiencia de cada pantalla.
 - Cada operación offline tendrá un `operationId` único persistido en Neon para impedir duplicados durante los reintentos.
 - Antes de implementar los hitos se configurará Codex mediante un `AGENTS.md` raíz y, cuando sea útil, instrucciones específicas por módulo.
