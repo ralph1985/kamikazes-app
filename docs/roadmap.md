@@ -133,11 +133,27 @@ Resultado: gestión económica completa con auditoría.
 
 ## Hito 6 — Lista de compra
 
+Estado: En desarrollo.
+
+Primera rebanada verificable:
+
 - productos, categorías, asignaciones, tiendas y estados;
-- copia de una edición anterior;
 - precios y cantidades previstas/reales;
 - filtros, ordenación y agrupación;
 - flujo móvil `Pendiente → En carrito → Comprado`.
+
+Siguiente bloque del hito:
+
+- copia de una edición anterior;
+- preferencias persistentes de agrupación, orden y filtros.
+
+Criterios de aceptación de la primera rebanada:
+
+- los productos pertenecen a una única edición y no se eliminan;
+- lectores consultan y filtran; editores de compras y administradores crean y modifican;
+- cantidades y precios previstos/reales calculan el total automáticamente;
+- las mutaciones se auditan y una edición cerrada queda en sólo lectura;
+- una cantidad negativa exige una nota explicativa.
 
 Resultado: sustitución funcional de la lista principal del Excel.
 

@@ -4,6 +4,7 @@ import {
   check,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -244,6 +245,63 @@ export const budgetMovements = pgTable(
     check(
       "budget_movements_amount_sign",
       sql`(${table.kind} = 'income' and ${table.amount} >= 0) or (${table.kind} = 'expense' and ${table.amount} <= 0)`,
+    ),
+  ],
+);
+
+export const shoppingCategories = pgTable(
+  "shopping_categories",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [uniqueIndex("shopping_categories_edition_name_unique").on(table.editionId, table.name)],
+);
+
+export const shoppingStores = pgTable(
+  "shopping_stores",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [uniqueIndex("shopping_stores_edition_name_unique").on(table.editionId, table.name)],
+);
+
+export const shoppingProducts = pgTable(
+  "shopping_products",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    description: text("description").notNull().default(""),
+    categoryId: uuid("category_id").references(() => shoppingCategories.id, { onDelete: "restrict" }),
+    storeId: uuid("store_id").references(() => shoppingStores.id, { onDelete: "restrict" }),
+    assignedMemberId: uuid("assigned_member_id").references(() => members.id, { onDelete: "restrict" }),
+    assignment: text("assignment"),
+    plannedQuantity: numeric("planned_quantity", { precision: 12, scale: 2 }),
+    realQuantity: numeric("real_quantity", { precision: 12, scale: 2 }),
+    plannedUnitPrice: money("planned_unit_price"),
+    realUnitPrice: money("real_unit_price"),
+    notes: text("notes"),
+    status: text("status").notNull().default("pending"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    check(
+      "shopping_products_status_allowed",
+      sql`${table.status} in ('pending', 'in_cart', 'purchased', 'not_buying', 'gifted')`,
     ),
   ],
 );

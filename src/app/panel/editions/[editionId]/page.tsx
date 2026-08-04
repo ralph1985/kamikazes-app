@@ -10,6 +10,7 @@ import { IdentityError } from "@/modules/identity/domain/identity";
 import { InternalNav } from "@/components/navigation/internal-nav";
 import BudgetOverview from "./budget-overview";
 import ParticipantsOverview from "./participants-overview";
+import ShoppingOverview from "./shopping-overview";
 import styles from "./edition.module.css";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ const sections = [
   { key: "summary", label: "Resumen", available: true },
   { key: "participants", label: "Participantes", available: true },
   { key: "budget", label: "Presupuesto", available: true },
-  { key: "shopping", label: "Compras", available: false },
+  { key: "shopping", label: "Compras", available: true },
   { key: "inventory", label: "Inventario", available: false },
   { key: "catering", label: "Catering", available: false },
 ] as const;
@@ -96,6 +97,12 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
           />
         ) : activeSection.key === "budget" ? (
           <BudgetOverview
+            editionId={edition.id}
+            readOnly={edition.status === "closed"}
+            year={edition.year}
+          />
+        ) : activeSection.key === "shopping" ? (
+          <ShoppingOverview
             editionId={edition.id}
             readOnly={edition.status === "closed"}
             year={edition.year}

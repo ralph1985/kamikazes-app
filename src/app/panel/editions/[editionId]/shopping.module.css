@@ -1,0 +1,115 @@
+.wrapper {
+  display: grid;
+  gap: 16px;
+}
+.heading {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+.heading h2 {
+  margin: 0 0 6px;
+}
+.muted,
+.group small {
+  color: #687169;
+}
+.primary {
+  background: #8b2e2e;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  padding: 9px 13px;
+}
+.filters {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+}
+.filters label,
+.form label {
+  color: #687169;
+  display: grid;
+  font-size: 0.84rem;
+  gap: 5px;
+}
+.filters select,
+.form input,
+.form select,
+.form textarea {
+  background: #fffdf9;
+  border: 1px solid #cfc7ba;
+  border-radius: 8px;
+  color: #1f2421;
+  font: inherit;
+  padding: 9px 10px;
+}
+.totals {
+  display: flex;
+  gap: 18px;
+  color: #687169;
+  font-size: 0.9rem;
+}
+.totals span {
+  display: flex;
+  gap: 6px;
+}
+.group h3 {
+  border-bottom: 1px solid #ded8ce;
+  color: #687169;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  margin: 8px 0 8px;
+  padding-bottom: 7px;
+  text-transform: uppercase;
+}
+.group small {
+  display: block;
+  margin-top: 4px;
+}
+.error {
+  color: #8b2e2e;
+  margin: 0;
+}
+.form {
+  display: grid;
+  gap: 14px;
+}
+.twoColumns {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+}
+.form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.cancel {
+  background: #eee8de;
+  border: 0;
+  border-radius: 8px;
+  color: #1f2421;
+  cursor: pointer;
+  font: inherit;
+  padding: 9px 13px;
+}
+@media (max-width: 700px) {
+  .heading {
+    flex-direction: column;
+  }
+  .filters,
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+  .primary {
+    width: 100%;
+  }
+}
