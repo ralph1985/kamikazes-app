@@ -239,6 +239,26 @@
   font-weight: 700;
   padding: 14px 18px;
 }
+.panelToolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.panelToolbar button,
+.rowActions button {
+  background: #eee8de;
+  border: 0;
+  border-radius: 8px;
+  color: #1f2421;
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 11px;
+}
+.rowActions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
 .rateList {
   border-top: 1px solid #eee8de;
   display: grid;

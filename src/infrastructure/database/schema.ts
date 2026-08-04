@@ -196,10 +196,7 @@ export const budgetTransactions = pgTable(
     updatedAt: updatedAt(),
   },
   (table) => [
-    check(
-      "budget_transactions_kind_allowed",
-      sql`${table.kind} in ('payment', 'refund')`,
-    ),
+    check("budget_transactions_kind_allowed", sql`${table.kind} in ('payment', 'refund')`),
     check(
       "budget_transactions_method_allowed",
       sql`${table.method} in ('cash', 'bizum', 'transfer')`,
@@ -207,6 +204,46 @@ export const budgetTransactions = pgTable(
     check(
       "budget_transactions_amount_sign",
       sql`(${table.kind} = 'payment' and ${table.amount} >= 0) or (${table.kind} = 'refund' and ${table.amount} <= 0)`,
+    ),
+  ],
+);
+
+export const budgetBalances = pgTable("budget_balances", {
+  id: primaryKey(),
+  editionId: uuid("edition_id")
+    .notNull()
+    .references(() => editions.id, { onDelete: "restrict" }),
+  amount: money("amount").notNull(),
+  concept: text("concept").notNull(),
+  originYear: integer("origin_year"),
+  originEditionId: uuid("origin_edition_id").references(() => editions.id, {
+    onDelete: "restrict",
+  }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const budgetMovements = pgTable(
+  "budget_movements",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    kind: text("kind").notNull(),
+    amount: money("amount").notNull(),
+    isPlanned: boolean("is_planned").notNull().default(false),
+    occurredAt: timestamp("occurred_at", { withTimezone: true, mode: "date" }).notNull(),
+    concept: text("concept").notNull(),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    check("budget_movements_kind_allowed", sql`${table.kind} in ('income', 'expense')`),
+    check(
+      "budget_movements_amount_sign",
+      sql`(${table.kind} = 'income' and ${table.amount} >= 0) or (${table.kind} = 'expense' and ${table.amount} <= 0)`,
     ),
   ],
 );

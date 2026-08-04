@@ -119,6 +119,8 @@ Siguiente bloque del hito:
 - saldo previsto y saldo real;
 - cierre y reapertura administrativa.
 
+Este bloque cubre saldos y movimientos previstos/reales; el cierre económico administrativo queda para la siguiente iteración.
+
 Criterios de aceptación de la primera rebanada:
 
 - sólo editores de presupuesto y administradores pueden registrar o corregir pagos y devoluciones;

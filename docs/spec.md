@@ -494,6 +494,7 @@ Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya es
 - El Hito 3 queda implementado en su primera rebanada, pero pendiente de validación funcional por Rafa.
 - El Hito 4 se implementa con contenido público cacheable y administración exclusiva del administrador global.
 - El Hito 5 se implementa por bloques; la primera rebanada cubre cuotas derivadas de tarifas, pagos y devoluciones, y deja movimientos manuales y saldos trasladables para el siguiente bloque.
+- El segundo bloque del Hito 5 cubre saldos iniciales y movimientos previstos/reales; el cierre económico administrativo queda pendiente.
 
 ## 7. Criterio de trabajo SDD
 

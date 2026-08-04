@@ -30,6 +30,22 @@ type BudgetTransaction = {
   method: "cash" | "bizum" | "transfer";
   notes: string | null;
 };
+type BudgetBalance = {
+  id: string;
+  amount: string;
+  concept: string;
+  originYear: number | null;
+  originEditionId: string | null;
+};
+type BudgetMovement = {
+  id: string;
+  kind: "income" | "expense";
+  amount: string;
+  isPlanned: boolean;
+  occurredAt: string;
+  concept: string;
+  notes: string | null;
+};
 
 export default function BudgetOverview({
   editionId,
@@ -38,6 +54,8 @@ export default function BudgetOverview({
   const [rates, setRates] = useState<Rate[]>([]);
   const [participants, setParticipants] = useState<BudgetParticipant[]>([]);
   const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
+  const [balances, setBalances] = useState<BudgetBalance[]>([]);
+  const [movements, setMovements] = useState<BudgetMovement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rateName, setRateName] = useState("");
@@ -53,13 +71,28 @@ export default function BudgetOverview({
   );
   const [transactionMethod, setTransactionMethod] = useState<"cash" | "bizum" | "transfer">("cash");
   const [transactionNotes, setTransactionNotes] = useState("");
+  const [balanceModalOpen, setBalanceModalOpen] = useState(false);
+  const [editingBalance, setEditingBalance] = useState<BudgetBalance | null>(null);
+  const [balanceAmount, setBalanceAmount] = useState("");
+  const [balanceConcept, setBalanceConcept] = useState("");
+  const [balanceOriginYear, setBalanceOriginYear] = useState("");
+  const [movementModalOpen, setMovementModalOpen] = useState(false);
+  const [editingMovement, setEditingMovement] = useState<BudgetMovement | null>(null);
+  const [movementKind, setMovementKind] = useState<"income" | "expense">("expense");
+  const [movementAmount, setMovementAmount] = useState("");
+  const [movementPlanned, setMovementPlanned] = useState(true);
+  const [movementDate, setMovementDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [movementConcept, setMovementConcept] = useState("");
+  const [movementNotes, setMovementNotes] = useState("");
 
   useEffect(() => {
     Promise.all([
       fetch(`/api/v1/editions/${editionId}/budget`),
       fetch(`/api/v1/editions/${editionId}/budget/transactions`),
+      fetch(`/api/v1/editions/${editionId}/budget/balances`),
+      fetch(`/api/v1/editions/${editionId}/budget/movements`),
     ])
-      .then(async ([budgetResponse, transactionsResponse]) => {
+      .then(async ([budgetResponse, transactionsResponse, balancesResponse, movementsResponse]) => {
         const result = (await budgetResponse.json()) as {
           data?: { rates: Rate[]; participants: BudgetParticipant[] };
           error?: { message: string };
@@ -68,13 +101,29 @@ export default function BudgetOverview({
           data?: { transactions: BudgetTransaction[] };
           error?: { message: string };
         };
+        const balancesResult = (await balancesResponse.json()) as {
+          data?: { balances: BudgetBalance[] };
+          error?: { message: string };
+        };
+        const movementsResult = (await movementsResponse.json()) as {
+          data?: { movements: BudgetMovement[] };
+          error?: { message: string };
+        };
         if (!budgetResponse.ok || !result.data)
           throw new Error(result.error?.message ?? "No se pudo cargar el presupuesto");
         if (!transactionsResponse.ok || !transactionsResult.data)
           throw new Error(transactionsResult.error?.message ?? "No se pudieron cargar los pagos");
+        if (!balancesResponse.ok || !balancesResult.data)
+          throw new Error(balancesResult.error?.message ?? "No se pudieron cargar los saldos");
+        if (!movementsResponse.ok || !movementsResult.data)
+          throw new Error(
+            movementsResult.error?.message ?? "No se pudieron cargar los movimientos",
+          );
         setRates(result.data.rates);
         setParticipants(result.data.participants);
         setTransactions(transactionsResult.data.transactions);
+        setBalances(balancesResult.data.balances);
+        setMovements(movementsResult.data.movements);
       })
       .catch((loadError: unknown) =>
         setError(
@@ -98,6 +147,15 @@ export default function BudgetOverview({
   const participatingCount = participants.filter((participant) => participant.participating).length;
   const paid = transactions.reduce((total, transaction) => total + Number(transaction.amount), 0);
   const pending = Math.max(expected - paid, 0);
+  const balanceTotal = balances.reduce((total, balance) => total + Number(balance.amount), 0);
+  const plannedMovements = movements
+    .filter((movement) => movement.isPlanned)
+    .reduce((total, movement) => total + Number(movement.amount), 0);
+  const actualMovements = movements
+    .filter((movement) => !movement.isPlanned)
+    .reduce((total, movement) => total + Number(movement.amount), 0);
+  const plannedBalance = expected + balanceTotal + plannedMovements;
+  const actualBalance = paid + balanceTotal + actualMovements;
 
   async function createRate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -181,6 +239,106 @@ export default function BudgetOverview({
     setTransactionModalOpen(false);
   }
 
+  function openBalance(balance?: BudgetBalance) {
+    setEditingBalance(balance ?? null);
+    setBalanceAmount(balance ? String(Number(balance.amount)) : "");
+    setBalanceConcept(balance?.concept ?? "");
+    setBalanceOriginYear(balance?.originYear ? String(balance.originYear) : "");
+    setBalanceModalOpen(true);
+  }
+
+  async function saveBalance(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    const response = await fetch(`/api/v1/editions/${editionId}/budget/balances`, {
+      method: editingBalance ? "PATCH" : "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: editingBalance?.id,
+        amount: Number(balanceAmount),
+        concept: balanceConcept,
+        originYear: balanceOriginYear ? Number(balanceOriginYear) : null,
+        originEditionId: null,
+      }),
+    });
+    const result = (await response.json()) as { data?: BudgetBalance; error?: { message: string } };
+    if (!response.ok || !result.data) {
+      setError(result.error?.message ?? "No se pudo guardar el saldo");
+      return;
+    }
+    setBalances((current) =>
+      editingBalance
+        ? current.map((balance) => (balance.id === result.data!.id ? result.data! : balance))
+        : [...current, result.data!],
+    );
+    setBalanceModalOpen(false);
+  }
+
+  async function removeBalance(id: string) {
+    if (!window.confirm("¿Quieres eliminar este saldo?")) return;
+    const response = await fetch(`/api/v1/editions/${editionId}/budget/balances`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (response.ok) setBalances((current) => current.filter((balance) => balance.id !== id));
+    else setError("No se pudo eliminar el saldo");
+  }
+
+  function openMovement(movement?: BudgetMovement) {
+    setEditingMovement(movement ?? null);
+    setMovementKind(movement?.kind ?? "expense");
+    setMovementAmount(movement ? String(Math.abs(Number(movement.amount))) : "");
+    setMovementPlanned(movement?.isPlanned ?? true);
+    setMovementDate(movement?.occurredAt.slice(0, 10) ?? new Date().toISOString().slice(0, 10));
+    setMovementConcept(movement?.concept ?? "");
+    setMovementNotes(movement?.notes ?? "");
+    setMovementModalOpen(true);
+  }
+
+  async function saveMovement(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    const response = await fetch(`/api/v1/editions/${editionId}/budget/movements`, {
+      method: editingMovement ? "PATCH" : "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: editingMovement?.id,
+        kind: movementKind,
+        amount: Number(movementAmount),
+        isPlanned: movementPlanned,
+        occurredAt: movementDate,
+        concept: movementConcept,
+        notes: movementNotes || null,
+      }),
+    });
+    const result = (await response.json()) as {
+      data?: BudgetMovement;
+      error?: { message: string };
+    };
+    if (!response.ok || !result.data) {
+      setError(result.error?.message ?? "No se pudo guardar el movimiento");
+      return;
+    }
+    setMovements((current) =>
+      editingMovement
+        ? current.map((movement) => (movement.id === result.data!.id ? result.data! : movement))
+        : [result.data!, ...current],
+    );
+    setMovementModalOpen(false);
+  }
+
+  async function removeMovement(id: string) {
+    if (!window.confirm("¿Quieres eliminar este movimiento?")) return;
+    const response = await fetch(`/api/v1/editions/${editionId}/budget/movements`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (response.ok) setMovements((current) => current.filter((movement) => movement.id !== id));
+    else setError("No se pudo eliminar el movimiento");
+  }
+
   const methodLabels = { cash: "Efectivo", bizum: "Bizum", transfer: "Transferencia" };
 
   return (
@@ -228,6 +386,20 @@ export default function BudgetOverview({
                 <MoneyCell amount={pending} />
               </strong>
               <small>Cuotas menos pagos netos</small>
+            </article>
+            <article className={styles.summaryCard}>
+              <span>Saldo previsto</span>
+              <strong>
+                <MoneyCell amount={plannedBalance} />
+              </strong>
+              <small>Cuotas, saldos y movimientos previstos</small>
+            </article>
+            <article className={styles.summaryCard}>
+              <span>Saldo real</span>
+              <strong>
+                <MoneyCell amount={actualBalance} />
+              </strong>
+              <small>Pagos, saldos y movimientos reales</small>
             </article>
           </div>
           <ListDetailLayout
@@ -289,6 +461,89 @@ export default function BudgetOverview({
             ) : (
               <ListState
                 description="Los pagos y devoluciones aparecerán aquí."
+                title="Sin movimientos"
+              />
+            )}
+          </EditPanel>
+          <EditPanel title="Saldos iniciales y trasladables">
+            <div className={styles.panelToolbar}>
+              <button onClick={() => openBalance()} type="button">
+                Añadir saldo
+              </button>
+            </div>
+            {balances.length > 0 ? (
+              <CompactList>
+                {balances.map((balance) => (
+                  <CompactListRow
+                    action={
+                      <span className={styles.rowActions}>
+                        <IconButton
+                          label={`Editar saldo ${balance.concept}`}
+                          onClick={() => openBalance(balance)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <button onClick={() => void removeBalance(balance.id)} type="button">
+                          Eliminar
+                        </button>
+                      </span>
+                    }
+                    key={balance.id}
+                    meta={<MoneyCell amount={Number(balance.amount)} />}
+                  >
+                    <strong>{balance.concept}</strong>
+                    <small>
+                      {balance.originYear
+                        ? `Origen: ${balance.originYear}`
+                        : "Saldo de esta edición"}
+                    </small>
+                  </CompactListRow>
+                ))}
+              </CompactList>
+            ) : (
+              <ListState
+                description="Añade el saldo sobrante o inicial de la edición."
+                title="Sin saldos"
+              />
+            )}
+          </EditPanel>
+          <EditPanel title="Movimientos previstos y reales">
+            <div className={styles.panelToolbar}>
+              <button onClick={() => openMovement()} type="button">
+                Añadir movimiento
+              </button>
+            </div>
+            {movements.length > 0 ? (
+              <CompactList>
+                {movements.map((movement) => (
+                  <CompactListRow
+                    action={
+                      <span className={styles.rowActions}>
+                        <IconButton
+                          label={`Editar ${movement.concept}`}
+                          onClick={() => openMovement(movement)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <button onClick={() => void removeMovement(movement.id)} type="button">
+                          Eliminar
+                        </button>
+                      </span>
+                    }
+                    key={movement.id}
+                    meta={<MoneyCell amount={Number(movement.amount)} />}
+                  >
+                    <strong>{movement.concept}</strong>
+                    <small>
+                      {movement.isPlanned ? "Previsto" : "Real"} ·{" "}
+                      {movement.occurredAt.slice(0, 10)}
+                    </small>
+                  </CompactListRow>
+                ))}
+              </CompactList>
+            ) : (
+              <ListState
+                description="Los ingresos y gastos manuales aparecerán aquí."
                 title="Sin movimientos"
               />
             )}
@@ -395,6 +650,106 @@ export default function BudgetOverview({
                 />
               </label>
               <button type="submit">Guardar</button>
+            </form>
+          </Modal>
+          <Modal
+            onClose={() => setBalanceModalOpen(false)}
+            open={balanceModalOpen}
+            title={editingBalance ? "Editar saldo" : "Añadir saldo"}
+          >
+            <form className={styles.rateForm} onSubmit={(event) => void saveBalance(event)}>
+              <label>
+                Importe
+                <input
+                  min="-9999999999.99"
+                  onChange={(event) => setBalanceAmount(event.target.value)}
+                  required
+                  step="0.01"
+                  type="number"
+                  value={balanceAmount}
+                />
+              </label>
+              <label>
+                Concepto
+                <input
+                  onChange={(event) => setBalanceConcept(event.target.value)}
+                  required
+                  value={balanceConcept}
+                />
+              </label>
+              <label>
+                Año de origen (opcional)
+                <input
+                  max="2200"
+                  min="1900"
+                  onChange={(event) => setBalanceOriginYear(event.target.value)}
+                  type="number"
+                  value={balanceOriginYear}
+                />
+              </label>
+              <button type="submit">Guardar saldo</button>
+            </form>
+          </Modal>
+          <Modal
+            onClose={() => setMovementModalOpen(false)}
+            open={movementModalOpen}
+            title={editingMovement ? "Editar movimiento" : "Añadir movimiento"}
+          >
+            <form className={styles.rateForm} onSubmit={(event) => void saveMovement(event)}>
+              <label>
+                Tipo
+                <select
+                  onChange={(event) => setMovementKind(event.target.value as "income" | "expense")}
+                  value={movementKind}
+                >
+                  <option value="expense">Gasto</option>
+                  <option value="income">Ingreso</option>
+                </select>
+              </label>
+              <label>
+                Importe
+                <input
+                  min="0.01"
+                  onChange={(event) => setMovementAmount(event.target.value)}
+                  required
+                  step="0.01"
+                  type="number"
+                  value={movementAmount}
+                />
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input
+                  checked={movementPlanned}
+                  onChange={(event) => setMovementPlanned(event.target.checked)}
+                  type="checkbox"
+                />{" "}
+                Previsto
+              </label>
+              <label>
+                Fecha
+                <input
+                  onChange={(event) => setMovementDate(event.target.value)}
+                  required
+                  type="date"
+                  value={movementDate}
+                />
+              </label>
+              <label>
+                Concepto
+                <input
+                  onChange={(event) => setMovementConcept(event.target.value)}
+                  required
+                  value={movementConcept}
+                />
+              </label>
+              <label>
+                Notas
+                <textarea
+                  onChange={(event) => setMovementNotes(event.target.value)}
+                  value={movementNotes}
+                />
+              </label>
+              <button type="submit">Guardar movimiento</button>
             </form>
           </Modal>
         </>
