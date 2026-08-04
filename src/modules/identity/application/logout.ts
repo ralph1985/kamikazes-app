@@ -8,3 +8,10 @@ export async function logout(
   if (!token) return;
   await dependencies.sessions.revoke(hashSessionToken(token), dependencies.clock.now());
 }
+
+export async function logoutAll(
+  memberId: string,
+  dependencies: { sessions: SessionRevoker; clock: Clock },
+): Promise<void> {
+  await dependencies.sessions.revokeAll(memberId, dependencies.clock.now());
+}

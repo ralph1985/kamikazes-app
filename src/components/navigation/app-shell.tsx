@@ -96,8 +96,8 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
             Inicio
           </Link>
           <Link
-            className={`${styles.navLink} ${pathname === "/login" ? styles.active : ""}`}
-            href="/login"
+            className={`${styles.navLink} ${pathname === "/profile" ? styles.active : ""}`}
+            href={member ? "/profile" : "/login"}
             onClick={() => setIsOpen(false)}
           >
             {member ? "Mi cuenta" : "Iniciar sesión"}

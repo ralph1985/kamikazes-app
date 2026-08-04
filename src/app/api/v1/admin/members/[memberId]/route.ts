@@ -8,6 +8,7 @@ import {
   editions,
   members,
   roleAssignments,
+  sessions,
 } from "@/infrastructure/database/schema";
 import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
@@ -173,6 +174,12 @@ export async function PATCH(
             beforeValue: { isActive: before.accountActive },
             afterValue: { isActive: input.data.accountActive },
           });
+          if (!input.data.accountActive) {
+            await tx
+              .update(sessions)
+              .set({ revokedAt: new Date() })
+              .where(eq(sessions.memberId, memberId));
+          }
         }
       }
       await tx.delete(roleAssignments).where(eq(roleAssignments.memberId, memberId));
@@ -195,31 +202,27 @@ export async function PATCH(
       );
       for (const key of beforeRoleKeys) {
         if (!afterRoleKeys.has(key))
-          await tx
-            .insert(auditEvents)
-            .values({
-              memberId: actor.memberId,
-              action: "update",
-              area: "identity",
-              entity: "role_assignment",
-              entityId: memberId,
-              beforeValue: { assignment: key },
-              afterValue: null,
-            });
+          await tx.insert(auditEvents).values({
+            memberId: actor.memberId,
+            action: "update",
+            area: "identity",
+            entity: "role_assignment",
+            entityId: memberId,
+            beforeValue: { assignment: key },
+            afterValue: null,
+          });
       }
       for (const key of afterRoleKeys) {
         if (!beforeRoleKeys.has(key))
-          await tx
-            .insert(auditEvents)
-            .values({
-              memberId: actor.memberId,
-              action: "update",
-              area: "identity",
-              entity: "role_assignment",
-              entityId: memberId,
-              beforeValue: null,
-              afterValue: { assignment: key },
-            });
+          await tx.insert(auditEvents).values({
+            memberId: actor.memberId,
+            action: "update",
+            area: "identity",
+            entity: "role_assignment",
+            entityId: memberId,
+            beforeValue: null,
+            afterValue: { assignment: key },
+          });
       }
       return {
         id: memberId,

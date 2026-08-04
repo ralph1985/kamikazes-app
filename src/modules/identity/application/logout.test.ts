@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { logout } from "./logout";
+import { logout, logoutAll } from "./logout";
 import { hashSessionToken } from "./session";
 
 describe("cierre de sesión", () => {
@@ -12,6 +12,7 @@ describe("cierre de sesión", () => {
         revoke: async (tokenHash, receivedNow) => {
           received = { tokenHash, now: receivedNow };
         },
+        revokeAll: async () => {},
       },
       clock: { now: () => now },
     });
@@ -25,7 +26,27 @@ describe("cierre de sesión", () => {
     };
 
     await expect(
-      logout(undefined, { sessions: { revoke }, clock: { now: () => new Date() } }),
+      logout(undefined, {
+        sessions: { revoke, revokeAll: async () => {} },
+        clock: { now: () => new Date() },
+      }),
     ).resolves.toBeUndefined();
+  });
+
+  it("revoca todas las sesiones del miembro", async () => {
+    let received: { memberId: string; now: Date } | undefined;
+    const now = new Date("2026-08-04T12:00:00.000Z");
+
+    await logoutAll("member-1", {
+      sessions: {
+        revoke: async () => {},
+        revokeAll: async (memberId, receivedNow) => {
+          received = { memberId, now: receivedNow };
+        },
+      },
+      clock: { now: () => now },
+    });
+
+    expect(received).toEqual({ memberId: "member-1", now });
   });
 });

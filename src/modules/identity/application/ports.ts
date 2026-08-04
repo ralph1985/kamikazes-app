@@ -50,6 +50,27 @@ export interface PasswordChangeWriter {
 
 export interface SessionRevoker {
   revoke(tokenHash: string, now: Date): Promise<void>;
+  revokeAll(memberId: string, now: Date): Promise<void>;
+}
+
+export type MemberProfile = {
+  memberId: string;
+  displayName: string;
+  username: string;
+};
+
+export interface ProfileReader {
+  findByMemberId(memberId: string): Promise<MemberProfile | null>;
+}
+
+export interface ProfileWriter {
+  update(input: {
+    memberId: string;
+    displayName: string;
+    username: string;
+    before: MemberProfile;
+    now: Date;
+  }): Promise<MemberProfile>;
 }
 
 export interface GlobalAdminReader {

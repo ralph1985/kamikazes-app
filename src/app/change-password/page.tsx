@@ -42,7 +42,7 @@ export default function ChangePasswordPage() {
       <div className="loginIntro">
         <p className="eyebrow">Primer acceso</p>
         <h1>Una contraseña sólo tuya.</h1>
-        <p className="intro">Cambia la contraseña inicial para continuar dentro de la peña.</p>
+        <p className="intro">Cambia la contraseña de acceso cuando lo necesites.</p>
       </div>
       <form className="loginCard" onSubmit={handleSubmit}>
         <div>

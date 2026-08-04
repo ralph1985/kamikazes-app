@@ -54,6 +54,39 @@ const document = {
         },
       },
     },
+    "/auth/profile": {
+      get: {
+        operationId: "getProfile",
+        responses: {
+          "200": { description: "Perfil del miembro autenticado" },
+          "401": { description: "Sesión ausente o inválida" },
+        },
+      },
+      patch: {
+        operationId: "updateProfile",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: { $ref: "#/components/schemas/ProfileInput" } },
+          },
+        },
+        responses: {
+          "200": { description: "Perfil actualizado" },
+          "400": { description: "Entrada inválida" },
+          "401": { description: "Sesión ausente o inválida" },
+          "409": { description: "Nombre de usuario ocupado" },
+        },
+      },
+    },
+    "/auth/logout-all": {
+      post: {
+        operationId: "logoutAll",
+        responses: {
+          "200": { description: "Todas las sesiones revocadas" },
+          "401": { description: "Sesión ausente o inválida" },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -72,6 +105,14 @@ const document = {
         properties: {
           username: { type: "string" },
           password: { type: "string", format: "password" },
+        },
+      },
+      ProfileInput: {
+        type: "object",
+        required: ["displayName", "username"],
+        properties: {
+          displayName: { type: "string" },
+          username: { type: "string" },
         },
       },
     },

@@ -13,5 +13,11 @@ export function createDatabaseSessionRevoker(db: Database): SessionRevoker {
         .set({ revokedAt: now })
         .where(and(eq(sessions.tokenHash, tokenHash), isNull(sessions.revokedAt)));
     },
+    async revokeAll(memberId, now) {
+      await db
+        .update(sessions)
+        .set({ revokedAt: now })
+        .where(and(eq(sessions.memberId, memberId), isNull(sessions.revokedAt)));
+    },
   };
 }

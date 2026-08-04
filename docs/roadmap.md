@@ -13,7 +13,7 @@ Resultado: repositorio preparado para desarrollar sin datos ni código de produc
 
 ## Hito 1 — Base técnica y calidad
 
-Estado: En desarrollo.
+Estado: Implementada.
 
 - configurar Drizzle y conexión de servidor a Neon;
 - preparar el flujo de migraciones y convenciones de UUID, fechas e importes;
@@ -44,6 +44,9 @@ Primera rebanada verificable:
 - shell compartida con menú lateral y acceso visible al login.
 - cambio obligatorio de contraseña después del primer acceso;
 - consulta de sesión y cierre de sesión desde la navegación.
+- perfil autenticado para actualizar nombre visible y usuario, con auditoría transaccional;
+- cierre de todas las sesiones activas desde el perfil;
+- revocación inmediata de sesiones al desactivar una cuenta.
 
 Resultado: acceso real seguro para miembros, todavía sin módulos económicos.
 
