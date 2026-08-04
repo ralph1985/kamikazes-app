@@ -14,6 +14,7 @@ Esta memoria es deliberadamente breve y segura para que una conversación nueva 
 - La base técnica del Hito 1 está implementada y verificada localmente, sin migrar tablas de negocio.
 - El Hito 2 tiene implementada su primera rebanada verificable: login, cambio obligatorio de contraseña, sesiones, perfil, cierre de sesiones y migración de identidad aplicada en Neon; las tablas están vacías y aún no se han creado cuentas reales.
 - El cambio de contraseña desde el perfil exige la contraseña actual; la navegación interna de cualquier vista se construye con componentes reutilizables y sigue un patrón común, incluido administración, perfil y ediciones.
+- Con el adaptador `drizzle-orm/neon-http`, las operaciones atómicas de escritura deben agruparse mediante `db.batch`; `db.transaction` no está soportado por ese driver.
 
 ## Producto
 

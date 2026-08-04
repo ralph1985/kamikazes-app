@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 import type { getDatabase } from "@/infrastructure/database/client";
 import { accounts, auditEvents, members } from "@/infrastructure/database/schema";
 import type { ProfileReader, ProfileWriter } from "../application/ports";
@@ -26,13 +27,14 @@ export function createDatabaseProfileReader(db: Database): ProfileReader {
 export function createDatabaseProfileWriter(db: Database): ProfileWriter {
   return {
     async update(input) {
-      await db.transaction(async (tx) => {
-        if (input.before.displayName !== input.displayName) {
-          await tx
+      const statements: BatchItem<"pg">[] = [];
+      if (input.before.displayName !== input.displayName) {
+        statements.push(
+          db
             .update(members)
             .set({ displayName: input.displayName, updatedAt: input.now })
-            .where(eq(members.id, input.memberId));
-          await tx.insert(auditEvents).values({
+            .where(eq(members.id, input.memberId)),
+          db.insert(auditEvents).values({
             memberId: input.memberId,
             action: "update",
             area: "identity",
@@ -40,14 +42,16 @@ export function createDatabaseProfileWriter(db: Database): ProfileWriter {
             entityId: input.memberId,
             beforeValue: { displayName: input.before.displayName },
             afterValue: { displayName: input.displayName },
-          });
-        }
-        if (input.before.username !== input.username) {
-          await tx
+          }),
+        );
+      }
+      if (input.before.username !== input.username) {
+        statements.push(
+          db
             .update(accounts)
             .set({ username: input.username, updatedAt: input.now })
-            .where(eq(accounts.memberId, input.memberId));
-          await tx.insert(auditEvents).values({
+            .where(eq(accounts.memberId, input.memberId)),
+          db.insert(auditEvents).values({
             memberId: input.memberId,
             action: "update",
             area: "identity",
@@ -55,9 +59,12 @@ export function createDatabaseProfileWriter(db: Database): ProfileWriter {
             entityId: input.memberId,
             beforeValue: { username: input.before.username },
             afterValue: { username: input.username },
-          });
-        }
-      });
+          }),
+        );
+      }
+      if (statements.length > 0) {
+        await db.batch(statements as [BatchItem<"pg">, ...BatchItem<"pg">[]]);
+      }
       return { memberId: input.memberId, displayName: input.displayName, username: input.username };
     },
   };
