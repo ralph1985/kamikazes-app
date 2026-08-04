@@ -49,8 +49,9 @@ type BudgetMovement = {
 
 export default function BudgetOverview({
   editionId,
+  readOnly,
   year,
-}: Readonly<{ editionId: string; year: number }>) {
+}: Readonly<{ editionId: string; readOnly: boolean; year: number }>) {
   const [rates, setRates] = useState<Rate[]>([]);
   const [participants, setParticipants] = useState<BudgetParticipant[]>([]);
   const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
@@ -179,6 +180,7 @@ export default function BudgetOverview({
   }
 
   function openNewTransaction() {
+    if (readOnly) return;
     setEditingTransaction(null);
     setTransactionMemberId(
       participants.find((participant) => participant.participating)?.memberId ?? "",
@@ -192,6 +194,7 @@ export default function BudgetOverview({
   }
 
   function openTransaction(transaction: BudgetTransaction) {
+    if (readOnly) return;
     setEditingTransaction(transaction);
     setTransactionMemberId(transaction.memberId);
     setTransactionKind(transaction.kind);
@@ -240,6 +243,7 @@ export default function BudgetOverview({
   }
 
   function openBalance(balance?: BudgetBalance) {
+    if (readOnly) return;
     setEditingBalance(balance ?? null);
     setBalanceAmount(balance ? String(Number(balance.amount)) : "");
     setBalanceConcept(balance?.concept ?? "");
@@ -275,6 +279,7 @@ export default function BudgetOverview({
   }
 
   async function removeBalance(id: string) {
+    if (readOnly) return;
     if (!window.confirm("¿Quieres eliminar este saldo?")) return;
     const response = await fetch(`/api/v1/editions/${editionId}/budget/balances`, {
       method: "DELETE",
@@ -286,6 +291,7 @@ export default function BudgetOverview({
   }
 
   function openMovement(movement?: BudgetMovement) {
+    if (readOnly) return;
     setEditingMovement(movement ?? null);
     setMovementKind(movement?.kind ?? "expense");
     setMovementAmount(movement ? String(Math.abs(Number(movement.amount))) : "");
@@ -329,6 +335,7 @@ export default function BudgetOverview({
   }
 
   async function removeMovement(id: string) {
+    if (readOnly) return;
     if (!window.confirm("¿Quieres eliminar este movimiento?")) return;
     const response = await fetch(`/api/v1/editions/${editionId}/budget/movements`, {
       method: "DELETE",
@@ -405,10 +412,15 @@ export default function BudgetOverview({
           <ListDetailLayout
             aside={
               <div className={styles.budgetActions}>
-                <button className="primaryAction" onClick={openNewTransaction} type="button">
+                <button
+                  className="primaryAction"
+                  disabled={readOnly}
+                  onClick={openNewTransaction}
+                  type="button"
+                >
                   Registrar pago
                 </button>
-                <button onClick={() => setRateModalOpen(true)} type="button">
+                <button disabled={readOnly} onClick={() => setRateModalOpen(true)} type="button">
                   Nueva tarifa
                 </button>
               </div>
@@ -438,12 +450,14 @@ export default function BudgetOverview({
                 {transactions.map((transaction) => (
                   <CompactListRow
                     action={
-                      <IconButton
-                        label={`Corregir movimiento de ${transaction.displayName}`}
-                        onClick={() => openTransaction(transaction)}
-                      >
-                        <EditIcon />
-                      </IconButton>
+                      readOnly ? null : (
+                        <IconButton
+                          label={`Corregir movimiento de ${transaction.displayName}`}
+                          onClick={() => openTransaction(transaction)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      )
                     }
                     key={transaction.id}
                     meta={<MoneyCell amount={Number(transaction.amount)} />}
@@ -467,7 +481,7 @@ export default function BudgetOverview({
           </EditPanel>
           <EditPanel title="Saldos iniciales y trasladables">
             <div className={styles.panelToolbar}>
-              <button onClick={() => openBalance()} type="button">
+              <button disabled={readOnly} onClick={() => openBalance()} type="button">
                 Añadir saldo
               </button>
             </div>
@@ -476,17 +490,19 @@ export default function BudgetOverview({
                 {balances.map((balance) => (
                   <CompactListRow
                     action={
-                      <span className={styles.rowActions}>
-                        <IconButton
-                          label={`Editar saldo ${balance.concept}`}
-                          onClick={() => openBalance(balance)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <button onClick={() => void removeBalance(balance.id)} type="button">
-                          Eliminar
-                        </button>
-                      </span>
+                      readOnly ? null : (
+                        <span className={styles.rowActions}>
+                          <IconButton
+                            label={`Editar saldo ${balance.concept}`}
+                            onClick={() => openBalance(balance)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <button onClick={() => void removeBalance(balance.id)} type="button">
+                            Eliminar
+                          </button>
+                        </span>
+                      )
                     }
                     key={balance.id}
                     meta={<MoneyCell amount={Number(balance.amount)} />}
@@ -509,7 +525,7 @@ export default function BudgetOverview({
           </EditPanel>
           <EditPanel title="Movimientos previstos y reales">
             <div className={styles.panelToolbar}>
-              <button onClick={() => openMovement()} type="button">
+              <button disabled={readOnly} onClick={() => openMovement()} type="button">
                 Añadir movimiento
               </button>
             </div>
@@ -518,17 +534,19 @@ export default function BudgetOverview({
                 {movements.map((movement) => (
                   <CompactListRow
                     action={
-                      <span className={styles.rowActions}>
-                        <IconButton
-                          label={`Editar ${movement.concept}`}
-                          onClick={() => openMovement(movement)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <button onClick={() => void removeMovement(movement.id)} type="button">
-                          Eliminar
-                        </button>
-                      </span>
+                      readOnly ? null : (
+                        <span className={styles.rowActions}>
+                          <IconButton
+                            label={`Editar ${movement.concept}`}
+                            onClick={() => openMovement(movement)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <button onClick={() => void removeMovement(movement.id)} type="button">
+                            Eliminar
+                          </button>
+                        </span>
+                      )
                     }
                     key={movement.id}
                     meta={<MoneyCell amount={Number(movement.amount)} />}

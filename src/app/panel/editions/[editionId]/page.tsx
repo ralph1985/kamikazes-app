@@ -89,9 +89,17 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
       />
       <section className={styles.content}>
         {activeSection.key === "participants" ? (
-          <ParticipantsOverview editionId={edition.id} year={edition.year} />
+          <ParticipantsOverview
+            editionId={edition.id}
+            readOnly={edition.status === "closed"}
+            year={edition.year}
+          />
         ) : activeSection.key === "budget" ? (
-          <BudgetOverview editionId={edition.id} year={edition.year} />
+          <BudgetOverview
+            editionId={edition.id}
+            readOnly={edition.status === "closed"}
+            year={edition.year}
+          />
         ) : activeSection.available ? (
           <div className={styles.welcome}>
             <p className="eyebrow">Vista general</p>

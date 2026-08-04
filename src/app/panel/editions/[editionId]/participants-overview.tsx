@@ -16,8 +16,9 @@ type BudgetParticipant = { memberId: string; rateId: string | null };
 
 export default function ParticipantsOverview({
   editionId,
+  readOnly,
   year,
-}: Readonly<{ editionId: string; year: number }>) {
+}: Readonly<{ editionId: string; readOnly: boolean; year: number }>) {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [rates, setRates] = useState<Rate[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +103,7 @@ export default function ParticipantsOverview({
   }
 
   function startEditing(memberId: string) {
+    if (readOnly) return;
     const participant = participants.find((item) => item.memberId === memberId);
     if (!participant) return;
     setEditingMemberId(memberId);
@@ -151,12 +153,14 @@ export default function ParticipantsOverview({
           {participants.map((participant) => (
             <CompactListRow
               action={
-                <IconButton
-                  label={`Editar participación de ${participant.displayName}`}
-                  onClick={() => startEditing(participant.memberId)}
-                >
-                  <EditIcon />
-                </IconButton>
+                readOnly ? null : (
+                  <IconButton
+                    label={`Editar participación de ${participant.displayName}`}
+                    onClick={() => startEditing(participant.memberId)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )
               }
               key={participant.memberId}
               meta={participant.participating ? "Participa" : "No participa"}
