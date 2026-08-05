@@ -24,6 +24,7 @@ type Product = {
   status: string;
 };
 type Option = { id: string; name: string };
+type Edition = { id: string; year: number; status: string };
 type FormState = {
   id?: string;
   description: string;
@@ -74,6 +75,13 @@ export default function ShoppingOverview({
   const [categoryId, setCategoryId] = useState("");
   const [storeId, setStoreId] = useState("");
   const [groupBy, setGroupBy] = useState("category");
+  const [sortBy, setSortBy] = useState("description");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [editions, setEditions] = useState<Edition[]>([]);
+  const [sourceEditionId, setSourceEditionId] = useState("");
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [copying, setCopying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -89,7 +97,20 @@ export default function ShoppingOverview({
       if (storeId) params.set("storeId", storeId);
       const response = await fetch(`/api/v1/editions/${editionId}/shopping?${params}`);
       const result = (await response.json()) as {
-        data?: { products: Product[]; categories: Option[]; stores: Option[] };
+        data?: {
+          products: Product[];
+          categories: Option[];
+          stores: Option[];
+          preferences: {
+            general: { groupBy: string; sortBy: string; sortDirection: string };
+            edition: {
+              query: string;
+              status: string | null;
+              categoryId: string | null;
+              storeId: string | null;
+            };
+          };
+        };
         error?: { message: string };
       };
       if (!response.ok || !result.data)
@@ -97,6 +118,16 @@ export default function ShoppingOverview({
       setProducts(result.data.products);
       setCategories(result.data.categories);
       setStores(result.data.stores);
+      if (!preferencesLoaded) {
+        setGroupBy(result.data.preferences.general.groupBy);
+        setSortBy(result.data.preferences.general.sortBy);
+        setSortDirection(result.data.preferences.general.sortDirection);
+        setQuery(result.data.preferences.edition.query);
+        setStatus(result.data.preferences.edition.status ?? "");
+        setCategoryId(result.data.preferences.edition.categoryId ?? "");
+        setStoreId(result.data.preferences.edition.storeId ?? "");
+        setPreferencesLoaded(true);
+      }
       setError(null);
     } catch (loadError) {
       setError(
@@ -105,26 +136,86 @@ export default function ShoppingOverview({
     } finally {
       setLoading(false);
     }
-  }, [categoryId, editionId, query, status, storeId]);
+  }, [categoryId, editionId, preferencesLoaded, query, status, storeId]);
   useEffect(() => {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    void fetch("/api/v1/editions")
+      .then(async (response) => (response.ok ? ((await response.json()).data as Edition[]) : []))
+      .then(setEditions)
+      .catch(() => setEditions([]));
+  }, []);
+
+  const persistPreference = useCallback(
+    (body: Record<string, unknown>) => {
+      void fetch(`/api/v1/editions/${editionId}/shopping`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    },
+    [editionId],
+  );
+
+  function updateGeneralPreference(field: "groupBy" | "sortBy" | "sortDirection", value: string) {
+    if (field === "groupBy") setGroupBy(value);
+    if (field === "sortBy") setSortBy(value);
+    if (field === "sortDirection") setSortDirection(value);
+    persistPreference({
+      scope: "general",
+      groupBy: field === "groupBy" ? value : groupBy,
+      sortBy: field === "sortBy" ? value : sortBy,
+      sortDirection: field === "sortDirection" ? value : sortDirection,
+    });
+  }
+
+  function updateEditionPreference(
+    field: "query" | "status" | "categoryId" | "storeId",
+    value: string,
+  ) {
+    if (field === "query") setQuery(value);
+    if (field === "status") setStatus(value);
+    if (field === "categoryId") setCategoryId(value);
+    if (field === "storeId") setStoreId(value);
+    persistPreference({
+      scope: "edition",
+      query: field === "query" ? value : query,
+      status: (field === "status" ? value : status) || null,
+      categoryId: (field === "categoryId" ? value : categoryId) || null,
+      storeId: (field === "storeId" ? value : storeId) || null,
+    });
+  }
+
   const grouped = useMemo(
     () =>
-      products.reduce<Record<string, Product[]>>((groups, product) => {
-        const key =
-          groupBy === "store"
-            ? product.storeName || "Sin tienda"
-            : groupBy === "assignment"
-              ? product.assignment || "Sin responsable"
-              : groupBy === "status"
-                ? (statuses.find(([value]) => value === product.status)?.[1] ?? product.status)
-                : product.categoryName || "Sin categoría";
-        (groups[key] ??= []).push(product);
-        return groups;
-      }, {}),
-    [groupBy, products],
+      [...products]
+        .sort((a, b) => {
+          const value = (product: Product) =>
+            sortBy === "unit_price"
+              ? Number(product.plannedUnitPrice ?? 0)
+              : sortBy === "quantity"
+                ? Number(product.plannedQuantity ?? 0)
+                : sortBy === "total"
+                  ? Number(product.plannedTotal ?? 0)
+                  : (product.description || "").toLocaleLowerCase();
+          const comparison = value(a) < value(b) ? -1 : value(a) > value(b) ? 1 : 0;
+          return sortDirection === "asc" ? comparison : -comparison;
+        })
+        .reduce<Record<string, Product[]>>((groups, product) => {
+          const key =
+            groupBy === "store"
+              ? product.storeName || "Sin tienda"
+              : groupBy === "assignment"
+                ? product.assignment || "Sin responsable"
+                : groupBy === "status"
+                  ? (statuses.find(([value]) => value === product.status)?.[1] ?? product.status)
+                  : product.categoryName || "Sin categoría";
+          (groups[key] ??= []).push(product);
+          return groups;
+        }, {}),
+    [groupBy, products, sortBy, sortDirection],
   );
   const plannedTotal = products.reduce((total, product) => total + (product.plannedTotal ?? 0), 0);
   const realTotal = products.reduce((total, product) => total + (product.realTotal ?? 0), 0);
@@ -173,6 +264,32 @@ export default function ShoppingOverview({
     setModalOpen(false);
     await load();
   }
+  async function copyFromEdition(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!sourceEditionId) return;
+    setCopying(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/v1/editions/${editionId}/shopping/copy`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sourceEditionId }),
+      });
+      const result = (await response.json()) as {
+        data?: { copiedCount: number };
+        error?: { message: string };
+      };
+      if (!response.ok || !result.data)
+        throw new Error(result.error?.message ?? "No se pudo copiar la lista");
+      setCopyModalOpen(false);
+      setSourceEditionId("");
+      await load();
+    } catch (copyError) {
+      setError(copyError instanceof Error ? copyError.message : "No se pudo copiar la lista");
+    } finally {
+      setCopying(false);
+    }
+  }
   const setField = (field: keyof FormState, value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
 
@@ -187,21 +304,33 @@ export default function ShoppingOverview({
           </p>
         </div>
         {!readOnly && (
-          <button className={styles.primary} onClick={() => edit()} type="button">
-            Añadir producto
-          </button>
+          <div className={styles.headingActions}>
+            <button
+              className={styles.secondary}
+              onClick={() => setCopyModalOpen(true)}
+              type="button"
+            >
+              Copiar otra edición
+            </button>
+            <button className={styles.primary} onClick={() => edit()} type="button">
+              Añadir producto
+            </button>
+          </div>
         )}
       </div>
       <ListToolbar
         count={products.length}
-        onQueryChange={setQuery}
+        onQueryChange={(value) => updateEditionPreference("query", value)}
         placeholder="Buscar producto o nota"
         query={query}
       />
       <div className={styles.filters}>
         <label>
           Estado
-          <select onChange={(event) => setStatus(event.target.value)} value={status}>
+          <select
+            onChange={(event) => updateEditionPreference("status", event.target.value)}
+            value={status}
+          >
             <option value="">Todos</option>
             {statuses.map(([value, label]) => (
               <option key={value} value={value}>
@@ -212,7 +341,10 @@ export default function ShoppingOverview({
         </label>
         <label>
           Categoría
-          <select onChange={(event) => setCategoryId(event.target.value)} value={categoryId}>
+          <select
+            onChange={(event) => updateEditionPreference("categoryId", event.target.value)}
+            value={categoryId}
+          >
             <option value="">Todas</option>
             {categories.map((option) => (
               <option key={option.id} value={option.id}>
@@ -223,7 +355,10 @@ export default function ShoppingOverview({
         </label>
         <label>
           Tienda
-          <select onChange={(event) => setStoreId(event.target.value)} value={storeId}>
+          <select
+            onChange={(event) => updateEditionPreference("storeId", event.target.value)}
+            value={storeId}
+          >
             <option value="">Todas</option>
             {stores.map((option) => (
               <option key={option.id} value={option.id}>
@@ -234,11 +369,36 @@ export default function ShoppingOverview({
         </label>
         <label>
           Agrupar por
-          <select onChange={(event) => setGroupBy(event.target.value)} value={groupBy}>
+          <select
+            onChange={(event) => updateGeneralPreference("groupBy", event.target.value)}
+            value={groupBy}
+          >
             <option value="category">Categoría</option>
             <option value="store">Tienda</option>
             <option value="assignment">Responsable</option>
             <option value="status">Estado</option>
+          </select>
+        </label>
+        <label>
+          Ordenar por
+          <select
+            onChange={(event) => updateGeneralPreference("sortBy", event.target.value)}
+            value={sortBy}
+          >
+            <option value="description">Descripción</option>
+            <option value="unit_price">Precio unitario</option>
+            <option value="quantity">Cantidad</option>
+            <option value="total">Total</option>
+          </select>
+        </label>
+        <label>
+          Dirección
+          <select
+            onChange={(event) => updateGeneralPreference("sortDirection", event.target.value)}
+            value={sortDirection}
+          >
+            <option value="asc">Ascendente</option>
+            <option value="desc">Descendente</option>
           </select>
         </label>
       </div>
@@ -423,6 +583,43 @@ export default function ShoppingOverview({
             </button>
             <button className={styles.primary} type="submit">
               Guardar
+            </button>
+          </div>
+        </form>
+      </Modal>
+      <Modal
+        onClose={() => setCopyModalOpen(false)}
+        open={copyModalOpen}
+        title="Copiar lista de otra edición"
+      >
+        <form className={styles.form} onSubmit={copyFromEdition}>
+          <p className={styles.muted}>
+            Se copiarán productos, categorías, tiendas y previsión. El seguimiento real empezará de
+            nuevo.
+          </p>
+          <label>
+            Edición origen
+            <select
+              onChange={(event) => setSourceEditionId(event.target.value)}
+              required
+              value={sourceEditionId}
+            >
+              <option value="">Selecciona una edición</option>
+              {editions
+                .filter((edition) => edition.id !== editionId)
+                .map((edition) => (
+                  <option key={edition.id} value={edition.id}>
+                    {edition.year} · {edition.status === "closed" ? "Cerrada" : "Abierta"}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <div className={styles.actions}>
+            <button className={styles.cancel} onClick={() => setCopyModalOpen(false)} type="button">
+              Cancelar
+            </button>
+            <button className={styles.primary} disabled={copying} type="submit">
+              {copying ? "Copiando…" : "Copiar lista"}
             </button>
           </div>
         </form>

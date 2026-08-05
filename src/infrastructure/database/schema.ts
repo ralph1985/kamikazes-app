@@ -260,7 +260,9 @@ export const shoppingCategories = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (table) => [uniqueIndex("shopping_categories_edition_name_unique").on(table.editionId, table.name)],
+  (table) => [
+    uniqueIndex("shopping_categories_edition_name_unique").on(table.editionId, table.name),
+  ],
 );
 
 export const shoppingStores = pgTable(
@@ -285,9 +287,13 @@ export const shoppingProducts = pgTable(
       .notNull()
       .references(() => editions.id, { onDelete: "restrict" }),
     description: text("description").notNull().default(""),
-    categoryId: uuid("category_id").references(() => shoppingCategories.id, { onDelete: "restrict" }),
+    categoryId: uuid("category_id").references(() => shoppingCategories.id, {
+      onDelete: "restrict",
+    }),
     storeId: uuid("store_id").references(() => shoppingStores.id, { onDelete: "restrict" }),
-    assignedMemberId: uuid("assigned_member_id").references(() => members.id, { onDelete: "restrict" }),
+    assignedMemberId: uuid("assigned_member_id").references(() => members.id, {
+      onDelete: "restrict",
+    }),
     assignment: text("assignment"),
     plannedQuantity: numeric("planned_quantity", { precision: 12, scale: 2 }),
     realQuantity: numeric("real_quantity", { precision: 12, scale: 2 }),
@@ -302,6 +308,64 @@ export const shoppingProducts = pgTable(
     check(
       "shopping_products_status_allowed",
       sql`${table.status} in ('pending', 'in_cart', 'purchased', 'not_buying', 'gifted')`,
+    ),
+  ],
+);
+
+export const shoppingPreferences = pgTable(
+  "shopping_preferences",
+  {
+    id: primaryKey(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "cascade" }),
+    groupBy: text("group_by").notNull().default("category"),
+    sortBy: text("sort_by").notNull().default("description"),
+    sortDirection: text("sort_direction").notNull().default("asc"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("shopping_preferences_member_unique").on(table.memberId),
+    check(
+      "shopping_preferences_group_allowed",
+      sql`${table.groupBy} in ('category', 'store', 'assignment', 'status')`,
+    ),
+    check(
+      "shopping_preferences_sort_allowed",
+      sql`${table.sortBy} in ('description', 'unit_price', 'quantity', 'total')`,
+    ),
+    check("shopping_preferences_direction_allowed", sql`${table.sortDirection} in ('asc', 'desc')`),
+  ],
+);
+
+export const shoppingEditionPreferences = pgTable(
+  "shopping_edition_preferences",
+  {
+    id: primaryKey(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "cascade" }),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "cascade" }),
+    query: text("query").notNull().default(""),
+    status: text("status"),
+    categoryId: uuid("category_id").references(() => shoppingCategories.id, {
+      onDelete: "set null",
+    }),
+    storeId: uuid("store_id").references(() => shoppingStores.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("shopping_edition_preferences_member_edition_unique").on(
+      table.memberId,
+      table.editionId,
+    ),
+    check(
+      "shopping_edition_preferences_status_allowed",
+      sql`${table.status} is null or ${table.status} in ('pending', 'in_cart', 'purchased', 'not_buying', 'gifted')`,
     ),
   ],
 );

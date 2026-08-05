@@ -496,6 +496,7 @@ Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya es
 - El Hito 5 se implementa por bloques; la primera rebanada cubre cuotas derivadas de tarifas, pagos y devoluciones, y deja movimientos manuales y saldos trasladables para el siguiente bloque.
 - El segundo bloque del Hito 5 cubre saldos iniciales y movimientos previstos/reales; el cierre económico administrativo queda pendiente.
 - El Hito 6 se implementa por bloques; la primera rebanada cubre productos por edición, categorías, tiendas, estados y precios/cantidades previstos y reales. La copia entre ediciones y preferencias persistentes quedan para el siguiente bloque.
+- El segundo bloque del Hito 6 permite copiar explícitamente una lista desde otra edición: conserva descripción, categoría, tienda, asignación, notas y previsión, pero reinicia cantidades/precios reales y estado a `Pendiente`. La agrupación y el orden se guardan como preferencia general por miembro; la búsqueda y los filtros se guardan por miembro y edición.
 
 ## 7. Criterio de trabajo SDD
 

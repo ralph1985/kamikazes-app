@@ -8,6 +8,8 @@ import {
   editions,
   roleAssignments,
   shoppingCategories,
+  shoppingEditionPreferences,
+  shoppingPreferences,
   shoppingProducts,
   shoppingStores,
 } from "@/infrastructure/database/schema";
@@ -37,6 +39,21 @@ const productInputSchema = z.object({
   notes: z.string().trim().max(1000).nullable().default(null),
   status: z.enum(shoppingStatuses).default("pending"),
 });
+const preferencesInputSchema = z.discriminatedUnion("scope", [
+  z.object({
+    scope: z.literal("general"),
+    groupBy: z.enum(["category", "store", "assignment", "status"]),
+    sortBy: z.enum(["description", "unit_price", "quantity", "total"]),
+    sortDirection: z.enum(["asc", "desc"]),
+  }),
+  z.object({
+    scope: z.literal("edition"),
+    query: z.string().trim().max(240),
+    status: z.enum(shoppingStatuses).nullable(),
+    categoryId: z.uuid().nullable(),
+    storeId: z.uuid().nullable(),
+  }),
+]);
 
 async function authenticate(request: NextRequest) {
   const token = request.cookies.get("kamikazes_session")?.value;
@@ -92,7 +109,7 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database } = await authenticate(request);
+    const { database, member } = await authenticate(request);
     const params = request.nextUrl.searchParams;
     const search = params.get("q")?.trim();
     const status = params.get("status");
@@ -112,7 +129,7 @@ export async function GET(
       conditions.push(eq(shoppingProducts.categoryId, categoryId));
     if (storeId && z.uuid().safeParse(storeId).success)
       conditions.push(eq(shoppingProducts.storeId, storeId));
-    const [rows, categories, stores] = await Promise.all([
+    const [rows, categories, stores, generalPreferences, editionPreferences] = await Promise.all([
       database
         .select({
           id: shoppingProducts.id,
@@ -147,12 +164,143 @@ export async function GET(
         .from(shoppingStores)
         .where(eq(shoppingStores.editionId, editionId))
         .orderBy(asc(shoppingStores.name)),
+      database
+        .select({
+          groupBy: shoppingPreferences.groupBy,
+          sortBy: shoppingPreferences.sortBy,
+          sortDirection: shoppingPreferences.sortDirection,
+        })
+        .from(shoppingPreferences)
+        .where(eq(shoppingPreferences.memberId, member.memberId))
+        .limit(1),
+      database
+        .select({
+          query: shoppingEditionPreferences.query,
+          status: shoppingEditionPreferences.status,
+          categoryId: shoppingEditionPreferences.categoryId,
+          storeId: shoppingEditionPreferences.storeId,
+        })
+        .from(shoppingEditionPreferences)
+        .where(
+          and(
+            eq(shoppingEditionPreferences.memberId, member.memberId),
+            eq(shoppingEditionPreferences.editionId, editionId),
+          ),
+        )
+        .limit(1),
     ]);
-    return apiSuccess({ products: rows.map(serialize), categories, stores });
+    return apiSuccess({
+      products: rows.map(serialize),
+      categories,
+      stores,
+      preferences: {
+        general: generalPreferences[0] ?? {
+          groupBy: "category",
+          sortBy: "description",
+          sortDirection: "asc",
+        },
+        edition: editionPreferences[0] ?? {
+          query: "",
+          status: null,
+          categoryId: null,
+          storeId: null,
+        },
+      },
+    });
   } catch (error) {
     if (error instanceof IdentityError)
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);
     return apiFailure("shopping_unavailable", "No se ha podido consultar la lista de compra", 503);
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ editionId: string }> },
+) {
+  const { editionId } = await context.params;
+  if (!z.uuid().safeParse(editionId).success)
+    return apiFailure("invalid_request", "La edición no es válida", 400);
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return apiFailure("invalid_request", "El cuerpo debe ser JSON válido", 400);
+  }
+  const input = preferencesInputSchema.safeParse(body);
+  if (!input.success) return apiFailure("invalid_request", "Las preferencias no son válidas", 400);
+  try {
+    const { database, member } = await authenticate(request);
+    if (input.data.scope === "general") {
+      await database
+        .insert(shoppingPreferences)
+        .values({
+          memberId: member.memberId,
+          groupBy: input.data.groupBy,
+          sortBy: input.data.sortBy,
+          sortDirection: input.data.sortDirection,
+        })
+        .onConflictDoUpdate({
+          target: shoppingPreferences.memberId,
+          set: {
+            groupBy: input.data.groupBy,
+            sortBy: input.data.sortBy,
+            sortDirection: input.data.sortDirection,
+            updatedAt: new Date(),
+          },
+        });
+      return apiSuccess(input.data);
+    }
+    if (input.data.categoryId) {
+      const category = await database
+        .select({ id: shoppingCategories.id })
+        .from(shoppingCategories)
+        .where(
+          and(
+            eq(shoppingCategories.id, input.data.categoryId),
+            eq(shoppingCategories.editionId, editionId),
+          ),
+        )
+        .limit(1);
+      if (!category.length)
+        return apiFailure("invalid_request", "La categoría no pertenece a esta edición", 400);
+    }
+    if (input.data.storeId) {
+      const store = await database
+        .select({ id: shoppingStores.id })
+        .from(shoppingStores)
+        .where(
+          and(eq(shoppingStores.id, input.data.storeId), eq(shoppingStores.editionId, editionId)),
+        )
+        .limit(1);
+      if (!store.length)
+        return apiFailure("invalid_request", "La tienda no pertenece a esta edición", 400);
+    }
+    await database
+      .insert(shoppingEditionPreferences)
+      .values({
+        memberId: member.memberId,
+        editionId,
+        query: input.data.query,
+        status: input.data.status,
+        categoryId: input.data.categoryId,
+        storeId: input.data.storeId,
+      })
+      .onConflictDoUpdate({
+        target: [shoppingEditionPreferences.memberId, shoppingEditionPreferences.editionId],
+        set: {
+          query: input.data.query,
+          status: input.data.status,
+          categoryId: input.data.categoryId,
+          storeId: input.data.storeId,
+          updatedAt: new Date(),
+        },
+      });
+    return apiSuccess(input.data);
+  } catch (error) {
+    if (error instanceof IdentityError)
+      return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);
+    return apiFailure("shopping_unavailable", "No se han podido guardar las preferencias", 503);
   }
 }
 

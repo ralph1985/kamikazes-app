@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { GET, POST } from "./route";
+import { GET, POST, PUT } from "./route";
+import { POST as copyShopping } from "../shopping/copy/route";
 
 describe("/api/v1/editions/:editionId/shopping", () => {
   it("valida la edición antes de consultar Neon", async () => {
@@ -27,5 +28,38 @@ describe("/api/v1/editions/:editionId/shopping", () => {
     );
 
     expect(response.status).toBe(401);
+  });
+
+  it("rechaza preferencias inválidas antes de consultar Neon", async () => {
+    const editionId = "123e4567-e89b-12d3-a456-426614174000";
+    const response = await PUT(
+      new NextRequest(`http://localhost/api/v1/editions/${editionId}/shopping`, {
+        method: "PUT",
+        body: JSON.stringify({
+          scope: "general",
+          groupBy: "invalid",
+          sortBy: "description",
+          sortDirection: "asc",
+        }),
+        headers: { "content-type": "application/json" },
+      }),
+      { params: Promise.resolve({ editionId }) },
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it("valida el origen de una copia antes de consultar Neon", async () => {
+    const editionId = "123e4567-e89b-12d3-a456-426614174000";
+    const response = await copyShopping(
+      new NextRequest(`http://localhost/api/v1/editions/${editionId}/shopping/copy`, {
+        method: "POST",
+        body: JSON.stringify({ sourceEditionId: editionId }),
+        headers: { "content-type": "application/json" },
+      }),
+      { params: Promise.resolve({ editionId }) },
+    );
+
+    expect(response.status).toBe(400);
   });
 });

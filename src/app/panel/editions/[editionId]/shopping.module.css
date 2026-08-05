@@ -11,6 +11,11 @@
 .heading h2 {
   margin: 0 0 6px;
 }
+.headingActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .muted,
 .group small {
   color: #687169;
@@ -24,10 +29,23 @@
   font: inherit;
   padding: 9px 13px;
 }
+.primary:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.secondary {
+  background: #eee8de;
+  border: 1px solid #cfc7ba;
+  border-radius: 8px;
+  color: #1f2421;
+  cursor: pointer;
+  font: inherit;
+  padding: 9px 13px;
+}
 .filters {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
 }
 .filters label,
 .form label {
@@ -101,15 +119,24 @@
   font: inherit;
   padding: 9px 13px;
 }
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 @media (max-width: 700px) {
   .heading {
     flex-direction: column;
+  }
+  .headingActions {
+    width: 100%;
   }
   .filters,
   .twoColumns {
     grid-template-columns: 1fr;
   }
-  .primary {
+  .primary,
+  .secondary {
     width: 100%;
   }
 }

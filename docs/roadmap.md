@@ -142,10 +142,11 @@ Primera rebanada verificable:
 - filtros, ordenación y agrupación;
 - flujo móvil `Pendiente → En carrito → Comprado`.
 
-Siguiente bloque del hito:
+Segundo bloque en desarrollo:
 
-- copia de una edición anterior;
-- preferencias persistentes de agrupación, orden y filtros.
+- copia explícita de una edición anterior, copiando la previsión y reiniciando el seguimiento real;
+- preferencias persistentes de agrupación y orden generales por usuario;
+- búsqueda y filtros persistentes por edición y usuario.
 
 Criterios de aceptación de la primera rebanada:
 
@@ -154,6 +155,8 @@ Criterios de aceptación de la primera rebanada:
 - cantidades y precios previstos/reales calculan el total automáticamente;
 - las mutaciones se auditan y una edición cerrada queda en sólo lectura;
 - una cantidad negativa exige una nota explicativa.
+- la copia desde otra edición requiere una acción explícita y no arrastra cantidades, precios ni estados reales;
+- las preferencias se recuperan al volver a la lista y no modifican los productos.
 
 Resultado: sustitución funcional de la lista principal del Excel.
 
