@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
 import { ListState, ListToolbar, MoneyCell } from "@/components/lists/list-patterns";
 import { Modal } from "@/components/ui/modal";
+import PurchasesOverview from "./purchases-overview";
 import styles from "./shopping.module.css";
 
 type Product = {
@@ -24,6 +25,7 @@ type Product = {
   status: string;
 };
 type Option = { id: string; name: string };
+export type ShoppingStore = Option;
 type Edition = { id: string; year: number; status: string };
 type FormState = {
   id?: string;
@@ -464,6 +466,7 @@ export default function ShoppingOverview({
           </section>
         ))
       )}
+      <PurchasesOverview editionId={editionId} readOnly={readOnly} stores={stores} />
       <Modal
         onClose={() => setModalOpen(false)}
         open={modalOpen}

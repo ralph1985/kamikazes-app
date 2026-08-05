@@ -498,6 +498,7 @@ Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya es
 - El Hito 6 se implementa por bloques; la primera rebanada cubre productos por edición, categorías, tiendas, estados y precios/cantidades previstos y reales. La copia entre ediciones y preferencias persistentes quedan para el siguiente bloque.
 - El segundo bloque del Hito 6 permite copiar explícitamente una lista desde otra edición: conserva descripción, categoría, tienda, asignación, notas y previsión, pero reinicia cantidades/precios reales y estado a `Pendiente`. La agrupación y el orden se guardan como preferencia general por miembro; la búsqueda y los filtros se guardan por miembro y edición.
 - El Hito 6 queda pendiente de validación funcional por Rafa. El Hito 7 se inicia con compras reales independientes de los movimientos del presupuesto, tickets privados en Vercel Blob y auditoría de creación, corrección y eliminación.
+- La primera rebanada del Hito 7 registra manualmente cada compra con tienda, fecha, miembro comprador, importe total y notas. No la vincula todavía a productos concretos de la lista ni crea un movimiento de presupuesto automáticamente; los tickets se integrarán mediante su adaptador privado de Vercel Blob.
 
 ## 7. Criterio de trabajo SDD
 

@@ -92,6 +92,20 @@
   color: #8b2e2e;
   margin: 0;
 }
+.purchaseSection {
+  border-top: 1px solid #ded8ce;
+  display: grid;
+  gap: 12px;
+  padding-top: 20px;
+}
+.purchaseHeading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+.purchaseHeading h3 {
+  margin: 0;
+}
 .form {
   display: grid;
   gap: 14px;

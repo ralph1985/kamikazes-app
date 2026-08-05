@@ -312,6 +312,22 @@ export const shoppingProducts = pgTable(
   ],
 );
 
+export const shoppingPurchases = pgTable("shopping_purchases", {
+  id: primaryKey(),
+  editionId: uuid("edition_id")
+    .notNull()
+    .references(() => editions.id, { onDelete: "restrict" }),
+  storeId: uuid("store_id").references(() => shoppingStores.id, { onDelete: "restrict" }),
+  purchaserMemberId: uuid("purchaser_member_id")
+    .notNull()
+    .references(() => members.id, { onDelete: "restrict" }),
+  purchasedAt: timestamp("purchased_at", { withTimezone: true, mode: "date" }).notNull(),
+  totalAmount: money("total_amount").notNull(),
+  notes: text("notes"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 export const shoppingPreferences = pgTable(
   "shopping_preferences",
   {

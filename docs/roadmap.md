@@ -164,6 +164,12 @@ Resultado: sustitución funcional de la lista principal del Excel.
 
 Estado: En desarrollo.
 
+Primera rebanada en desarrollo:
+
+- compras reales manuales con tienda, fecha, miembro comprador, importe y notas;
+- lectura para miembros y edición sólo por compras/admin;
+- compras separadas de los movimientos del presupuesto, preparadas para enlazar tickets.
+
 - compras agrupando productos y tiendas;
 - total real y tickets;
 - subida autorizada a Vercel Blob;
