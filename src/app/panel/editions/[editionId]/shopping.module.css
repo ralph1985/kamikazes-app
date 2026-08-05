@@ -106,6 +106,41 @@
 .purchaseHeading h3 {
   margin: 0;
 }
+.receipts {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.receipt {
+  align-items: center;
+  background: #f1ede5;
+  border-radius: 6px;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px 6px;
+}
+.receipt a {
+  color: #8b2e2e;
+  font-size: 0.8rem;
+}
+.receipt button {
+  background: transparent;
+  border: 0;
+  color: #687169;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.upload {
+  color: #8b2e2e !important;
+  cursor: pointer;
+  display: inline-block !important;
+  font-size: 0.8rem !important;
+}
+.upload input {
+  display: none;
+}
 .form {
   display: grid;
   gap: 14px;

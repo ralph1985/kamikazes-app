@@ -18,6 +18,7 @@ type Purchase = {
   notes: string | null;
 };
 type Participant = { memberId: string; displayName: string };
+type Receipt = { id: string; filename: string; contentType: string; sizeBytes: number };
 
 export default function PurchasesOverview({
   editionId,
@@ -25,6 +26,7 @@ export default function PurchasesOverview({
   stores,
 }: Readonly<{ editionId: string; readOnly: boolean; stores: ShoppingStore[] }>) {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [receipts, setReceipts] = useState<Record<string, Receipt[]>>({});
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +59,16 @@ export default function PurchasesOverview({
         throw new Error(participantsResult.error?.message ?? "No se pudieron cargar los miembros");
       setPurchases(purchasesResult.data.purchases);
       setParticipants(participantsResult.data);
+      const receiptEntries = await Promise.all(
+        purchasesResult.data.purchases.map(async (purchase) => {
+          const response = await fetch(
+            `/api/v1/editions/${editionId}/shopping/purchases/${purchase.id}/receipts`,
+          );
+          const result = (await response.json()) as { data?: { receipts: Receipt[] } };
+          return [purchase.id, result.data?.receipts ?? []] as const;
+        }),
+      );
+      setReceipts(Object.fromEntries(receiptEntries));
       setError(null);
     } catch (loadError) {
       setError(
@@ -102,6 +114,34 @@ export default function PurchasesOverview({
       return;
     }
     setOpen(false);
+    await load();
+  }
+
+  async function uploadReceipt(purchaseId: string, file: File) {
+    const body = new FormData();
+    body.set("file", file);
+    const response = await fetch(
+      `/api/v1/editions/${editionId}/shopping/purchases/${purchaseId}/receipts`,
+      { method: "POST", body },
+    );
+    const result = (await response.json()) as { error?: { message: string } };
+    if (!response.ok) {
+      setError(result.error?.message ?? "No se pudo subir el ticket");
+      return;
+    }
+    await load();
+  }
+
+  async function deleteReceipt(purchaseId: string, receiptId: string) {
+    const response = await fetch(
+      `/api/v1/editions/${editionId}/shopping/purchases/${purchaseId}/receipts/${receiptId}`,
+      { method: "DELETE" },
+    );
+    const result = (await response.json()) as { error?: { message: string } };
+    if (!response.ok) {
+      setError(result.error?.message ?? "No se pudo eliminar el ticket");
+      return;
+    }
     await load();
   }
 
@@ -161,6 +201,42 @@ export default function PurchasesOverview({
                 {purchase.purchaserName}
                 {purchase.notes ? ` · ${purchase.notes}` : ""}
               </small>
+              <div className={styles.receipts}>
+                {receipts[purchase.id]?.map((receipt) => (
+                  <span className={styles.receipt} key={receipt.id}>
+                    <a
+                      href={`/api/v1/editions/${editionId}/shopping/purchases/${purchase.id}/receipts/${receipt.id}`}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {receipt.filename}
+                    </a>
+                    {!readOnly && (
+                      <button
+                        aria-label={`Eliminar ${receipt.filename}`}
+                        onClick={() => void deleteReceipt(purchase.id, receipt.id)}
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+                {!readOnly && (
+                  <label className={styles.upload}>
+                    <span>Subir ticket</span>
+                    <input
+                      accept="application/pdf,image/jpeg,image/png,image/webp"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) void uploadReceipt(purchase.id, file);
+                        event.currentTarget.value = "";
+                      }}
+                      type="file"
+                    />
+                  </label>
+                )}
+              </div>
             </CompactListRow>
           ))}
         </CompactList>

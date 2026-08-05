@@ -328,6 +328,27 @@ export const shoppingPurchases = pgTable("shopping_purchases", {
   updatedAt: updatedAt(),
 });
 
+export const shoppingReceipts = pgTable(
+  "shopping_receipts",
+  {
+    id: primaryKey(),
+    purchaseId: uuid("purchase_id")
+      .notNull()
+      .references(() => shoppingPurchases.id, { onDelete: "restrict" }),
+    pathname: text("pathname").notNull(),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    etag: text("etag").notNull(),
+    uploadedBy: uuid("uploaded_by")
+      .notNull()
+      .references(() => members.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [uniqueIndex("shopping_receipts_pathname_unique").on(table.pathname)],
+);
+
 export const shoppingPreferences = pgTable(
   "shopping_preferences",
   {
