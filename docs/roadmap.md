@@ -133,7 +133,7 @@ Resultado: gestión económica completa con auditoría.
 
 ## Hito 6 — Lista de compra
 
-Estado: En desarrollo.
+Estado: Pendiente de validar funcionalmente por Rafa.
 
 Primera rebanada verificable:
 
@@ -162,11 +162,21 @@ Resultado: sustitución funcional de la lista principal del Excel.
 
 ## Hito 7 — Compras reales y tickets
 
+Estado: En desarrollo.
+
 - compras agrupando productos y tiendas;
 - total real y tickets;
 - subida autorizada a Vercel Blob;
 - lectura, eliminación y auditoría de documentos;
 - comparación entre productos y total real.
+
+Criterios iniciales:
+
+- una compra real pertenece a una edición y agrupa uno o más productos y una tienda;
+- el gasto real se registra una sola vez y no duplica los movimientos del presupuesto;
+- sólo editores de compras y administradores pueden crear o corregir compras;
+- los tickets son privados, sólo accesibles con permiso de la edición, y cada mutación queda auditada;
+- una edición cerrada no admite compras ni cambios en sus tickets.
 
 Resultado: control de la compra pagada sin duplicar gastos.
 
