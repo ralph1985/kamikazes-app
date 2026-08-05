@@ -25,7 +25,7 @@ Resultado: aplicación mínima desplegable con comprobaciones automáticas.
 
 ## Hito 2 — Identidad y sesiones
 
-Estado: En desarrollo.
+Estado: Pendiente de validar funcionalmente por Rafa.
 
 Primera rebanada verificable:
 
@@ -188,7 +188,7 @@ Resultado: control de la compra pagada sin duplicar gastos.
 
 ## Hito 8 — Catering
 
-Estado: En desarrollo.
+Estado: Pendiente de validar funcionalmente por Rafa.
 
 Primera rebanada:
 
@@ -214,10 +214,22 @@ Resultado: módulo de catering separado del presupuesto general.
 
 ## Hito 9 — Inventario y sobrantes
 
+Estado: En desarrollo.
+
+Primera rebanada:
+
 - ubicaciones, cantidades y movimientos;
 - inventario acumulado por producto y ubicación;
 - sobrantes por edición;
 - auditoría y permisos del área.
+
+Criterios de aceptación de la primera rebanada:
+
+- sólo editores de compras y administradores pueden crear o corregir ubicaciones, existencias y sobrantes;
+- los miembros pueden consultar el inventario y los sobrantes de la edición;
+- las existencias se acumulan por producto y ubicación y conservan movimientos auditados;
+- los sobrantes mantienen producto, cantidad, ubicación, edición de origen opcional y estado `Disponible`, `Consumido` o `Descartado`;
+- una edición cerrada se consulta en modo sólo lectura.
 
 Resultado: cierre del ciclo operativo de compras.
 

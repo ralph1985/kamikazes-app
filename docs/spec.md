@@ -500,6 +500,7 @@ Esta lista contiene sólo decisiones no cerradas. Las decisiones aprobadas ya es
 - El Hito 6 queda pendiente de validación funcional por Rafa. El Hito 7 se inicia con compras reales independientes de los movimientos del presupuesto, tickets privados en Vercel Blob y auditoría de creación, corrección y eliminación.
 - La primera rebanada del Hito 7 registra manualmente cada compra con tienda, fecha, miembro comprador, importe total y notas. No la vincula todavía a productos concretos de la lista ni crea un movimiento de presupuesto automáticamente; los tickets se integrarán mediante su adaptador privado de Vercel Blob.
 - El Hito 7 queda pendiente de validación funcional por Rafa. El Hito 8 se inicia con comidas, asistencia y pagos independientes por comida, con permisos diferenciados entre miembro y editor de catering.
+- El Hito 8 queda pendiente de validación funcional por Rafa. El Hito 9 se inicia con inventario por ubicación, movimientos auditados y sobrantes por edición, con permisos de compras/inventario.
 
 ## 7. Criterio de trabajo SDD
 

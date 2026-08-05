@@ -392,6 +392,92 @@ export const cateringAttendance = pgTable(
   ],
 );
 
+export const inventoryLocations = pgTable(
+  "inventory_locations",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("inventory_locations_edition_name_unique").on(table.editionId, table.name),
+  ],
+);
+
+export const inventoryItems = pgTable(
+  "inventory_items",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    locationId: uuid("location_id")
+      .notNull()
+      .references(() => inventoryLocations.id, { onDelete: "restrict" }),
+    productName: text("product_name").notNull(),
+    quantity: numeric("quantity", { precision: 12, scale: 2 }).notNull().default("0.00"),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("inventory_items_location_product_unique").on(table.locationId, table.productName),
+  ],
+);
+
+export const inventoryMovements = pgTable("inventory_movements", {
+  id: primaryKey(),
+  editionId: uuid("edition_id")
+    .notNull()
+    .references(() => editions.id, { onDelete: "restrict" }),
+  productName: text("product_name").notNull(),
+  fromLocationId: uuid("from_location_id").references(() => inventoryLocations.id, {
+    onDelete: "restrict",
+  }),
+  toLocationId: uuid("to_location_id").references(() => inventoryLocations.id, {
+    onDelete: "restrict",
+  }),
+  quantity: numeric("quantity", { precision: 12, scale: 2 }).notNull(),
+  notes: text("notes"),
+  createdBy: uuid("created_by")
+    .notNull()
+    .references(() => members.id, { onDelete: "restrict" }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const leftovers = pgTable(
+  "leftovers",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    sourceEditionId: uuid("source_edition_id").references(() => editions.id, {
+      onDelete: "restrict",
+    }),
+    locationId: uuid("location_id")
+      .notNull()
+      .references(() => inventoryLocations.id, { onDelete: "restrict" }),
+    productName: text("product_name").notNull(),
+    quantity: numeric("quantity", { precision: 12, scale: 2 }).notNull(),
+    status: text("status").notNull().default("available"),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    check(
+      "leftovers_status_allowed",
+      sql`${table.status} in ('available', 'consumed', 'discarded')`,
+    ),
+  ],
+);
+
 export const shoppingPreferences = pgTable(
   "shopping_preferences",
   {

@@ -12,6 +12,7 @@ import BudgetOverview from "./budget-overview";
 import ParticipantsOverview from "./participants-overview";
 import ShoppingOverview from "./shopping-overview";
 import CateringOverview from "./catering-overview";
+import InventoryOverview from "./inventory-overview";
 import styles from "./edition.module.css";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ const sections = [
   { key: "participants", label: "Participantes", available: true },
   { key: "budget", label: "Presupuesto", available: true },
   { key: "shopping", label: "Compras", available: true },
-  { key: "inventory", label: "Inventario", available: false },
+  { key: "inventory", label: "Inventario", available: true },
   { key: "catering", label: "Catering", available: true },
 ] as const;
 
@@ -110,6 +111,8 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
           />
         ) : activeSection.key === "catering" ? (
           <CateringOverview editionId={edition.id} readOnly={edition.status === "closed"} />
+        ) : activeSection.key === "inventory" ? (
+          <InventoryOverview editionId={edition.id} readOnly={edition.status === "closed"} />
         ) : activeSection.available ? (
           <div className={styles.welcome}>
             <p className="eyebrow">Vista general</p>
