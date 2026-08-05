@@ -13,6 +13,21 @@ puede importarse desde servidor. La migración de identidad se ha ejecutado en
 la base de producción recién creada; las futuras migraciones seguirán el mismo
 proceso manual y revisable.
 
+## Copias de seguridad de Neon
+
+El backup local de la base de datos de producción se ejecuta con:
+
+```bash
+pnpm backup:neon
+pnpm backup:neon:cron:install
+```
+
+El cron se programa cada seis horas, guarda volcados personalizados en
+`var/backups/neon/` y conserva 14 días. La credencial debe estar únicamente en
+`~/.config/kamikazes/neon-backup.env`, con `POSTGRES_URL_NON_POOLING` o
+`DATABASE_URL`, y permisos `600`. El log queda en
+`var/log/neon-backup.log`; CronWatch lo incluye en su tabla diaria de backups.
+
 ## Comprobaciones
 
 Antes de considerar un cambio preparado, ejecuta `pnpm format:check`,

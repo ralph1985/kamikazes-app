@@ -10,6 +10,7 @@ test-results/
 *.local
 *.log
 *.tsbuildinfo
+var/
 .agents/skills/neon/
 .agents/skills/neon-postgres/
 skills-lock.json
