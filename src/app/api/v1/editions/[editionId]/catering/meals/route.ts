@@ -72,13 +72,13 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database } = await authenticate(request);
+    const { database, member } = await authenticate(request);
     const meals = await database
       .select()
       .from(cateringMeals)
       .where(eq(cateringMeals.editionId, editionId))
       .orderBy(asc(cateringMeals.sortOrder), asc(cateringMeals.name));
-    return apiSuccess({ meals });
+    return apiSuccess({ meals, canEdit: await canEdit(database, member.memberId, editionId) });
   } catch (error) {
     if (error instanceof IdentityError)
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);

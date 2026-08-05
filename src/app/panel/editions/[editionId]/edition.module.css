@@ -181,6 +181,64 @@
   block-size: 20px;
   inline-size: 20px;
 }
+
+.primary,
+.secondary,
+.cancel {
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  padding: 9px 12px;
+}
+
+.primary {
+  background: #8b2e2e;
+  color: white;
+}
+
+.secondary {
+  background: #eee8de;
+  color: #1f2421;
+  margin-left: 10px;
+}
+
+.cancel {
+  background: #eee8de;
+  color: #1f2421;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form label {
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 6px;
+}
+
+.form input,
+.form select {
+  border: 1px solid #cfc7ba;
+  border-radius: 8px;
+  font: inherit;
+  padding: 9px 10px;
+}
+
+.twoColumns {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 .error {
   color: #8b2e2e;
   margin: 0;

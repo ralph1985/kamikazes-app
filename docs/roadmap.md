@@ -202,6 +202,14 @@ Primera rebanada:
 - saldos previsto y real independientes;
 - edición por área y consulta para todos los miembros.
 
+Criterios del bloque actual:
+
+- todos los miembros pueden consultar asistencia y estado de pago, pero cada miembro sólo puede cambiar su propia asistencia;
+- editores de catering y administradores pueden corregir asistencia y estado de pago de cualquier miembro;
+- las comidas y sus precios previsto/real se crean y editan mediante modal reutilizable;
+- el resumen muestra asistentes confirmados y totales previsto/real sin mezclar catering con presupuesto general;
+- las ediciones cerradas mantienen toda la superficie en sólo lectura.
+
 Resultado: módulo de catering separado del presupuesto general.
 
 ## Hito 9 — Inventario y sobrantes

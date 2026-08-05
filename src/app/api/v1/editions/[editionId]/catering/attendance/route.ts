@@ -65,7 +65,8 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database } = await authenticate(request);
+    const { database, member } = await authenticate(request);
+    const editor = await isEditor(database, member.memberId, editionId);
     const attendance = await database
       .select({
         id: cateringAttendance.id,
@@ -83,7 +84,7 @@ export async function GET(
       .innerJoin(members, eq(members.id, cateringAttendance.memberId))
       .where(eq(cateringMeals.editionId, editionId))
       .orderBy(asc(cateringMeals.sortOrder), asc(members.displayName));
-    return apiSuccess({ attendance });
+    return apiSuccess({ attendance, canEdit: editor, memberId: member.memberId });
   } catch (error) {
     if (error instanceof IdentityError)
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);
