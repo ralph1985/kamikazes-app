@@ -162,7 +162,7 @@ Resultado: sustitución funcional de la lista principal del Excel.
 
 ## Hito 7 — Compras reales y tickets
 
-Estado: En desarrollo.
+Estado: Pendiente de validar funcionalmente por Rafa.
 
 Primera rebanada en desarrollo:
 
@@ -187,6 +187,15 @@ Criterios iniciales:
 Resultado: control de la compra pagada sin duplicar gastos.
 
 ## Hito 8 — Catering
+
+Estado: En desarrollo.
+
+Primera rebanada:
+
+- comidas configurables por edición con precio previsto y real;
+- asistencia independiente por miembro y comida con estados `Sí`, `No` y `Cancelado`;
+- cada miembro modifica sólo su propia asistencia; editores de catering y administradores pueden corregir cualquiera;
+- pagos por comida separados de presupuesto y editables sólo por catering/admin.
 
 - comidas, precios y asistencia;
 - pagos de catering;

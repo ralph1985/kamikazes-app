@@ -349,6 +349,49 @@ export const shoppingReceipts = pgTable(
   (table) => [uniqueIndex("shopping_receipts_pathname_unique").on(table.pathname)],
 );
 
+export const cateringMeals = pgTable(
+  "catering_meals",
+  {
+    id: primaryKey(),
+    editionId: uuid("edition_id")
+      .notNull()
+      .references(() => editions.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    plannedPrice: money("planned_price").notNull().default("0.00"),
+    realPrice: money("real_price"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [uniqueIndex("catering_meals_edition_name_unique").on(table.editionId, table.name)],
+);
+
+export const cateringAttendance = pgTable(
+  "catering_attendance",
+  {
+    id: primaryKey(),
+    mealId: uuid("meal_id")
+      .notNull()
+      .references(() => cateringMeals.id, { onDelete: "restrict" }),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "restrict" }),
+    status: text("status").notNull().default("yes"),
+    paymentStatus: text("payment_status").notNull().default("pending"),
+    paymentNotes: text("payment_notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex("catering_attendance_meal_member_unique").on(table.mealId, table.memberId),
+    check("catering_attendance_status_allowed", sql`${table.status} in ('yes', 'no', 'cancelled')`),
+    check(
+      "catering_attendance_payment_status_allowed",
+      sql`${table.paymentStatus} in ('pending', 'partial', 'paid')`,
+    ),
+  ],
+);
+
 export const shoppingPreferences = pgTable(
   "shopping_preferences",
   {

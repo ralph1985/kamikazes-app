@@ -11,6 +11,7 @@ import { InternalNav } from "@/components/navigation/internal-nav";
 import BudgetOverview from "./budget-overview";
 import ParticipantsOverview from "./participants-overview";
 import ShoppingOverview from "./shopping-overview";
+import CateringOverview from "./catering-overview";
 import styles from "./edition.module.css";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ const sections = [
   { key: "budget", label: "Presupuesto", available: true },
   { key: "shopping", label: "Compras", available: true },
   { key: "inventory", label: "Inventario", available: false },
-  { key: "catering", label: "Catering", available: false },
+  { key: "catering", label: "Catering", available: true },
 ] as const;
 
 type PageProps = {
@@ -107,6 +108,8 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
             readOnly={edition.status === "closed"}
             year={edition.year}
           />
+        ) : activeSection.key === "catering" ? (
+          <CateringOverview editionId={edition.id} readOnly={edition.status === "closed"} />
         ) : activeSection.available ? (
           <div className={styles.welcome}>
             <p className="eyebrow">Vista general</p>
