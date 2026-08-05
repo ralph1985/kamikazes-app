@@ -130,18 +130,16 @@ export async function DELETE(
     if (current.length === 0) return apiFailure("not_found", "El movimiento no existe", 404);
     await database.batch([
       database.delete(budgetMovements).where(eq(budgetMovements.id, input.data.id)),
-      database
-        .insert(auditEvents)
-        .values({
-          id: randomUUID(),
-          memberId: member.memberId,
-          action: "deleted",
-          area: "budget",
-          entity: "budget_movement",
-          entityId: input.data.id,
-          beforeValue: current[0],
-          afterValue: null,
-        }),
+      database.insert(auditEvents).values({
+        id: randomUUID(),
+        memberId: member.memberId,
+        action: "deleted",
+        area: "budget",
+        entity: "budget_movement",
+        entityId: input.data.id,
+        beforeValue: current[0],
+        afterValue: null,
+      }),
     ]);
     return apiSuccess({ id: input.data.id });
   } catch (error) {
@@ -192,18 +190,16 @@ async function mutate(
       : database.insert(budgetMovements).values({ id: movementId, ...values });
     await database.batch([
       mutation,
-      database
-        .insert(auditEvents)
-        .values({
-          id: randomUUID(),
-          memberId: member.memberId,
-          action: id ? "updated" : "created",
-          area: "budget",
-          entity: "budget_movement",
-          entityId: movementId,
-          beforeValue: before,
-          afterValue: values,
-        }),
+      database.insert(auditEvents).values({
+        id: randomUUID(),
+        memberId: member.memberId,
+        action: id ? "updated" : "created",
+        area: "budget",
+        entity: "budget_movement",
+        entityId: movementId,
+        beforeValue: before,
+        afterValue: values,
+      }),
     ]);
     return apiSuccess({ id: movementId, ...values }, id ? 200 : 201);
   } catch (error) {
