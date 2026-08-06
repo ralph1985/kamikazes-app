@@ -29,7 +29,6 @@ export const viewport: Viewport = {
 const sections = [
   { key: "summary", label: "Resumen", available: true },
   { key: "participants", label: "Participantes", available: true },
-  { key: "budget", label: "Presupuesto", available: true },
   { key: "shopping", label: "Compras", available: true },
   { key: "purchases", label: "Compras registradas", available: true },
   { key: "inventory", label: "Inventario", available: true },
@@ -101,14 +100,14 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
         }))}
       />
       <section className={styles.content}>
-        {activeSection.key === "participants" ? (
-          <ParticipantsOverview
+        {activeSection.key === "summary" ? (
+          <BudgetOverview
             editionId={edition.id}
             readOnly={edition.status === "closed"}
             year={edition.year}
           />
-        ) : activeSection.key === "budget" ? (
-          <BudgetOverview
+        ) : activeSection.key === "participants" ? (
+          <ParticipantsOverview
             editionId={edition.id}
             readOnly={edition.status === "closed"}
             year={edition.year}
@@ -125,7 +124,7 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
           <CateringOverview editionId={edition.id} readOnly={edition.status === "closed"} />
         ) : activeSection.key === "inventory" ? (
           <InventoryOverview editionId={edition.id} readOnly={edition.status === "closed"} />
-        ) : activeSection.available ? (
+        ) : (
           <div className={styles.welcome}>
             <p className="eyebrow">Vista general</p>
             <h2>La edición empieza aquí.</h2>
@@ -133,15 +132,6 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
               Este espacio reunirá la información de {edition.year}: sus cuentas, compras, comidas e
               inventario.
             </p>
-          </div>
-        ) : (
-          <div className={styles.comingSoon}>
-            <span className={styles.sectionNumber}>0{sections.indexOf(activeSection) + 1}</span>
-            <div>
-              <p className="eyebrow">En construcción</p>
-              <h2>{activeSection.label}</h2>
-              <p>Esta sección aparecerá aquí cuando avancemos con el siguiente módulo.</p>
-            </div>
           </div>
         )}
       </section>
