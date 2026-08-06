@@ -65,7 +65,7 @@ export default function PublicHome() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>Peña Kamikazes · Desde siempre</p>
+          <p className={styles.eyebrow}>Peña Kamikazes · Desde 1999</p>
           <h1>La vida de la peña, ordenada y compartida.</h1>
           <p>
             Un lugar común para cuidar cada edición, contar nuestra historia y mantener cerca todo
