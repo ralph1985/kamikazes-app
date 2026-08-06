@@ -14,14 +14,19 @@ import {
   canEditEditionArea,
 } from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import {
+  attendanceStatuses,
+  canChangeAttendance,
+  paymentStatuses,
+} from "@/modules/catering/domain/attendance";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
 const attendanceSchema = z.object({
   memberId: z.uuid(),
   mealId: z.uuid(),
-  status: z.enum(["yes", "no", "cancelled"]),
-  paymentStatus: z.enum(["pending", "partial", "paid"]).optional(),
+  status: z.enum(attendanceStatuses),
+  paymentStatus: z.enum(paymentStatuses).optional(),
   paymentNotes: z.string().trim().max(500).nullable().optional(),
 });
 
@@ -79,7 +84,7 @@ export async function PUT(
   try {
     const { database, member } = await authenticateRequest(request);
     const editor = await canEditEditionArea(database, member.memberId, editionId, "catering");
-    if (!editor && parsed.data.memberId !== member.memberId)
+    if (!canChangeAttendance(member.memberId, parsed.data.memberId, editor))
       return apiFailure("forbidden", "Sólo puedes modificar tu propia asistencia", 403);
     try {
       await assertEditionOpen(database, editionId);
