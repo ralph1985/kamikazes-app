@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
 import {
   EditPanel,
@@ -9,17 +9,10 @@ import {
   MoneyCell,
 } from "@/components/lists/list-patterns";
 import { BalanceForm, MovementForm, RateForm, TransactionForm } from "./budget-forms";
+import { useBudgetState } from "./use-budget-state";
 import styles from "./edition.module.css";
 
 type Rate = { id: string; name: string; amount: string };
-type BudgetParticipant = {
-  memberId: string;
-  displayName: string;
-  participating: boolean;
-  rateId: string | null;
-  rateName: string | null;
-  rateAmount: string | null;
-};
 type BudgetTransaction = {
   id: string;
   memberId: string;
@@ -52,13 +45,26 @@ export default function BudgetOverview({
   readOnly,
   year,
 }: Readonly<{ editionId: string; readOnly: boolean; year: number }>) {
-  const [rates, setRates] = useState<Rate[]>([]);
-  const [participants, setParticipants] = useState<BudgetParticipant[]>([]);
-  const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
-  const [balances, setBalances] = useState<BudgetBalance[]>([]);
-  const [movements, setMovements] = useState<BudgetMovement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    rates,
+    setRates,
+    participants,
+    transactions,
+    setTransactions,
+    balances,
+    setBalances,
+    movements,
+    setMovements,
+    loading,
+    error,
+    setError,
+    expected,
+    participatingCount,
+    paid,
+    pending,
+    plannedBalance,
+    actualBalance,
+  } = useBudgetState(editionId);
   const [rateName, setRateName] = useState("");
   const [rateAmount, setRateAmount] = useState("");
   const [rateModalOpen, setRateModalOpen] = useState(false);
@@ -85,78 +91,6 @@ export default function BudgetOverview({
   const [movementDate, setMovementDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [movementConcept, setMovementConcept] = useState("");
   const [movementNotes, setMovementNotes] = useState("");
-
-  useEffect(() => {
-    Promise.all([
-      fetch(`/api/v1/editions/${editionId}/budget`),
-      fetch(`/api/v1/editions/${editionId}/budget/transactions`),
-      fetch(`/api/v1/editions/${editionId}/budget/balances`),
-      fetch(`/api/v1/editions/${editionId}/budget/movements`),
-    ])
-      .then(async ([budgetResponse, transactionsResponse, balancesResponse, movementsResponse]) => {
-        const result = (await budgetResponse.json()) as {
-          data?: { rates: Rate[]; participants: BudgetParticipant[] };
-          error?: { message: string };
-        };
-        const transactionsResult = (await transactionsResponse.json()) as {
-          data?: { transactions: BudgetTransaction[] };
-          error?: { message: string };
-        };
-        const balancesResult = (await balancesResponse.json()) as {
-          data?: { balances: BudgetBalance[] };
-          error?: { message: string };
-        };
-        const movementsResult = (await movementsResponse.json()) as {
-          data?: { movements: BudgetMovement[] };
-          error?: { message: string };
-        };
-        if (!budgetResponse.ok || !result.data)
-          throw new Error(result.error?.message ?? "No se pudo cargar el presupuesto");
-        if (!transactionsResponse.ok || !transactionsResult.data)
-          throw new Error(transactionsResult.error?.message ?? "No se pudieron cargar los pagos");
-        if (!balancesResponse.ok || !balancesResult.data)
-          throw new Error(balancesResult.error?.message ?? "No se pudieron cargar los saldos");
-        if (!movementsResponse.ok || !movementsResult.data)
-          throw new Error(
-            movementsResult.error?.message ?? "No se pudieron cargar los movimientos",
-          );
-        setRates(result.data.rates);
-        setParticipants(result.data.participants);
-        setTransactions(transactionsResult.data.transactions);
-        setBalances(balancesResult.data.balances);
-        setMovements(movementsResult.data.movements);
-      })
-      .catch((loadError: unknown) =>
-        setError(
-          loadError instanceof Error ? loadError.message : "No se pudo cargar el presupuesto",
-        ),
-      )
-      .finally(() => setLoading(false));
-  }, [editionId]);
-
-  const expected = useMemo(
-    () =>
-      participants.reduce(
-        (total, participant) =>
-          participant.participating && participant.rateAmount
-            ? total + Number(participant.rateAmount)
-            : total,
-        0,
-      ),
-    [participants],
-  );
-  const participatingCount = participants.filter((participant) => participant.participating).length;
-  const paid = transactions.reduce((total, transaction) => total + Number(transaction.amount), 0);
-  const pending = Math.max(expected - paid, 0);
-  const balanceTotal = balances.reduce((total, balance) => total + Number(balance.amount), 0);
-  const plannedMovements = movements
-    .filter((movement) => movement.isPlanned)
-    .reduce((total, movement) => total + Number(movement.amount), 0);
-  const actualMovements = movements
-    .filter((movement) => !movement.isPlanned)
-    .reduce((total, movement) => total + Number(movement.amount), 0);
-  const plannedBalance = expected + balanceTotal + plannedMovements;
-  const actualBalance = paid + balanceTotal + actualMovements;
 
   async function createRate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
