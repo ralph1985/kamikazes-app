@@ -1,0 +1,2 @@
+ALTER TABLE "shopping_products" ALTER COLUMN "planned_quantity" SET DATA TYPE numeric(12, 3);--> statement-breakpoint
+ALTER TABLE "shopping_products" ALTER COLUMN "real_quantity" SET DATA TYPE numeric(12, 3);

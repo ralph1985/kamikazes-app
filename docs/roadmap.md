@@ -247,6 +247,10 @@ Resultado: memoria digital recuperada sin convertirla en contenido público ni c
 
 ## Hito 11 — Migración histórica
 
+Estado: En desarrollo. La primera carga operativa de la lista de compra 2026 se
+ha preparado con un importador idempotente y se ejecutará por separado de la
+migración histórica completa.
+
 - análisis de todos los Excel disponibles sin escritura;
 - análisis del legado KDC sin escritura;
 - correspondencias privadas de miembros;

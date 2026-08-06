@@ -170,7 +170,7 @@ La lista ofrecerá búsqueda y filtros por estado, categoría, tienda y asignaci
 
 Los lectores podrán consultar todos los productos y sus detalles. Sólo los editores de compras y el administrador podrán crear o modificar productos de la lista. Los productos no se eliminarán: cuando dejen de ser necesarios se conservarán y se marcarán con un estado de no compra. Los estados iniciales serán `Pendiente`, `Comprado`, `No se compra este año` y `Regalado`.
 
-La cantidad de un producto podrá ser entera o decimal, para admitir unidades fraccionarias y productos vendidos por peso, con un máximo de dos decimales. Se permitirá el valor `0`, aunque la forma recomendada de indicar que un producto no se compra será el estado `No se compra este año`. También se permitirán cantidades negativas para representar devoluciones; en esos casos el total calculado podrá ser negativo y será obligatoria una nota explicando el motivo.
+La cantidad de un producto podrá ser entera o decimal, para admitir unidades fraccionarias y productos vendidos por peso, con un máximo de tres decimales. Se permitirá el valor `0`, aunque la forma recomendada de indicar que un producto no se compra será el estado `No se compra este año`. También se permitirán cantidades negativas para representar devoluciones; en esos casos el total calculado podrá ser negativo y será obligatoria una nota explicando el motivo.
 
 El precio unitario también admitirá decimales, incluido `0,00 €` para productos regalados o sin coste. El total previsto de cada producto se calculará automáticamente como `cantidad × precio unitario` y será de sólo lectura; no se podrá editar manualmente.
 
@@ -283,7 +283,7 @@ Las asignaciones de roles y permisos por área se configurarán manualmente con 
 - El navegador no accederá directamente a Neon; todo acceso a datos pasará por la API del servidor.
 - Las entidades principales tendrán UUID como identificador técnico inmutable.
 - Los eventos con hora se almacenarán con `timestamptz`, normalizados en UTC, y se mostrarán en `Europe/Madrid`; los datos sin hora usarán `date`.
-- Los importes económicos se almacenarán directamente en euros mediante `NUMERIC(12,2)`; las cantidades de productos usarán valores numéricos con un máximo de dos decimales.
+- Los importes económicos se almacenarán directamente en euros mediante `NUMERIC(12,2)`; las cantidades de productos usarán valores numéricos con un máximo de tres decimales.
 - Cada modificación y su registro de auditoría se ejecutarán dentro de la misma transacción de base de datos.
 - La importación inicial del Excel se realizará mediante un script privado con validación previa e informe de errores; no existirá una función de importación expuesta en la aplicación.
 - Las entradas de la API se validarán con Zod antes de ejecutar la lógica de negocio.

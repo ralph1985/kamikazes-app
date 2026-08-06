@@ -515,7 +515,7 @@ export default function ShoppingOverview({
               <input
                 min="-999999"
                 onChange={(event) => setField("plannedQuantity", event.target.value)}
-                step="0.01"
+                step="0.001"
                 type="number"
                 value={form.plannedQuantity}
               />
@@ -535,7 +535,7 @@ export default function ShoppingOverview({
               <input
                 min="-999999"
                 onChange={(event) => setField("realQuantity", event.target.value)}
-                step="0.01"
+                step="0.001"
                 type="number"
                 value={form.realQuantity}
               />

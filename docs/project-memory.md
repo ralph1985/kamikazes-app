@@ -21,6 +21,7 @@ Esta memoria es deliberadamente breve y segura para que una conversación nueva 
 - El Hito 7 está en desarrollo: compras reales separadas de movimientos de presupuesto, tickets privados en Vercel Blob y auditoría.
 - La primera rebanada del Hito 7 registra compras manuales por edición con tienda, fecha, miembro comprador, importe y notas; no enlaza productos ni duplica movimientos del presupuesto.
 - El Hito 7 queda pendiente de validación funcional por Rafa. El Hito 8 queda pendiente de validación funcional por Rafa. El Hito 9 queda pendiente de validación funcional por Rafa e incluye ubicaciones, existencias, movimientos y sobrantes auditados.
+- La migración ha comenzado por la lista de compra 2026: el Excel es la previsión operativa para organizar los días de compra y el presupuesto previsto; no se importan compras reales ni el historial de cambios antiguo.
 - El cambio de contraseña desde el perfil exige la contraseña actual; la navegación interna de cualquier vista se construye con componentes reutilizables y sigue un patrón común, incluido administración, perfil y ediciones.
 - Con el adaptador `drizzle-orm/neon-http`, las operaciones atómicas de escritura deben agruparse mediante `db.batch`; `db.transaction` no está soportado por ese driver.
 - Las superficies de edición usan el componente reutilizable `src/components/ui/modal.tsx`; mantener las ediciones en modal y no volver a formularios inline.
