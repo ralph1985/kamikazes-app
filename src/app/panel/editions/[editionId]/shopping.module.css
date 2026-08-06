@@ -612,20 +612,20 @@
   min-width: 0;
 }
 
-.categoryEditor {
+.choiceEditor {
   align-items: center;
   display: flex;
   gap: 3px;
   min-width: 0;
 }
 
-.categoryEditor .tableSelect,
-.categoryEditor .tableInput {
+.choiceEditor .tableSelect,
+.choiceEditor .tableInput {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.categoryAdd {
+.choiceAdd {
   align-items: center;
   background: var(--surface-raised);
   border: 1px solid var(--line);
@@ -646,12 +646,12 @@
     color 180ms ease;
 }
 
-.categoryAdd:hover {
+.choiceAdd:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
 }
 
-.categoryAdd:focus-visible,
+.choiceAdd:focus-visible,
 .clearFilters:focus-visible,
 .detailToggle:focus-visible {
   outline: 2px solid var(--accent);

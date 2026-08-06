@@ -45,6 +45,7 @@ export default function ShoppingOverview({
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Option[]>([]);
   const [stores, setStores] = useState<Option[]>([]);
+  const [assignments, setAssignments] = useState<Option[]>([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -85,6 +86,7 @@ export default function ShoppingOverview({
           products: Product[];
           categories: Option[];
           stores: Option[];
+          assignments: Option[];
           summary: ShoppingSummary;
           preferences: {
             general: { groupBy: string; sortBy: string; sortDirection: string };
@@ -103,6 +105,7 @@ export default function ShoppingOverview({
       setProducts(result.data.products);
       setCategories(result.data.categories);
       setStores(result.data.stores);
+      setAssignments(result.data.assignments);
       setSummary(result.data.summary);
       if (!preferencesLoaded) {
         setGroupBy(result.data.preferences.general.groupBy);
@@ -419,6 +422,7 @@ export default function ShoppingOverview({
       ) : (
         <ShoppingTable
           categories={categories}
+          assignments={assignments}
           filters={{ query, status, categoryId, storeId, assignment }}
           onClearFilters={clearEditionFilters}
           onCreateCategory={createCategory}

@@ -178,6 +178,7 @@ export async function GET(
           realQuantity: shoppingProducts.realQuantity,
           realUnitPrice: shoppingProducts.realUnitPrice,
           status: shoppingProducts.status,
+          assignment: shoppingProducts.assignment,
         })
         .from(shoppingProducts)
         .where(eq(shoppingProducts.editionId, editionId)),
@@ -214,10 +215,20 @@ export async function GET(
     const realTotal = purchases
       .filter((purchase) => ticketedPurchaseIds.has(purchase.id))
       .reduce((total, purchase) => total + Number(purchase.totalAmount), 0);
+    const assignments = [
+      ...new Set(
+        allProducts
+          .map((product) => product.assignment?.trim())
+          .filter((assignment): assignment is string => Boolean(assignment)),
+      ),
+    ]
+      .sort((a, b) => a.localeCompare(b))
+      .map((name) => ({ id: name, name }));
     return apiSuccess({
       products: rows.map(serialize),
       categories,
       stores,
+      assignments,
       preferences: {
         general: generalPreferences[0] ?? {
           groupBy: "category",

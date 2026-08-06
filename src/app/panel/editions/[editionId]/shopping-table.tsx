@@ -80,11 +80,14 @@ function EditableCell({
   onError?: (error: unknown) => void;
 }>) {
   const label = `${field} de ${product.description || "producto"}`;
-  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [creatingValue, setCreatingValue] = useState(false);
 
   useEffect(() => {
-    if (field === "category" && options.some((option) => option.name === value))
-      setCreatingCategory(false);
+    if (
+      (field === "category" || field === "assignment") &&
+      options.some((option) => option.name === value)
+    )
+      setCreatingValue(false);
   }, [field, options, value]);
 
   if (field === "status") {
@@ -106,25 +109,27 @@ function EditableCell({
     );
   }
 
-  if (field === "category") {
-    async function commitNewCategory() {
-      const category = value.trim();
-      if (!category) return;
-      if (onCreateCategory) await onCreateCategory(category);
+  if (field === "category" || field === "assignment") {
+    const isCategory = field === "category";
+
+    async function commitNewValue() {
+      const nextValue = value.trim();
+      if (!nextValue) return;
+      if (isCategory && onCreateCategory) await onCreateCategory(nextValue);
       onCommit();
     }
 
     return (
-      <div className={styles.categoryEditor}>
-        {creatingCategory ? (
+      <div className={styles.choiceEditor}>
+        {creatingValue ? (
           <input
-            aria-label="Nueva categoría"
+            aria-label={`Nuevo ${isCategory ? "categoría" : "responsable"}`}
             autoFocus
             className={styles.tableInput}
             disabled={disabled}
-            onBlur={() => void commitNewCategory().catch((error) => onError?.(error))}
+            onBlur={() => void commitNewValue().catch((error) => onError?.(error))}
             onChange={(event) => onChange(event.target.value)}
-            placeholder="Nueva categoría"
+            placeholder={isCategory ? "Nueva categoría" : "Nueva asignación"}
             value={value}
           />
         ) : (
@@ -136,7 +141,7 @@ function EditableCell({
             onChange={(event) => onChange(event.target.value)}
             value={value}
           >
-            <option value="">Sin categoría</option>
+            <option value="">{isCategory ? "Sin categoría" : "Sin asignación"}</option>
             {options.map((option) => (
               <option key={option.id} value={option.name}>
                 {option.name}
@@ -145,18 +150,22 @@ function EditableCell({
           </select>
         )}
         <button
-          aria-label={creatingCategory ? "Cancelar nueva categoría" : "Crear nueva categoría"}
-          className={styles.categoryAdd}
+          aria-label={
+            creatingValue
+              ? `Cancelar nuevo ${isCategory ? "categoría" : "responsable"}`
+              : `Crear ${isCategory ? "categoría" : "asignación"}`
+          }
+          className={styles.choiceAdd}
           disabled={disabled}
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => {
-            setCreatingCategory((current) => !current);
-            if (!creatingCategory) onChange("");
+            setCreatingValue((current) => !current);
+            if (!creatingValue) onChange("");
           }}
-          title={creatingCategory ? "Cancelar" : "Nueva categoría"}
+          title={creatingValue ? "Cancelar" : isCategory ? "Nueva categoría" : "Nueva asignación"}
           type="button"
         >
-          {creatingCategory ? "×" : "+"}
+          {creatingValue ? "×" : "+"}
         </button>
       </div>
     );
@@ -213,6 +222,7 @@ export default function ShoppingTable({
   filters,
   categories,
   stores,
+  assignments,
   readOnly,
   onFilterChange,
   onClearFilters,
@@ -226,6 +236,7 @@ export default function ShoppingTable({
   filters: ShoppingTableFilters;
   categories: Option[];
   stores: Option[];
+  assignments: Option[];
   readOnly: boolean;
   onFilterChange: (field: FilterField, value: string) => void;
   onClearFilters: () => void;
@@ -302,7 +313,11 @@ export default function ShoppingTable({
         onCommit={() => void commit(product, field)}
         onCreateCategory={field === "category" ? onCreateCategory : undefined}
         onError={(error) =>
-          setSaveError(error instanceof Error ? error.message : "No se pudo crear la categoría")
+          setSaveError(
+            error instanceof Error
+              ? error.message
+              : `No se pudo crear ${field === "category" ? "la categoría" : "la asignación"}`,
+          )
         }
         options={options}
         product={product}
@@ -472,7 +487,7 @@ export default function ShoppingTable({
                           </label>
                           <label>
                             Asignación
-                            {renderField(product, "assignment")}
+                            {renderField(product, "assignment", assignments)}
                           </label>
                           <label>
                             Precio previsto
