@@ -237,6 +237,21 @@ function EditableCell({
     );
   }
 
+  if (field === "notes") {
+    return (
+      <textarea
+        aria-label={label}
+        className={styles.tableTextarea}
+        disabled={disabled}
+        maxLength={1000}
+        onBlur={onCommit}
+        onChange={(event) => onChange(event.target.value)}
+        rows={2}
+        value={value}
+      />
+    );
+  }
+
   const numeric = field.includes("Quantity") || field.includes("UnitPrice");
   return (
     <input

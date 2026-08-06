@@ -424,6 +424,7 @@
 
 .tableInput,
 .tableSelect,
+.tableTextarea,
 .filterInput,
 .filterSelect {
   min-width: 0;
@@ -433,6 +434,7 @@
 
 .tableInput:focus-visible,
 .tableSelect:focus-visible,
+.tableTextarea:focus-visible,
 .filterInput:focus-visible,
 .filterSelect:focus-visible {
   border-color: var(--accent);
@@ -443,6 +445,12 @@
 .tableInput[type="number"] {
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+.tableTextarea {
+  min-height: 42px;
+  resize: vertical;
+  width: 100%;
 }
 
 .shoppingTable tbody td:last-child {
@@ -889,6 +897,7 @@
   /* The edition route disables viewport scaling; keep controls compact too. */
   .tableInput,
   .tableSelect,
+  .tableTextarea,
   .filterInput,
   .filterSelect {
     font-size: 0.64rem;
