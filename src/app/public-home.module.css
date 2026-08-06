@@ -49,18 +49,16 @@
   text-transform: uppercase;
 }
 
-.mark {
-  align-items: center;
-  background: #d95d39;
-  border: 12px solid #343d37;
-  border-radius: 50%;
-  color: #fff8ef;
-  display: flex;
-  font-size: clamp(3rem, 10vw, 7rem);
-  font-weight: 800;
-  height: clamp(150px, 22vw, 250px);
-  justify-content: center;
-  width: clamp(150px, 22vw, 250px);
+.logoFrame {
+  align-self: center;
+  min-width: 0;
+}
+
+.logo {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  width: min(100%, 520px);
 }
 
 .sections {
@@ -119,7 +117,7 @@
     grid-template-columns: 1fr;
   }
 
-  .mark {
+  .logoFrame {
     justify-self: start;
   }
 }
@@ -141,11 +139,6 @@
 
 .eyebrow {
   color: #e2a05c;
-}
-
-.mark {
-  background: var(--accent);
-  border-color: #343d37;
 }
 
 .section {

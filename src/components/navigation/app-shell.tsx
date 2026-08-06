@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import packageJson from "../../../package.json";
@@ -83,10 +84,16 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className={`${styles.viewport} ${isOpen ? styles.open : ""}`}>
       <aside className={styles.sidebar} aria-label="Navegación principal" id="main-navigation">
-        <div className={styles.brand}>
-          <span className={styles.brandMark}>K</span>
-          <span>Kamikazes</span>
-        </div>
+        <Link className={styles.brand} href="/" onClick={() => setIsOpen(false)}>
+          <Image
+            alt="Kamikazes"
+            className={styles.brandLogo}
+            height={184}
+            priority
+            src="/brand/kamikazes-logo.jpg"
+            width={951}
+          />
+        </Link>
         <nav aria-label="Navegación principal" className={styles.nav}>
           <Link
             className={`${styles.navLink} ${pathname === "/" ? styles.active : ""}`}

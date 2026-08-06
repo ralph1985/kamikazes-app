@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import styles from "./public-home.module.css";
 
 type PublicSection = {
@@ -75,8 +76,15 @@ export default function PublicHome() {
             {isAuthenticated ? "Ir a las ediciones" : "Entrar en la peña"}
           </a>
         </div>
-        <div aria-label="Emblema de Kamikazes" className={styles.mark} role="img">
-          K
+        <div className={styles.logoFrame}>
+          <Image
+            alt="Logotipo de la peña Kamikazes"
+            className={styles.logo}
+            height={184}
+            priority
+            src="/brand/kamikazes-logo.jpg"
+            width={951}
+          />
         </div>
       </section>
       <section aria-label="Historia de Kamikazes" className={styles.sections}>

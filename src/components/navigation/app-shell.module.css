@@ -25,16 +25,11 @@
   letter-spacing: -0.02em;
 }
 
-.brandMark {
-  align-items: center;
-  background: #d95d39;
-  border-radius: 50%;
-  color: #fff8ef;
-  display: inline-flex;
-  font-size: 1.15rem;
-  height: 36px;
-  justify-content: center;
-  width: 36px;
+.brandLogo {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  width: 220px;
 }
 
 .nav {
@@ -216,12 +211,6 @@
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.2rem;
   letter-spacing: -0.03em;
-}
-
-.brandMark {
-  background: var(--accent);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 8px 20px rgb(179 75 56 / 24%);
 }
 
 .nav {
