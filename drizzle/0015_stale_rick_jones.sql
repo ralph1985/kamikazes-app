@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "leftovers_edition_source_location_product_unique" ON "leftovers" USING btree ("edition_id","location_id","product_name",coalesce("source_edition_id", '00000000-0000-0000-0000-000000000000'::uuid));

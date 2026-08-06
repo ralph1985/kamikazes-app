@@ -471,6 +471,12 @@ export const leftovers = pgTable(
     updatedAt: updatedAt(),
   },
   (table) => [
+    uniqueIndex("leftovers_edition_source_location_product_unique").on(
+      table.editionId,
+      table.locationId,
+      table.productName,
+      sql`coalesce(${table.sourceEditionId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+    ),
     check(
       "leftovers_status_allowed",
       sql`${table.status} in ('available', 'consumed', 'discarded')`,

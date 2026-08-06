@@ -1,4 +1,4 @@
-import { and, asc, eq, or } from "drizzle-orm";
+import { and, asc, eq, isNull, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -398,15 +398,28 @@ async function mutate(
       );
       return apiSuccess({ id: movementId, ...data }, 201);
     }
-    const id = data.id ?? randomUUID();
     const before = data.id
       ? await database
           .select()
           .from(leftovers)
           .where(and(eq(leftovers.id, data.id), eq(leftovers.editionId, editionId)))
           .limit(1)
-      : [];
+      : await database
+          .select()
+          .from(leftovers)
+          .where(
+            and(
+              eq(leftovers.editionId, editionId),
+              eq(leftovers.locationId, data.locationId),
+              eq(leftovers.productName, data.productName),
+              data.sourceEditionId
+                ? eq(leftovers.sourceEditionId, data.sourceEditionId)
+                : isNull(leftovers.sourceEditionId),
+            ),
+          )
+          .limit(1);
     if (mode && !before.length) return apiFailure("not_found", "El sobrante no existe", 404);
+    const id = before[0]?.id ?? randomUUID();
     const location = await database
       .select({ id: inventoryLocations.id })
       .from(inventoryLocations)
@@ -433,18 +446,21 @@ async function mutate(
       sourceEditionId: data.sourceEditionId,
       locationId: data.locationId,
       productName: data.productName,
-      quantity: data.quantity.toFixed(2),
+      quantity: (data.id
+        ? data.quantity
+        : Number(before[0]?.quantity ?? 0) + data.quantity
+      ).toFixed(2),
       status: data.status,
       notes: data.notes,
       updatedAt: new Date(),
     };
     await database.batch([
-      mode
+      mode || before.length
         ? database.update(leftovers).set(values).where(eq(leftovers.id, id))
         : database.insert(leftovers).values({ id, ...values }),
       database.insert(auditEvents).values({
         memberId: member.memberId,
-        action: mode ? "update" : "create",
+        action: mode || before.length ? "update" : "create",
         area: "shopping",
         entity: "leftover",
         entityId: id,
@@ -452,7 +468,7 @@ async function mutate(
         afterValue: values,
       }),
     ]);
-    return apiSuccess({ id, ...values }, mode ? 200 : 201);
+    return apiSuccess({ id, ...values }, mode || before.length ? 200 : 201);
   } catch (error) {
     if (error instanceof IdentityError)
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);
