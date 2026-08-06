@@ -5,11 +5,9 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getDatabase } from "@/infrastructure/database/client";
 import { auditEvents, publicSections, publicSocialLinks } from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
+import { authenticateRequest, isGlobalAdmin } from "@/shared/server/authorization";
 
 export const runtime = "nodejs";
 
@@ -42,14 +40,8 @@ const mutationSchema = z.discriminatedUnion("kind", [sectionSchema, socialLinkSc
 const deleteSchema = z.object({ kind: z.enum(["section", "socialLink"]), id: z.uuid() });
 
 async function authenticateAdmin(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "Necesitas iniciar sesión");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  if (!(await createDatabaseGlobalAdminReader(database).isGlobalAdmin(member.memberId))) {
+  const { database, member } = await authenticateRequest(request);
+  if (!(await isGlobalAdmin(database, member.memberId))) {
     throw new Error("forbidden");
   }
   return { database, memberId: member.memberId };
