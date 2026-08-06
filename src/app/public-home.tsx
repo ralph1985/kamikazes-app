@@ -35,6 +35,7 @@ const fallbackSections = [
 
 export default function PublicHome() {
   const [content, setContent] = useState<PublicContent | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     void fetch("/api/v1/public-content")
@@ -43,6 +44,12 @@ export default function PublicHome() {
       )
       .then(setContent)
       .catch(() => setContent(null));
+  }, []);
+
+  useEffect(() => {
+    void fetch("/api/v1/auth/me")
+      .then((response) => setIsAuthenticated(response.ok))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
   const sections = content?.sections.length
@@ -64,8 +71,8 @@ export default function PublicHome() {
             Un lugar común para cuidar cada edición, contar nuestra historia y mantener cerca todo
             lo que vivimos juntos.
           </p>
-          <a className={styles.loginLink} href="/login">
-            Entrar en la peña
+          <a className={styles.loginLink} href={isAuthenticated ? "/panel" : "/login"}>
+            {isAuthenticated ? "Ir a las ediciones" : "Entrar en la peña"}
           </a>
         </div>
         <div aria-label="Emblema de Kamikazes" className={styles.mark} role="img">
