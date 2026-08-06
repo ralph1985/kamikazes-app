@@ -5,6 +5,7 @@ vi.mock("server-only", () => ({}));
 
 import { GET, POST, PUT } from "./route";
 import { POST as createCategory } from "./categories/route";
+import { POST as createStore } from "./stores/route";
 import { POST as copyShopping } from "../shopping/copy/route";
 
 describe("/api/v1/editions/:editionId/shopping", () => {
@@ -35,6 +36,20 @@ describe("/api/v1/editions/:editionId/shopping", () => {
     const editionId = "123e4567-e89b-12d3-a456-426614174000";
     const response = await createCategory(
       new NextRequest(`http://localhost/api/v1/editions/${editionId}/shopping/categories`, {
+        method: "POST",
+        body: JSON.stringify({ name: "" }),
+        headers: { "content-type": "application/json" },
+      }),
+      { params: Promise.resolve({ editionId }) },
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it("valida la tienda antes de consultar Neon", async () => {
+    const editionId = "123e4567-e89b-12d3-a456-426614174000";
+    const response = await createStore(
+      new NextRequest(`http://localhost/api/v1/editions/${editionId}/shopping/stores`, {
         method: "POST",
         body: JSON.stringify({ name: "" }),
         headers: { "content-type": "application/json" },

@@ -266,6 +266,25 @@ export default function ShoppingOverview({
     );
   }
 
+  async function createStore(name: string) {
+    const response = await fetch(`/api/v1/editions/${editionId}/shopping/stores`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    const result = (await response.json()) as {
+      data?: Option;
+      error?: { message: string };
+    };
+    if (!response.ok || !result.data)
+      throw new Error(result.error?.message ?? "No se pudo crear la tienda");
+    setStores((current) =>
+      [...current.filter((store) => store.id !== result.data!.id), result.data!].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      ),
+    );
+  }
+
   async function copyFromEdition(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!sourceEditionId) return;
@@ -418,6 +437,7 @@ export default function ShoppingOverview({
           onClearFilters={clearEditionFilters}
           onCreateCategory={createCategory}
           onCreateProduct={createInlineProduct}
+          onCreateStore={createStore}
           onFilterChange={(field, value) =>
             field === "status"
               ? setStatus(value)
