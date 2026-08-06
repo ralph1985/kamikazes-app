@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -42,7 +42,29 @@ const leftoverSchema = z.object({
   status: z.enum(["available", "consumed", "discarded"]).default("available"),
   notes: z.string().trim().max(1000).nullable().default(null),
 });
-const inputSchema = z.discriminatedUnion("type", [locationSchema, stockSchema, leftoverSchema]);
+const movementSchema = z
+  .object({
+    type: z.literal("movement"),
+    productName: z.string().trim().min(1).max(160),
+    fromLocationId: z.uuid().nullable().default(null),
+    toLocationId: z.uuid().nullable().default(null),
+    quantity: z.number().finite().positive(),
+    notes: z.string().trim().max(1000).nullable().default(null),
+  })
+  .refine(
+    (value) => value.fromLocationId || value.toLocationId,
+    "Debe indicar un origen o un destino",
+  )
+  .refine(
+    (value) => value.fromLocationId !== value.toLocationId,
+    "El origen y el destino deben ser distintos",
+  );
+const inputSchema = z.discriminatedUnion("type", [
+  locationSchema,
+  stockSchema,
+  movementSchema,
+  leftoverSchema,
+]);
 
 async function authenticate(request: NextRequest) {
   const token = request.cookies.get("kamikazes_session")?.value;
@@ -213,12 +235,27 @@ async function mutate(
             .limit(1);
       if (mode && !existing.length)
         return apiFailure("not_found", "El elemento de inventario no existe", 404);
+      const location = await database
+        .select({ id: inventoryLocations.id })
+        .from(inventoryLocations)
+        .where(
+          and(
+            eq(inventoryLocations.id, data.locationId),
+            eq(inventoryLocations.editionId, editionId),
+          ),
+        )
+        .limit(1);
+      if (!location.length)
+        return apiFailure("invalid_request", "La ubicación no pertenece a esta edición", 400);
       const id = existing[0]?.id ?? randomUUID();
+      const previousQuantity = Number(existing[0]?.quantity ?? 0);
+      const quantity = mode ? data.quantity : previousQuantity + data.quantity;
+      const delta = mode ? data.quantity - previousQuantity : data.quantity;
       const values = {
         editionId,
         locationId: data.locationId,
         productName: data.productName,
-        quantity: data.quantity.toFixed(2),
+        quantity: quantity.toFixed(2),
         notes: data.notes,
         updatedAt: new Date(),
       };
@@ -231,7 +268,7 @@ async function mutate(
           editionId,
           productName: data.productName,
           toLocationId: data.locationId,
-          quantity: data.quantity.toFixed(2),
+          quantity: delta.toFixed(2),
           notes: data.notes,
           createdBy: member.memberId,
         }),
@@ -247,6 +284,120 @@ async function mutate(
       ]);
       return apiSuccess({ id, ...values }, existing.length ? 200 : 201);
     }
+    if (data.type === "movement") {
+      if (mode)
+        return apiFailure(
+          "invalid_request",
+          "Los movimientos no se corrigen; registra un ajuste nuevo",
+          400,
+        );
+      const locationIds = [data.fromLocationId, data.toLocationId].filter(
+        (value): value is string => Boolean(value),
+      );
+      const locations = await database
+        .select({ id: inventoryLocations.id })
+        .from(inventoryLocations)
+        .where(
+          and(
+            eq(inventoryLocations.editionId, editionId),
+            or(...locationIds.map((locationId) => eq(inventoryLocations.id, locationId))),
+          ),
+        );
+      if (locations.length !== locationIds.length)
+        return apiFailure(
+          "invalid_request",
+          "Las ubicaciones deben pertenecer a esta edición",
+          400,
+        );
+      const source = data.fromLocationId
+        ? await database
+            .select()
+            .from(inventoryItems)
+            .where(
+              and(
+                eq(inventoryItems.editionId, editionId),
+                eq(inventoryItems.locationId, data.fromLocationId),
+                eq(inventoryItems.productName, data.productName),
+              ),
+            )
+            .limit(1)
+        : [];
+      const target = data.toLocationId
+        ? await database
+            .select()
+            .from(inventoryItems)
+            .where(
+              and(
+                eq(inventoryItems.editionId, editionId),
+                eq(inventoryItems.locationId, data.toLocationId),
+                eq(inventoryItems.productName, data.productName),
+              ),
+            )
+            .limit(1)
+        : [];
+      const statements = [];
+      const changes: Array<{ locationId: string; before: unknown; after: unknown }> = [];
+      if (data.fromLocationId) {
+        const id = source[0]?.id ?? randomUUID();
+        const values = {
+          editionId,
+          locationId: data.fromLocationId,
+          productName: data.productName,
+          quantity: (Number(source[0]?.quantity ?? 0) - data.quantity).toFixed(2),
+          notes: source[0]?.notes ?? data.notes,
+          updatedAt: new Date(),
+        };
+        statements.push(
+          source.length
+            ? database.update(inventoryItems).set(values).where(eq(inventoryItems.id, id))
+            : database.insert(inventoryItems).values({ id, ...values }),
+        );
+        changes.push({ locationId: data.fromLocationId, before: source[0] ?? null, after: values });
+      }
+      if (data.toLocationId) {
+        const id = target[0]?.id ?? randomUUID();
+        const values = {
+          editionId,
+          locationId: data.toLocationId,
+          productName: data.productName,
+          quantity: (Number(target[0]?.quantity ?? 0) + data.quantity).toFixed(2),
+          notes: data.notes ?? target[0]?.notes ?? null,
+          updatedAt: new Date(),
+        };
+        statements.push(
+          target.length
+            ? database.update(inventoryItems).set(values).where(eq(inventoryItems.id, id))
+            : database.insert(inventoryItems).values({ id, ...values }),
+        );
+        changes.push({ locationId: data.toLocationId, before: target[0] ?? null, after: values });
+      }
+      const movementId = randomUUID();
+      statements.push(
+        database.insert(inventoryMovements).values({
+          id: movementId,
+          editionId,
+          productName: data.productName,
+          fromLocationId: data.fromLocationId,
+          toLocationId: data.toLocationId,
+          quantity: data.quantity.toFixed(2),
+          notes: data.notes,
+          createdBy: member.memberId,
+        }),
+        database.insert(auditEvents).values({
+          memberId: member.memberId,
+          action: "create",
+          area: "shopping",
+          entity: "inventory_movement",
+          entityId: movementId,
+          beforeValue: null,
+          afterValue: { ...data, quantity: data.quantity.toFixed(2), changes },
+        }),
+      );
+      await database.batch(
+        statements as [(typeof statements)[number], ...(typeof statements)[number][]],
+      );
+      return apiSuccess({ id: movementId, ...data }, 201);
+    }
     const id = data.id ?? randomUUID();
     const before = data.id
       ? await database
@@ -256,6 +407,27 @@ async function mutate(
           .limit(1)
       : [];
     if (mode && !before.length) return apiFailure("not_found", "El sobrante no existe", 404);
+    const location = await database
+      .select({ id: inventoryLocations.id })
+      .from(inventoryLocations)
+      .where(
+        and(
+          eq(inventoryLocations.id, data.locationId),
+          eq(inventoryLocations.editionId, editionId),
+        ),
+      )
+      .limit(1);
+    if (!location.length)
+      return apiFailure("invalid_request", "La ubicación no pertenece a esta edición", 400);
+    if (data.sourceEditionId) {
+      const sourceEdition = await database
+        .select({ id: editions.id })
+        .from(editions)
+        .where(eq(editions.id, data.sourceEditionId))
+        .limit(1);
+      if (!sourceEdition.length)
+        return apiFailure("invalid_request", "La edición de origen no existe", 400);
+    }
     const values = {
       editionId,
       sourceEditionId: data.sourceEditionId,

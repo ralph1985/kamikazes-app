@@ -227,8 +227,8 @@ Criterios de aceptación de la primera rebanada:
 
 - sólo editores de compras y administradores pueden crear o corregir ubicaciones, existencias y sobrantes;
 - los miembros pueden consultar el inventario y los sobrantes de la edición;
-- las existencias se acumulan por producto y ubicación y conservan movimientos auditados;
-- los sobrantes mantienen producto, cantidad, ubicación, edición de origen opcional y estado `Disponible`, `Consumido` o `Descartado`;
+- las existencias se acumulan por producto y ubicación, admiten ajustes y movimientos explícitos entre ubicaciones, y conservan ambos tipos de operación auditados;
+- los sobrantes mantienen producto, cantidad, ubicación, edición de origen opcional seleccionable y estado `Disponible`, `Consumido` o `Descartado`;
 - una edición cerrada se consulta en modo sólo lectura.
 
 Resultado: cierre del ciclo operativo de compras.

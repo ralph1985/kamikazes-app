@@ -7,10 +7,19 @@ import { Modal } from "@/components/ui/modal";
 import styles from "./edition.module.css";
 
 type Location = { id: string; name: string };
+type Edition = { id: string; year: number };
 type Item = {
   id: string;
   locationId: string;
   productName: string;
+  quantity: string;
+  notes: string | null;
+};
+type Movement = {
+  id: string;
+  productName: string;
+  fromLocationId: string | null;
+  toLocationId: string | null;
   quantity: string;
   notes: string | null;
 };
@@ -23,21 +32,27 @@ type Leftover = {
   status: string;
   notes: string | null;
 };
+type ModalType = "location" | "stock" | "movement" | "leftover";
 
 export default function InventoryOverview({
   editionId,
   readOnly,
 }: Readonly<{ editionId: string; readOnly: boolean }>) {
   const [locations, setLocations] = useState<Location[]>([]);
+  const [editions, setEditions] = useState<Edition[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
   const [leftovers, setLeftovers] = useState<Leftover[]>([]);
   const [canEdit, setCanEdit] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modal, setModal] = useState<"location" | "stock" | "leftover" | null>(null);
-  const [editingId, setEditingId] = useState<string | undefined>();
+  const [modal, setModal] = useState<ModalType | null>(null);
+  const [editingId, setEditingId] = useState<string>();
   const [name, setName] = useState("");
   const [locationId, setLocationId] = useState("");
+  const [fromLocationId, setFromLocationId] = useState("");
+  const [toLocationId, setToLocationId] = useState("");
+  const [sourceEditionId, setSourceEditionId] = useState("");
   const [productName, setProductName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [status, setStatus] = useState("available");
@@ -46,34 +61,52 @@ export default function InventoryOverview({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/v1/editions/${editionId}/inventory`);
-      const result = (await response.json()) as {
-        data?: { locations: Location[]; items: Item[]; leftovers: Leftover[]; canEdit: boolean };
+      const [inventoryResponse, editionsResponse] = await Promise.all([
+        fetch(`/api/v1/editions/${editionId}/inventory`),
+        fetch("/api/v1/editions"),
+      ]);
+      const inventoryResult = (await inventoryResponse.json()) as {
+        data?: {
+          locations: Location[];
+          items: Item[];
+          movements: Movement[];
+          leftovers: Leftover[];
+          canEdit: boolean;
+        };
         error?: { message: string };
       };
-      if (!response.ok || !result.data)
-        throw new Error(result.error?.message ?? "No se pudo cargar el inventario");
-      setLocations(result.data.locations);
-      setItems(result.data.items);
-      setLeftovers(result.data.leftovers);
-      setCanEdit(result.data.canEdit);
+      const editionsResult = (await editionsResponse.json()) as {
+        data?: Edition[];
+        error?: { message: string };
+      };
+      if (!inventoryResponse.ok || !inventoryResult.data)
+        throw new Error(inventoryResult.error?.message ?? "No se pudo cargar el inventario");
+      if (!editionsResponse.ok || !editionsResult.data)
+        throw new Error(editionsResult.error?.message ?? "No se pudieron cargar las ediciones");
+      setLocations(inventoryResult.data.locations);
+      setItems(inventoryResult.data.items);
+      setMovements(inventoryResult.data.movements.slice(-20).reverse());
+      setLeftovers(inventoryResult.data.leftovers);
+      setEditions(editionsResult.data);
+      setCanEdit(inventoryResult.data.canEdit);
       setError(null);
-      if (!locationId && result.data.locations[0]) setLocationId(result.data.locations[0].id);
+      if (!locationId && inventoryResult.data.locations[0])
+        setLocationId(inventoryResult.data.locations[0].id);
+      if (!toLocationId && inventoryResult.data.locations[0])
+        setToLocationId(inventoryResult.data.locations[0].id);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "No se pudo cargar el inventario");
     } finally {
       setLoading(false);
     }
-  }, [editionId, locationId]);
+  }, [editionId, locationId, toLocationId]);
+
   useEffect(() => void load(), [load]);
 
-  function open(type: "location" | "stock" | "leftover", value?: Location | Item | Leftover) {
+  function open(type: ModalType, value?: Location | Item | Leftover) {
     setModal(type);
     setEditingId(value && "id" in value ? value.id : undefined);
-    if (type === "location") {
-      const item = value as Location | undefined;
-      setName(item?.name ?? "");
-    }
+    setName(type === "location" ? ((value as Location | undefined)?.name ?? "") : "");
     if (type === "stock") {
       const item = value as Item | undefined;
       setLocationId(item?.locationId ?? locations[0]?.id ?? "");
@@ -81,15 +114,24 @@ export default function InventoryOverview({
       setQuantity(item?.quantity ?? "");
       setNotes(item?.notes ?? "");
     }
+    if (type === "movement") {
+      setFromLocationId("");
+      setToLocationId(locations[0]?.id ?? "");
+      setProductName("");
+      setQuantity("");
+      setNotes("");
+    }
     if (type === "leftover") {
       const item = value as Leftover | undefined;
       setLocationId(item?.locationId ?? locations[0]?.id ?? "");
+      setSourceEditionId(item?.sourceEditionId ?? "");
       setProductName(item?.productName ?? "");
       setQuantity(item?.quantity ?? "");
       setStatus(item?.status ?? "available");
       setNotes(item?.notes ?? "");
     }
   }
+
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -106,18 +148,27 @@ export default function InventoryOverview({
               quantity: Number(quantity),
               notes: notes || null,
             }
-          : {
-              type,
-              ...(editingId ? { id: editingId } : {}),
-              sourceEditionId: null,
-              locationId,
-              productName,
-              quantity: Number(quantity),
-              status,
-              notes: notes || null,
-            };
+          : type === "movement"
+            ? {
+                type,
+                fromLocationId: fromLocationId || null,
+                toLocationId: toLocationId || null,
+                productName,
+                quantity: Number(quantity),
+                notes: notes || null,
+              }
+            : {
+                type,
+                ...(editingId ? { id: editingId } : {}),
+                sourceEditionId: sourceEditionId || null,
+                locationId,
+                productName,
+                quantity: Number(quantity),
+                status,
+                notes: notes || null,
+              };
     const response = await fetch(`/api/v1/editions/${editionId}/inventory`, {
-      method: editingId ? "PATCH" : "POST",
+      method: editingId && type !== "movement" ? "PATCH" : "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
@@ -129,8 +180,15 @@ export default function InventoryOverview({
     setModal(null);
     await load();
   }
-  const locationName = (id: string) =>
-    locations.find((location) => location.id === id)?.name ?? "Sin ubicación";
+
+  const locationName = (id: string | null) =>
+    id
+      ? (locations.find((location) => location.id === id)?.name ?? "Ubicación desconocida")
+      : "Sin ubicación";
+  const editionYear = (id: string | null) =>
+    id
+      ? (editions.find((edition) => edition.id === id)?.year ?? "Edición desconocida")
+      : "Sin edición de origen";
 
   return (
     <section className={styles.content}>
@@ -147,7 +205,10 @@ export default function InventoryOverview({
                 Nueva ubicación
               </button>
               <button className={styles.primary} onClick={() => open("stock")} type="button">
-                Añadir existencias
+                Ajustar existencias
+              </button>
+              <button className={styles.primary} onClick={() => open("movement")} type="button">
+                Mover existencias
               </button>
               <button className={styles.primary} onClick={() => open("leftover")} type="button">
                 Nuevo sobrante
@@ -196,6 +257,27 @@ export default function InventoryOverview({
           </section>
           <section className={styles.welcome}>
             <div className={styles.header}>
+              <h2>Movimientos recientes</h2>
+              <span>{movements.length} mostrados</span>
+            </div>
+            {movements.length ? (
+              <CompactList>
+                {movements.map((movement) => (
+                  <CompactListRow
+                    key={movement.id}
+                    meta={`${movement.quantity} unidades · ${locationName(movement.fromLocationId)} → ${locationName(movement.toLocationId)}`}
+                  >
+                    <strong>{movement.productName}</strong>
+                    <small>{movement.notes ?? "Sin notas"}</small>
+                  </CompactListRow>
+                ))}
+              </CompactList>
+            ) : (
+              <p>Aún no hay movimientos registrados.</p>
+            )}
+          </section>
+          <section className={styles.welcome}>
+            <div className={styles.header}>
               <h2>Sobrantes</h2>
               <span>{leftovers.length} registros</span>
             </div>
@@ -217,7 +299,10 @@ export default function InventoryOverview({
                     meta={`${item.quantity} unidades · ${item.status} · ${locationName(item.locationId)}`}
                   >
                     <strong>{item.productName}</strong>
-                    <small>{item.notes ?? "Sin notas"}</small>
+                    <small>
+                      {editionYear(item.sourceEditionId)}
+                      {item.notes ? ` · ${item.notes}` : ""}
+                    </small>
                   </CompactListRow>
                 ))}
               </CompactList>
@@ -230,7 +315,19 @@ export default function InventoryOverview({
       <Modal
         onClose={() => setModal(null)}
         open={modal !== null}
-        title={modal === "location" ? "Ubicación" : modal === "stock" ? "Existencias" : "Sobrante"}
+        title={
+          modal === "location"
+            ? "Ubicación"
+            : modal === "stock"
+              ? editingId
+                ? "Editar existencias"
+                : "Ajustar existencias"
+              : modal === "movement"
+                ? "Mover existencias"
+                : editingId
+                  ? "Editar sobrante"
+                  : "Nuevo sobrante"
+        }
       >
         <form className={styles.form} onSubmit={save}>
           {modal === "location" ? (
@@ -238,6 +335,61 @@ export default function InventoryOverview({
               Nombre
               <input onChange={(event) => setName(event.target.value)} required value={name} />
             </label>
+          ) : modal === "movement" ? (
+            <>
+              <label>
+                Producto
+                <input
+                  onChange={(event) => setProductName(event.target.value)}
+                  required
+                  value={productName}
+                />
+              </label>
+              <label>
+                Origen
+                <select
+                  onChange={(event) => setFromLocationId(event.target.value)}
+                  value={fromLocationId}
+                >
+                  <option value="">Sin origen (entrada)</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Destino
+                <select
+                  onChange={(event) => setToLocationId(event.target.value)}
+                  required
+                  value={toLocationId}
+                >
+                  <option value="">Sin destino (salida)</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Cantidad
+                <input
+                  min="0.01"
+                  onChange={(event) => setQuantity(event.target.value)}
+                  required
+                  step="0.01"
+                  type="number"
+                  value={quantity}
+                />
+              </label>
+              <label>
+                Notas
+                <textarea onChange={(event) => setNotes(event.target.value)} value={notes} />
+              </label>
+            </>
           ) : (
             <>
               <label>
@@ -263,7 +415,7 @@ export default function InventoryOverview({
                 </select>
               </label>
               <label>
-                Cantidad
+                {modal === "stock" && !editingId ? "Cantidad a añadir" : "Cantidad"}
                 <input
                   onChange={(event) => setQuantity(event.target.value)}
                   required
@@ -273,14 +425,32 @@ export default function InventoryOverview({
                 />
               </label>
               {modal === "leftover" && (
-                <label>
-                  Estado
-                  <select onChange={(event) => setStatus(event.target.value)} value={status}>
-                    <option value="available">Disponible</option>
-                    <option value="consumed">Consumido</option>
-                    <option value="discarded">Descartado</option>
-                  </select>
-                </label>
+                <>
+                  <label>
+                    Edición de origen
+                    <select
+                      onChange={(event) => setSourceEditionId(event.target.value)}
+                      value={sourceEditionId}
+                    >
+                      <option value="">Sin edición de origen</option>
+                      {editions
+                        .filter((edition) => edition.id !== editionId)
+                        .map((edition) => (
+                          <option key={edition.id} value={edition.id}>
+                            {edition.year}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Estado
+                    <select onChange={(event) => setStatus(event.target.value)} value={status}>
+                      <option value="available">Disponible</option>
+                      <option value="consumed">Consumido</option>
+                      <option value="discarded">Descartado</option>
+                    </select>
+                  </label>
+                </>
               )}
               <label>
                 Notas

@@ -26,4 +26,23 @@ describe("inventario de una edición", () => {
     );
     expect(response.status).toBe(401);
   });
+
+  it("exige origen o destino para un movimiento", async () => {
+    const editionId = "123e4567-e89b-12d3-a456-426614174000";
+    const response = await POST(
+      new NextRequest(`http://localhost/api/v1/editions/${editionId}/inventory`, {
+        method: "POST",
+        body: JSON.stringify({
+          type: "movement",
+          productName: "Cajas",
+          fromLocationId: null,
+          toLocationId: null,
+          quantity: 1,
+        }),
+        headers: { "content-type": "application/json" },
+      }),
+      { params: Promise.resolve({ editionId }) },
+    );
+    expect(response.status).toBe(400);
+  });
 });
