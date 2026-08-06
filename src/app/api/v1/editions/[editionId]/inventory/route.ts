@@ -15,6 +15,10 @@ import {
   authenticateRequest,
   canEditEditionArea,
 } from "@/shared/server/authorization";
+import {
+  hasMovementEndpoint,
+  usesDifferentMovementEndpoints,
+} from "@/modules/inventory/domain/movement";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
@@ -52,11 +56,11 @@ const movementSchema = z
     notes: z.string().trim().max(1000).nullable().default(null),
   })
   .refine(
-    (value) => value.fromLocationId || value.toLocationId,
+    (value) => hasMovementEndpoint(value.fromLocationId, value.toLocationId),
     "Debe indicar un origen o un destino",
   )
   .refine(
-    (value) => value.fromLocationId !== value.toLocationId,
+    (value) => usesDifferentMovementEndpoints(value.fromLocationId, value.toLocationId),
     "El origen y el destino deben ser distintos",
   );
 const inputSchema = z.discriminatedUnion("type", [

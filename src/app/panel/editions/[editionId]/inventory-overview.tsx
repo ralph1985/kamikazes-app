@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
 import { ListState } from "@/components/lists/list-patterns";
-import { Modal } from "@/components/ui/modal";
+import { InventoryForm, type InventoryModalType } from "./inventory-form";
 import styles from "./edition.module.css";
 
 type Location = { id: string; name: string };
@@ -32,7 +32,7 @@ type Leftover = {
   status: string;
   notes: string | null;
 };
-type ModalType = "location" | "stock" | "movement" | "leftover";
+type ModalType = InventoryModalType;
 
 export default function InventoryOverview({
   editionId,
@@ -312,162 +312,33 @@ export default function InventoryOverview({
           </section>
         </>
       )}
-      <Modal
+      <InventoryForm
+        currentEditionId={editionId}
+        editions={editions}
+        editing={editingId !== undefined}
+        fromLocationId={fromLocationId}
+        locationId={locationId}
+        locations={locations}
+        modal={modal}
+        name={name}
+        notes={notes}
         onClose={() => setModal(null)}
-        open={modal !== null}
-        title={
-          modal === "location"
-            ? "Ubicación"
-            : modal === "stock"
-              ? editingId
-                ? "Editar existencias"
-                : "Ajustar existencias"
-              : modal === "movement"
-                ? "Mover existencias"
-                : editingId
-                  ? "Editar sobrante"
-                  : "Nuevo sobrante"
-        }
-      >
-        <form className={styles.form} onSubmit={save}>
-          {modal === "location" ? (
-            <label>
-              Nombre
-              <input onChange={(event) => setName(event.target.value)} required value={name} />
-            </label>
-          ) : modal === "movement" ? (
-            <>
-              <label>
-                Producto
-                <input
-                  onChange={(event) => setProductName(event.target.value)}
-                  required
-                  value={productName}
-                />
-              </label>
-              <label>
-                Origen
-                <select
-                  onChange={(event) => setFromLocationId(event.target.value)}
-                  value={fromLocationId}
-                >
-                  <option value="">Sin origen (entrada)</option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Destino
-                <select
-                  onChange={(event) => setToLocationId(event.target.value)}
-                  required
-                  value={toLocationId}
-                >
-                  <option value="">Sin destino (salida)</option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Cantidad
-                <input
-                  min="0.01"
-                  onChange={(event) => setQuantity(event.target.value)}
-                  required
-                  step="0.01"
-                  type="number"
-                  value={quantity}
-                />
-              </label>
-              <label>
-                Notas
-                <textarea onChange={(event) => setNotes(event.target.value)} value={notes} />
-              </label>
-            </>
-          ) : (
-            <>
-              <label>
-                Producto
-                <input
-                  onChange={(event) => setProductName(event.target.value)}
-                  required
-                  value={productName}
-                />
-              </label>
-              <label>
-                Ubicación
-                <select
-                  onChange={(event) => setLocationId(event.target.value)}
-                  required
-                  value={locationId}
-                >
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                {modal === "stock" && !editingId ? "Cantidad a añadir" : "Cantidad"}
-                <input
-                  onChange={(event) => setQuantity(event.target.value)}
-                  required
-                  step="0.01"
-                  type="number"
-                  value={quantity}
-                />
-              </label>
-              {modal === "leftover" && (
-                <>
-                  <label>
-                    Edición de origen
-                    <select
-                      onChange={(event) => setSourceEditionId(event.target.value)}
-                      value={sourceEditionId}
-                    >
-                      <option value="">Sin edición de origen</option>
-                      {editions
-                        .filter((edition) => edition.id !== editionId)
-                        .map((edition) => (
-                          <option key={edition.id} value={edition.id}>
-                            {edition.year}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                  <label>
-                    Estado
-                    <select onChange={(event) => setStatus(event.target.value)} value={status}>
-                      <option value="available">Disponible</option>
-                      <option value="consumed">Consumido</option>
-                      <option value="discarded">Descartado</option>
-                    </select>
-                  </label>
-                </>
-              )}
-              <label>
-                Notas
-                <textarea onChange={(event) => setNotes(event.target.value)} value={notes} />
-              </label>
-            </>
-          )}
-          <div className={styles.actions}>
-            <button className={styles.cancel} onClick={() => setModal(null)} type="button">
-              Cancelar
-            </button>
-            <button className={styles.primary} type="submit">
-              Guardar
-            </button>
-          </div>
-        </form>
-      </Modal>
+        onFromLocationChange={setFromLocationId}
+        onLocationChange={setLocationId}
+        onNameChange={setName}
+        onNotesChange={setNotes}
+        onProductNameChange={setProductName}
+        onQuantityChange={setQuantity}
+        onSourceEditionChange={setSourceEditionId}
+        onStatusChange={setStatus}
+        onSubmit={save}
+        onToLocationChange={setToLocationId}
+        productName={productName}
+        quantity={quantity}
+        sourceEditionId={sourceEditionId}
+        status={status}
+        toLocationId={toLocationId}
+      />
     </section>
   );
 }
