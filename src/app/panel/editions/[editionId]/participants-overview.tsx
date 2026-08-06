@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
+import { useEffect, useMemo, useState } from "react";
+import { EditIcon, IconButton } from "@/components/lists/compact-list";
 import { Modal } from "@/components/ui/modal";
 import { requestApi, requestApiVoid } from "@/shared/http/client";
-import styles from "./edition.module.css";
+import editionStyles from "./edition.module.css";
+import styles from "./shopping.module.css";
 
 type Rate = { id: string; name: string; amount: string };
 type Participant = {
@@ -27,6 +28,8 @@ export default function ParticipantsOverview({
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [draftParticipating, setDraftParticipating] = useState(false);
   const [draftRateId, setDraftRateId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [participationFilter, setParticipationFilter] = useState("all");
 
   useEffect(() => {
     async function load() {
@@ -125,10 +128,21 @@ export default function ParticipantsOverview({
   }
 
   const count = participants.filter((item) => item.participating).length;
+  const filteredParticipants = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    return participants.filter((participant) => {
+      const matchesQuery = !normalizedQuery || participant.displayName.toLocaleLowerCase().includes(normalizedQuery);
+      const matchesParticipation =
+        participationFilter === "all" ||
+        (participationFilter === "participating" && participant.participating) ||
+        (participationFilter === "not_participating" && !participant.participating);
+      return matchesQuery && matchesParticipation;
+    });
+  }, [participants, participationFilter, query]);
   const editingParticipant = participants.find((item) => item.memberId === editingMemberId);
   return (
-    <div className={styles.budgetLayout}>
-      <div className={styles.budgetHeader}>
+    <div className={editionStyles.budgetLayout}>
+      <div className={editionStyles.budgetHeader}>
         <div>
           <p className="eyebrow">Organización de la edición</p>
           <h2>Participantes {year}</h2>
@@ -137,45 +151,116 @@ export default function ParticipantsOverview({
             aparte.
           </p>
         </div>
-        <span className={styles.budgetState}>{count} participantes</span>
+        <span className={editionStyles.budgetState}>{count} participantes</span>
       </div>
       {error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={styles.tableError}>
           {error}
         </p>
       ) : null}
       {loading ? (
-        <div className={styles.emptyModule}>
+        <div className={editionStyles.emptyModule}>
           <p>Cargando participantes…</p>
         </div>
       ) : (
-        <CompactList>
-          {participants.map((participant) => (
-            <CompactListRow
-              action={
-                readOnly ? null : (
-                  <IconButton
-                    label={`Editar participación de ${participant.displayName}`}
-                    onClick={() => startEditing(participant.memberId)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                )
-              }
-              key={participant.memberId}
-              meta={participant.participating ? "Participa" : "No participa"}
-            >
-              <strong>{participant.displayName}</strong>
-              <small>
-                {participant.participating
-                  ? participant.rateId
-                    ? "Participa en edición y presupuesto"
-                    : "Participa · tarifa sin asignar"
-                  : "No participa este año"}
-              </small>
-            </CompactListRow>
-          ))}
-        </CompactList>
+        <>
+          <div className={styles.stickySummary}>
+            <div className={styles.summaryGrid}>
+              <div className={styles.summaryAvailable}>
+                <span>Participantes</span>
+                <strong>{participants.length}</strong>
+              </div>
+              <div>
+                <span>Participan</span>
+                <strong>{count}</strong>
+              </div>
+              <div>
+                <span>No participan</span>
+                <strong>{participants.length - count}</strong>
+              </div>
+            </div>
+          </div>
+          <div className={styles.tableFrame}>
+            <div className={styles.tableMeta}>
+              <span>{filteredParticipants.length} participantes visibles</span>
+              <span>{readOnly ? "Sólo lectura" : "Edición desde la tabla"}</span>
+            </div>
+            <div className={styles.filterBar}>
+              <span className={styles.filterTitle}>Filtrar</span>
+              <input
+                aria-label="Filtrar participantes"
+                className={styles.filterInput}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Nombre"
+                type="search"
+                value={query}
+              />
+              <select
+                aria-label="Filtrar por participación"
+                className={styles.filterSelect}
+                onChange={(event) => setParticipationFilter(event.target.value)}
+                value={participationFilter}
+              >
+                <option value="all">Todas las participaciones</option>
+                <option value="participating">Participan</option>
+                <option value="not_participating">No participan</option>
+              </select>
+              {query || participationFilter !== "all" ? (
+                <button
+                  className={styles.clearFilters}
+                  onClick={() => {
+                    setQuery("");
+                    setParticipationFilter("all");
+                  }}
+                  type="button"
+                >
+                  Limpiar
+                </button>
+              ) : null}
+            </div>
+            <div className={styles.tableScroll}>
+              <table className={styles.shoppingTable}>
+                <thead>
+                  <tr className={styles.tableLabels}>
+                    <th className={styles.productColumn}>Miembro</th>
+                    <th className={styles.statusColumn}>Participación</th>
+                    <th className={styles.storeColumn}>Tarifa</th>
+                    <th className={styles.actionColumn}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredParticipants.map((participant) => (
+                    <tr key={participant.memberId}>
+                      <td className={styles.productColumn}>
+                        <strong>{participant.displayName}</strong>
+                      </td>
+                      <td className={styles.statusColumn}>
+                        {participant.participating ? "Participa" : "No participa"}
+                      </td>
+                      <td className={styles.storeColumn}>
+                        {participant.participating
+                          ? rates.find((rate) => rate.id === participant.rateId)?.name ?? "Sin asignar"
+                          : "—"}
+                      </td>
+                      <td className={styles.actionColumn}>
+                        {readOnly ? (
+                          "—"
+                        ) : (
+                          <IconButton
+                            label={`Editar participación de ${participant.displayName}`}
+                            onClick={() => startEditing(participant.memberId)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
       <Modal
         onClose={() => setEditingMemberId(null)}
@@ -185,8 +270,8 @@ export default function ParticipantsOverview({
         }
       >
         {editingParticipant ? (
-          <div className={styles.rateForm}>
-            <label className={styles.checkboxLabel}>
+          <div className={editionStyles.rateForm}>
+            <label className={editionStyles.checkboxLabel}>
               <input
                 checked={draftParticipating}
                 onChange={(event) => setDraftParticipating(event.target.checked)}
