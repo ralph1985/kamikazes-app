@@ -19,6 +19,8 @@ import {
   canChangeAttendance,
   paymentStatuses,
 } from "@/modules/catering/domain/attendance";
+import type { PaymentStatus } from "@/modules/catering/domain/attendance";
+import { prepareAttendanceUpdate } from "@/modules/catering/application/prepare-attendance-update";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
@@ -110,26 +112,25 @@ export async function PUT(
         ),
       )
       .limit(1);
-    const id = before[0]?.id ?? randomUUID();
-    const values = {
-      mealId: parsed.data.mealId,
-      memberId: parsed.data.memberId,
-      status: parsed.data.status,
-      paymentStatus: editor
-        ? (parsed.data.paymentStatus ?? before[0]?.paymentStatus ?? "pending")
-        : (before[0]?.paymentStatus ?? "pending"),
-      paymentNotes: editor
-        ? (parsed.data.paymentNotes ?? before[0]?.paymentNotes ?? null)
-        : (before[0]?.paymentNotes ?? null),
-      updatedAt: new Date(),
-    };
+    const mutation = prepareAttendanceUpdate(
+      { id: before[0]?.id ?? randomUUID(), ...parsed.data, updatedAt: new Date() },
+      editor,
+      before[0]
+        ? {
+            id: before[0].id,
+            paymentStatus: before[0].paymentStatus as PaymentStatus,
+            paymentNotes: before[0].paymentNotes,
+          }
+        : undefined,
+    );
+    const { id, values } = mutation;
     await database.batch([
       before.length
         ? database.update(cateringAttendance).set(values).where(eq(cateringAttendance.id, id))
         : database.insert(cateringAttendance).values({ id, ...values }),
       database.insert(auditEvents).values({
         memberId: member.memberId,
-        action: before.length ? "update" : "create",
+        action: mutation.action,
         area: "catering",
         entity: "catering_attendance",
         entityId: id,
