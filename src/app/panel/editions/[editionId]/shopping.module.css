@@ -461,3 +461,85 @@
     flex-basis: 100%;
   }
 }
+
+/* Dense data view: prioritize scanability without shrinking touch controls. */
+.tableMeta {
+  font-size: 0.7rem;
+  padding: 6px 10px;
+}
+
+.shoppingTable {
+  font-size: 0.72rem;
+  min-width: 1160px;
+}
+
+.shoppingTable th,
+.shoppingTable td {
+  min-width: 112px;
+  padding: 4px 5px;
+}
+
+.shoppingTable .productColumn {
+  min-width: 190px;
+  width: 190px;
+}
+
+.numberColumn {
+  min-width: 96px !important;
+}
+
+.tableInput,
+.tableSelect,
+.filterInput,
+.filterSelect {
+  font-size: 0.72rem;
+  padding: 4px 5px;
+}
+
+.summaryGrid > div {
+  min-height: 54px;
+  padding: 7px 9px;
+}
+
+.summaryGrid span {
+  font-size: 0.61rem;
+}
+
+.summaryGrid strong {
+  font-size: 0.92rem;
+}
+
+@media (max-width: 800px) {
+  /* iOS only zooms focused form controls below 16px; keep the table text compact
+     while giving interactive cells the minimum focus size Safari expects. */
+  .tableInput,
+  .tableSelect,
+  .filterInput,
+  .filterSelect {
+    font-size: 16px;
+  }
+
+  .shoppingTable {
+    font-size: 0.68rem;
+    min-width: 1080px;
+  }
+
+  .shoppingTable th,
+  .shoppingTable td {
+    min-width: 102px;
+    padding: 3px 4px;
+  }
+
+  .shoppingTable .productColumn {
+    min-width: 174px;
+    width: 174px;
+  }
+
+  .numberColumn {
+    min-width: 88px !important;
+  }
+
+  .summaryGrid strong {
+    font-size: 0.84rem;
+  }
+}
