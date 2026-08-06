@@ -64,6 +64,9 @@ export default function PublicHome() {
             Un lugar común para cuidar cada edición, contar nuestra historia y mantener cerca todo
             lo que vivimos juntos.
           </p>
+          <a className={styles.loginLink} href="/login">
+            Entrar en la peña
+          </a>
         </div>
         <div aria-label="Emblema de Kamikazes" className={styles.mark} role="img">
           K

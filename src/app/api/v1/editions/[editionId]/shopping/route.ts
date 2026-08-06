@@ -4,11 +4,17 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import {
   auditEvents,
+  budgetBalances,
+  budgetMovements,
+  budgetRates,
   editions,
+  editionParticipants,
   shoppingCategories,
   shoppingEditionPreferences,
   shoppingPreferences,
   shoppingProducts,
+  shoppingPurchases,
+  shoppingReceipts,
   shoppingStores,
 } from "@/infrastructure/database/schema";
 import { authenticateRequest, canEditEditionArea } from "@/shared/server/authorization";
@@ -18,6 +24,7 @@ import {
   shoppingStatuses,
   validateShoppingProductRules,
 } from "@/modules/shopping/domain/product";
+import { calculateShoppingSummary } from "@/modules/shopping/domain/summary";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
@@ -93,7 +100,19 @@ export async function GET(
       conditions.push(eq(shoppingProducts.categoryId, categoryId));
     if (storeId && z.uuid().safeParse(storeId).success)
       conditions.push(eq(shoppingProducts.storeId, storeId));
-    const [rows, categories, stores, generalPreferences, editionPreferences] = await Promise.all([
+    const [
+      rows,
+      categories,
+      stores,
+      generalPreferences,
+      editionPreferences,
+      allProducts,
+      rates,
+      balances,
+      movements,
+      purchases,
+      receipts,
+    ] = await Promise.all([
       database
         .select({
           id: shoppingProducts.id,
@@ -152,7 +171,49 @@ export async function GET(
           ),
         )
         .limit(1),
+      database
+        .select({
+          plannedQuantity: shoppingProducts.plannedQuantity,
+          plannedUnitPrice: shoppingProducts.plannedUnitPrice,
+          realQuantity: shoppingProducts.realQuantity,
+          realUnitPrice: shoppingProducts.realUnitPrice,
+          status: shoppingProducts.status,
+        })
+        .from(shoppingProducts)
+        .where(eq(shoppingProducts.editionId, editionId)),
+      database
+        .select({ amount: budgetRates.amount })
+        .from(editionParticipants)
+        .innerJoin(budgetRates, eq(budgetRates.id, editionParticipants.rateId))
+        .where(eq(editionParticipants.editionId, editionId)),
+      database
+        .select({ amount: budgetBalances.amount })
+        .from(budgetBalances)
+        .where(eq(budgetBalances.editionId, editionId)),
+      database
+        .select({ amount: budgetMovements.amount, isPlanned: budgetMovements.isPlanned })
+        .from(budgetMovements)
+        .where(eq(budgetMovements.editionId, editionId)),
+      database
+        .select({ id: shoppingPurchases.id, totalAmount: shoppingPurchases.totalAmount })
+        .from(shoppingPurchases)
+        .where(eq(shoppingPurchases.editionId, editionId)),
+      database
+        .select({ purchaseId: shoppingReceipts.purchaseId })
+        .from(shoppingReceipts)
+        .innerJoin(shoppingPurchases, eq(shoppingPurchases.id, shoppingReceipts.purchaseId))
+        .where(eq(shoppingPurchases.editionId, editionId)),
     ]);
+    const budgetTotal =
+      rates.reduce((total, rate) => total + Number(rate.amount), 0) +
+      balances.reduce((total, balance) => total + Number(balance.amount), 0) +
+      movements
+        .filter((movement) => movement.isPlanned)
+        .reduce((total, movement) => total + Number(movement.amount), 0);
+    const ticketedPurchaseIds = new Set(receipts.map((receipt) => receipt.purchaseId));
+    const realTotal = purchases
+      .filter((purchase) => ticketedPurchaseIds.has(purchase.id))
+      .reduce((total, purchase) => total + Number(purchase.totalAmount), 0);
     return apiSuccess({
       products: rows.map(serialize),
       categories,
@@ -170,6 +231,7 @@ export async function GET(
           storeId: null,
         },
       },
+      summary: calculateShoppingSummary(allProducts, budgetTotal, realTotal),
     });
   } catch (error) {
     if (error instanceof IdentityError)

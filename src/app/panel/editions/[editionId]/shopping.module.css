@@ -3,7 +3,7 @@
   gap: 16px;
 }
 .heading {
-  align-items: start;
+  align-items: flex-start;
   display: flex;
   gap: 16px;
   justify-content: space-between;
@@ -187,5 +187,277 @@
   .primary,
   .secondary {
     width: 100%;
+  }
+}
+
+/* Spreadsheet-like purchasing surface */
+.tableControls {
+  align-items: flex-end;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  justify-content: flex-end;
+  padding: 0 0 12px;
+}
+
+.tableControls > span {
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  margin-right: auto;
+}
+
+.tableControls label {
+  align-items: center;
+  color: var(--ink-muted);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  gap: 7px;
+}
+
+.tableControls select,
+.filterInput,
+.filterSelect,
+.tableInput,
+.tableSelect {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font: inherit;
+}
+
+.tableControls select {
+  padding: 6px 8px;
+}
+
+.stickySummary {
+  background: color-mix(in srgb, var(--surface) 94%, white);
+  border-bottom: 1px solid var(--line);
+  margin: 0 -18px;
+  padding: 12px 18px;
+  position: sticky;
+  top: calc(var(--app-header-height, 58px) + 48px);
+  z-index: 18;
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(6, minmax(130px, 1fr));
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+.summaryGrid > div {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 4px;
+  min-height: 64px;
+  padding: 10px 12px;
+}
+
+.summaryGrid span {
+  color: var(--ink-muted);
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.summaryGrid strong {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.08rem;
+  white-space: nowrap;
+}
+
+.summaryGrid .summaryAvailable {
+  background: var(--bg);
+  border-color: var(--bg);
+  color: #f8f1e7;
+}
+
+.summaryGrid .summaryAvailable span {
+  color: #b9c0b8;
+}
+
+.tableFrame {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.tableMeta {
+  align-items: center;
+  background: var(--surface-raised);
+  color: var(--ink-muted);
+  display: flex;
+  font-size: 0.78rem;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+.tableError {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  color: var(--accent-dark);
+  margin: 0;
+  padding: 9px 14px;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.shoppingTable {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.82rem;
+  min-width: 1320px;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.shoppingTable th,
+.shoppingTable td {
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  min-width: 138px;
+  padding: 7px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.shoppingTable th:last-child,
+.shoppingTable td:last-child {
+  border-right: 0;
+}
+
+.shoppingTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.shoppingTable th {
+  background: var(--bg);
+  color: #f8f1e7;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  position: sticky;
+  text-transform: uppercase;
+  z-index: 8;
+}
+
+.shoppingTable .tableLabels th {
+  top: calc(var(--app-header-height, 58px) + 142px);
+}
+
+.shoppingTable .tableFilters th {
+  background: var(--surface-muted);
+  color: var(--ink);
+  padding: 6px 7px;
+  top: calc(var(--app-header-height, 58px) + 176px);
+  z-index: 7;
+}
+
+.shoppingTable .productColumn {
+  min-width: 224px;
+  width: 224px;
+}
+
+.shoppingTable td.productColumn,
+.shoppingTable th.productColumn {
+  left: 0;
+  position: sticky;
+  z-index: 6;
+}
+
+.shoppingTable th.productColumn {
+  z-index: 10;
+}
+
+.shoppingTable th.productColumn,
+.shoppingTable .tableFilters th.productColumn {
+  background: var(--bg);
+}
+
+.shoppingTable .tableFilters th.productColumn {
+  background: var(--surface-muted);
+}
+
+.shoppingTable tbody td.productColumn {
+  background: var(--surface-raised);
+}
+
+.shoppingTable tbody tr:hover td {
+  background: #f4eee5;
+}
+
+.shoppingTable tbody tr:hover td.productColumn {
+  background: #f4eee5;
+}
+
+.shoppingTable .groupRow th {
+  background: var(--surface-muted);
+  color: var(--accent-dark);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding: 8px 10px;
+  position: static;
+}
+
+.numberColumn {
+  min-width: 122px !important;
+  text-align: right !important;
+}
+
+.tableInput,
+.tableSelect,
+.filterInput,
+.filterSelect {
+  min-width: 0;
+  padding: 7px 8px;
+  width: 100%;
+}
+
+.tableInput:focus-visible,
+.tableSelect:focus-visible,
+.filterInput:focus-visible,
+.filterSelect:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+
+.tableInput[type="number"] {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.shoppingTable tbody td:last-child {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .stickySummary {
+    margin-inline: -14px;
+    padding-inline: 14px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: repeat(3, minmax(136px, 1fr));
+    overflow-x: auto;
+  }
+
+  .tableControls {
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .tableControls > span {
+    flex-basis: 100%;
   }
 }

@@ -28,6 +28,18 @@
   max-width: 620px;
 }
 
+.loginLink {
+  color: #fff8ef;
+  display: inline-flex;
+  font-weight: 700;
+  margin-top: 28px;
+  text-decoration: none;
+}
+
+.loginLink:hover {
+  color: #f0b35a;
+}
+
 .eyebrow {
   color: #f0b35a;
   font-size: 0.78rem;

@@ -145,13 +145,16 @@ export default function PurchasesOverview({
     await load();
   }
 
-  const total = purchases.reduce((sum, purchase) => sum + Number(purchase.totalAmount), 0);
+  const ticketedPurchases = purchases.filter(
+    (purchase) => (receipts[purchase.id] ?? []).length > 0,
+  );
+  const total = ticketedPurchases.reduce((sum, purchase) => sum + Number(purchase.totalAmount), 0);
 
   return (
     <section className={styles.purchaseSection}>
       <div className={styles.purchaseHeading}>
         <div>
-          <p className="eyebrow">Gasto real</p>
+          <p className="eyebrow">Gasto real · tickets</p>
           <h3>Compras registradas</h3>
         </div>
         {!readOnly && (
@@ -162,9 +165,9 @@ export default function PurchasesOverview({
       </div>
       <div className={styles.totals}>
         <span>
-          Total real <MoneyCell amount={total} />
+          Compra real <MoneyCell amount={total} />
         </span>
-        <span>{purchases.length} compras</span>
+        <span>{ticketedPurchases.length} compras con ticket</span>
       </div>
       {error && (
         <p className={styles.error} role="alert">

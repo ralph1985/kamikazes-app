@@ -1,39 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
-import { ListState, ListToolbar, MoneyCell } from "@/components/lists/list-patterns";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { ListState } from "@/components/lists/list-patterns";
 import PurchasesOverview from "./purchases-overview";
 import { CopyShoppingForm, ShoppingProductForm, type ShoppingFormState } from "./shopping-forms";
+import ShoppingTable, { type ShoppingTableProduct } from "./shopping-table";
 import styles from "./shopping.module.css";
 
-type Product = {
-  id: string;
-  description: string;
-  categoryId: string | null;
-  categoryName: string | null;
-  storeId: string | null;
-  storeName: string | null;
-  assignment: string | null;
-  plannedQuantity: string | null;
-  realQuantity: string | null;
-  plannedUnitPrice: string | null;
-  realUnitPrice: string | null;
-  plannedTotal: number | null;
-  realTotal: number | null;
-  notes: string | null;
-  status: string;
-};
+type Product = ShoppingTableProduct;
 type Option = { id: string; name: string };
 export type ShoppingStore = Option;
 type Edition = { id: string; year: number; status: string };
-const statuses = [
-  ["pending", "Pendiente"],
-  ["in_cart", "En carrito"],
-  ["purchased", "Comprado"],
-  ["not_buying", "No se compra este año"],
-  ["gifted", "Regalado"],
-] as const;
+type ShoppingSummary = {
+  budgetTotal: number;
+  plannedTotal: number;
+  cartTotal: number;
+  realTotal: number;
+  availableNow: number;
+  availableReal: number;
+};
+
 const emptyForm: ShoppingFormState = {
   description: "",
   category: "",
@@ -63,6 +49,7 @@ export default function ShoppingOverview({
   const [status, setStatus] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [storeId, setStoreId] = useState("");
+  const [assignment, setAssignment] = useState("");
   const [groupBy, setGroupBy] = useState("category");
   const [sortBy, setSortBy] = useState("description");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -75,6 +62,14 @@ export default function ShoppingOverview({
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<ShoppingFormState>(emptyForm);
+  const [summary, setSummary] = useState<ShoppingSummary>({
+    budgetTotal: 0,
+    plannedTotal: 0,
+    cartTotal: 0,
+    realTotal: 0,
+    availableNow: 0,
+    availableReal: 0,
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -90,6 +85,7 @@ export default function ShoppingOverview({
           products: Product[];
           categories: Option[];
           stores: Option[];
+          summary: ShoppingSummary;
           preferences: {
             general: { groupBy: string; sortBy: string; sortDirection: string };
             edition: {
@@ -107,6 +103,7 @@ export default function ShoppingOverview({
       setProducts(result.data.products);
       setCategories(result.data.categories);
       setStores(result.data.stores);
+      setSummary(result.data.summary);
       if (!preferencesLoaded) {
         setGroupBy(result.data.preferences.general.groupBy);
         setSortBy(result.data.preferences.general.sortBy);
@@ -126,6 +123,7 @@ export default function ShoppingOverview({
       setLoading(false);
     }
   }, [categoryId, editionId, preferencesLoaded, query, status, storeId]);
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -177,56 +175,27 @@ export default function ShoppingOverview({
     });
   }
 
-  const grouped = useMemo(
-    () =>
-      [...products]
-        .sort((a, b) => {
-          const value = (product: Product) =>
-            sortBy === "unit_price"
-              ? Number(product.plannedUnitPrice ?? 0)
-              : sortBy === "quantity"
-                ? Number(product.plannedQuantity ?? 0)
-                : sortBy === "total"
-                  ? Number(product.plannedTotal ?? 0)
-                  : (product.description || "").toLocaleLowerCase();
-          const comparison = value(a) < value(b) ? -1 : value(a) > value(b) ? 1 : 0;
-          return sortDirection === "asc" ? comparison : -comparison;
-        })
-        .reduce<Record<string, Product[]>>((groups, product) => {
-          const key =
-            groupBy === "store"
-              ? product.storeName || "Sin tienda"
-              : groupBy === "assignment"
-                ? product.assignment || "Sin responsable"
-                : groupBy === "status"
-                  ? (statuses.find(([value]) => value === product.status)?.[1] ?? product.status)
-                  : product.categoryName || "Sin categoría";
-          (groups[key] ??= []).push(product);
-          return groups;
-        }, {}),
-    [groupBy, products, sortBy, sortDirection],
-  );
-  const plannedTotal = products.reduce((total, product) => total + (product.plannedTotal ?? 0), 0);
-  const realTotal = products.reduce((total, product) => total + (product.realTotal ?? 0), 0);
-
   function edit(product?: Product) {
-    if (product)
-      setForm({
-        id: product.id,
-        description: product.description,
-        category: product.categoryName ?? "",
-        store: product.storeName ?? "",
-        assignment: product.assignment ?? "",
-        plannedQuantity: product.plannedQuantity ?? "",
-        realQuantity: product.realQuantity ?? "",
-        plannedUnitPrice: product.plannedUnitPrice ?? "",
-        realUnitPrice: product.realUnitPrice ?? "",
-        notes: product.notes ?? "",
-        status: product.status,
-      });
-    else setForm(emptyForm);
+    setForm(
+      product
+        ? {
+            id: product.id,
+            description: product.description,
+            category: product.categoryName ?? "",
+            store: product.storeName ?? "",
+            assignment: product.assignment ?? "",
+            plannedQuantity: product.plannedQuantity ?? "",
+            realQuantity: product.realQuantity ?? "",
+            plannedUnitPrice: product.plannedUnitPrice ?? "",
+            realUnitPrice: product.realUnitPrice ?? "",
+            notes: product.notes ?? "",
+            status: product.status,
+          }
+        : emptyForm,
+    );
     setModalOpen(true);
   }
+
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -253,6 +222,40 @@ export default function ShoppingOverview({
     setModalOpen(false);
     await load();
   }
+
+  async function saveInline(product: Product, field: string, value: string) {
+    const response = await fetch(`/api/v1/editions/${editionId}/shopping`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: product.id,
+        description: field === "description" ? value : product.description,
+        category: field === "category" ? value || null : product.categoryName,
+        store: field === "store" ? value || null : product.storeName,
+        assignment: field === "assignment" ? value || null : product.assignment,
+        plannedQuantity:
+          field === "plannedQuantity"
+            ? numberOrNull(value)
+            : numberOrNull(product.plannedQuantity ?? ""),
+        realQuantity:
+          field === "realQuantity" ? numberOrNull(value) : numberOrNull(product.realQuantity ?? ""),
+        plannedUnitPrice:
+          field === "plannedUnitPrice"
+            ? numberOrNull(value)
+            : numberOrNull(product.plannedUnitPrice ?? ""),
+        realUnitPrice:
+          field === "realUnitPrice"
+            ? numberOrNull(value)
+            : numberOrNull(product.realUnitPrice ?? ""),
+        notes: field === "notes" ? value || null : product.notes,
+        status: field === "status" ? value : product.status,
+      }),
+    });
+    const result = (await response.json()) as { error?: { message: string } };
+    if (!response.ok) throw new Error(result.error?.message ?? "No se pudo guardar el cambio");
+    await load();
+  }
+
   async function copyFromEdition(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!sourceEditionId) return;
@@ -279,6 +282,7 @@ export default function ShoppingOverview({
       setCopying(false);
     }
   }
+
   const setField = (field: keyof ShoppingFormState, value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
 
@@ -289,10 +293,10 @@ export default function ShoppingOverview({
           <p className="eyebrow">Compras · {year}</p>
           <h2>Lista de compra</h2>
           <p className={styles.muted}>
-            Productos, responsables y seguimiento de lo previsto y lo real.
+            Previsión, carrito y gasto real en una única tabla operativa.
           </p>
         </div>
-        {!readOnly && (
+        {!readOnly ? (
           <div className={styles.headingActions}>
             <button
               className={styles.secondary}
@@ -305,79 +309,32 @@ export default function ShoppingOverview({
               Añadir producto
             </button>
           </div>
-        )}
+        ) : null}
       </div>
-      <ListToolbar
-        count={products.length}
-        onQueryChange={(value) => updateEditionPreference("query", value)}
-        placeholder="Buscar producto o nota"
-        query={query}
-      />
-      <div className={styles.filters}>
+      <div className={styles.tableControls}>
+        <span>{products.length} productos cargados</span>
         <label>
-          Estado
-          <select
-            onChange={(event) => updateEditionPreference("status", event.target.value)}
-            value={status}
-          >
-            <option value="">Todos</option>
-            {statuses.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Categoría
-          <select
-            onChange={(event) => updateEditionPreference("categoryId", event.target.value)}
-            value={categoryId}
-          >
-            <option value="">Todas</option>
-            {categories.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Tienda
-          <select
-            onChange={(event) => updateEditionPreference("storeId", event.target.value)}
-            value={storeId}
-          >
-            <option value="">Todas</option>
-            {stores.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Agrupar por
+          Agrupar
           <select
             onChange={(event) => updateGeneralPreference("groupBy", event.target.value)}
             value={groupBy}
           >
             <option value="category">Categoría</option>
             <option value="store">Tienda</option>
-            <option value="assignment">Responsable</option>
+            <option value="assignment">Asignación</option>
             <option value="status">Estado</option>
           </select>
         </label>
         <label>
-          Ordenar por
+          Ordenar
           <select
             onChange={(event) => updateGeneralPreference("sortBy", event.target.value)}
             value={sortBy}
           >
-            <option value="description">Descripción</option>
-            <option value="unit_price">Precio unitario</option>
-            <option value="quantity">Cantidad</option>
-            <option value="total">Total</option>
+            <option value="description">Producto</option>
+            <option value="unit_price">Precio previsto</option>
+            <option value="quantity">Cantidad prevista</option>
+            <option value="total">Total previsto</option>
           </select>
         </label>
         <label>
@@ -391,19 +348,33 @@ export default function ShoppingOverview({
           </select>
         </label>
       </div>
-      <div className={styles.totals}>
-        <span>
-          Previsto <MoneyCell amount={plannedTotal} />
-        </span>
-        <span>
-          Real <MoneyCell amount={realTotal} />
-        </span>
+      <div className={styles.stickySummary}>
+        <div className={styles.summaryGrid}>
+          {(
+            [
+              ["Presupuesto general", summary.budgetTotal],
+              ["Presupuestado", summary.plannedTotal],
+              ["En carrito", summary.cartTotal],
+              ["Compra real", summary.realTotal],
+              ["Disponible ahora", summary.availableNow],
+              ["Disponible real", summary.availableReal],
+            ] as [string, number][]
+          ).map(([label, amount]) => (
+            <div
+              className={label.startsWith("Disponible") ? styles.summaryAvailable : ""}
+              key={label}
+            >
+              <span>{label}</span>
+              <strong>{Number(amount).toFixed(2)} €</strong>
+            </div>
+          ))}
+        </div>
       </div>
-      {error && (
+      {error ? (
         <p className={styles.error} role="alert">
           {error}
         </p>
-      )}
+      ) : null}
       {loading ? (
         <ListState description="Cargando productos…" title="Lista de compra" />
       ) : products.length === 0 ? (
@@ -412,46 +383,20 @@ export default function ShoppingOverview({
           title="Todavía no hay productos"
         />
       ) : (
-        Object.entries(grouped).map(([group, items]) => (
-          <section className={styles.group} key={group}>
-            <h3>{group}</h3>
-            <CompactList>
-              {items.map((product) => (
-                <CompactListRow
-                  action={
-                    !readOnly && (
-                      <IconButton
-                        label={`Editar ${product.description || "producto"}`}
-                        onClick={() => edit(product)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    )
-                  }
-                  key={product.id}
-                  meta={
-                    <span>
-                      {statuses.find(([value]) => value === product.status)?.[1] ?? product.status}
-                    </span>
-                  }
-                >
-                  <strong>{product.description || "Producto sin descripción"}</strong>
-                  <small>
-                    {[
-                      product.storeName,
-                      product.assignment,
-                      product.plannedQuantity
-                        ? `${product.plannedQuantity} × ${product.plannedUnitPrice ?? "—"} €`
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ") || "Sin detalles"}
-                  </small>
-                </CompactListRow>
-              ))}
-            </CompactList>
-          </section>
-        ))
+        <ShoppingTable
+          categories={categories}
+          filters={{ query, status, categoryId, storeId, assignment }}
+          onFilterChange={(field, value) =>
+            field === "assignment" ? setAssignment(value) : updateEditionPreference(field, value)
+          }
+          onSave={saveInline}
+          groupBy={groupBy}
+          products={products}
+          readOnly={readOnly}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          stores={stores}
+        />
       )}
       <PurchasesOverview editionId={editionId} readOnly={readOnly} stores={stores} />
       <ShoppingProductForm
