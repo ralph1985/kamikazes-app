@@ -278,8 +278,20 @@
 }
 
 @media (min-width: 900px) {
+  .page {
+    margin-left: 286px;
+  }
+
   .sidebar {
     padding-left: 28px;
     padding-right: 28px;
+  }
+
+  .menuButton {
+    display: none;
+  }
+
+  .open .page {
+    transform: none;
   }
 }
