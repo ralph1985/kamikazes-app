@@ -52,27 +52,6 @@ function groupLabel(product: ShoppingTableProduct, groupBy: string) {
   return product.categoryName || "Sin categoría";
 }
 
-const columns: { field: Field; label: string; className?: string }[] = [
-  { field: "description", label: "Producto", className: "productColumn" },
-  { field: "store", label: "Tienda" },
-  { field: "category", label: "Categoría" },
-  { field: "assignment", label: "Asignación" },
-  { field: "plannedQuantity", label: "Cantidad prev.", className: "numberColumn" },
-  { field: "plannedUnitPrice", label: "Precio prev.", className: "numberColumn" },
-  { field: "realQuantity", label: "Cantidad real", className: "numberColumn" },
-  { field: "realUnitPrice", label: "Precio real", className: "numberColumn" },
-  { field: "notes", label: "Notas" },
-  { field: "status", label: "Estado" },
-];
-
-export type ShoppingTableFilters = {
-  query: string;
-  storeId: string;
-  categoryId: string;
-  assignment: string;
-  status: string;
-};
-
 function fieldValue(product: ShoppingTableProduct, field: Field) {
   if (field === "store") return product.storeName ?? "";
   if (field === "category") return product.categoryName ?? "";
@@ -87,6 +66,8 @@ function EditableCell({
   options,
   onChange,
   onCommit,
+  onCreateCategory,
+  onError,
 }: Readonly<{
   field: Field;
   product: ShoppingTableProduct;
@@ -95,32 +76,98 @@ function EditableCell({
   options: Option[];
   onChange: (value: string) => void;
   onCommit: () => void;
+  onCreateCategory?: (name: string) => Promise<void>;
+  onError?: (error: unknown) => void;
 }>) {
+  const label = `${field} de ${product.description || "producto"}`;
+  const [creatingCategory, setCreatingCategory] = useState(false);
+
+  useEffect(() => {
+    if (field === "category" && options.some((option) => option.name === value))
+      setCreatingCategory(false);
+  }, [field, options, value]);
+
   if (field === "status") {
     return (
       <select
-        aria-label={`${columns.find((column) => column.field === field)?.label} de ${product.description}`}
+        aria-label={label}
         className={styles.tableSelect}
         disabled={disabled}
         onBlur={onCommit}
         onChange={(event) => onChange(event.target.value)}
         value={value}
       >
-        {statuses.map(([status, label]) => (
+        {statuses.map(([status, text]) => (
           <option key={status} value={status}>
-            {label}
+            {text}
           </option>
         ))}
       </select>
     );
   }
 
-  if (field === "store" || field === "category") {
+  if (field === "category") {
+    async function commitNewCategory() {
+      const category = value.trim();
+      if (!category) return;
+      if (onCreateCategory) await onCreateCategory(category);
+      onCommit();
+    }
+
+    return (
+      <div className={styles.categoryEditor}>
+        {creatingCategory ? (
+          <input
+            aria-label="Nueva categoría"
+            autoFocus
+            className={styles.tableInput}
+            disabled={disabled}
+            onBlur={() => void commitNewCategory().catch((error) => onError?.(error))}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder="Nueva categoría"
+            value={value}
+          />
+        ) : (
+          <select
+            aria-label={label}
+            className={styles.tableSelect}
+            disabled={disabled}
+            onBlur={onCommit}
+            onChange={(event) => onChange(event.target.value)}
+            value={value}
+          >
+            <option value="">Sin categoría</option>
+            {options.map((option) => (
+              <option key={option.id} value={option.name}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <button
+          aria-label={creatingCategory ? "Cancelar nueva categoría" : "Crear nueva categoría"}
+          className={styles.categoryAdd}
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => {
+            setCreatingCategory((current) => !current);
+            if (!creatingCategory) onChange("");
+          }}
+          title={creatingCategory ? "Cancelar" : "Nueva categoría"}
+          type="button"
+        >
+          {creatingCategory ? "×" : "+"}
+        </button>
+      </div>
+    );
+  }
+
+  if (field === "store") {
     const listId = `shopping-${field}-options-${product.id}`;
     return (
       <>
         <input
-          aria-label={`${columns.find((column) => column.field === field)?.label} de ${product.description}`}
+          aria-label={label}
           className={styles.tableInput}
           disabled={disabled}
           list={listId}
@@ -140,7 +187,7 @@ function EditableCell({
   const numeric = field.includes("Quantity") || field.includes("UnitPrice");
   return (
     <input
-      aria-label={`${columns.find((column) => column.field === field)?.label} de ${product.description}`}
+      aria-label={label}
       className={styles.tableInput}
       disabled={disabled}
       min={numeric && field.includes("UnitPrice") ? "0" : undefined}
@@ -153,6 +200,14 @@ function EditableCell({
   );
 }
 
+export type ShoppingTableFilters = {
+  query: string;
+  storeId: string;
+  categoryId: string;
+  assignment: string;
+  status: string;
+};
+
 export default function ShoppingTable({
   products,
   filters,
@@ -160,6 +215,8 @@ export default function ShoppingTable({
   stores,
   readOnly,
   onFilterChange,
+  onClearFilters,
+  onCreateCategory,
   onSave,
   groupBy,
   sortBy,
@@ -171,6 +228,8 @@ export default function ShoppingTable({
   stores: Option[];
   readOnly: boolean;
   onFilterChange: (field: FilterField, value: string) => void;
+  onClearFilters: () => void;
+  onCreateCategory: (name: string) => Promise<void>;
   onSave: (product: ShoppingTableProduct, field: Field, value: string) => Promise<void>;
   groupBy: string;
   sortBy: string;
@@ -179,6 +238,7 @@ export default function ShoppingTable({
   const [drafts, setDrafts] = useState<Record<string, ShoppingTableProduct>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setDrafts(Object.fromEntries(products.map((product) => [product.id, product])));
@@ -208,11 +268,10 @@ export default function ShoppingTable({
   async function commit(product: ShoppingTableProduct, field: Field) {
     const draft = drafts[product.id];
     if (!draft || fieldValue(product, field) === fieldValue(draft, field)) return;
-    const value = String(fieldValue(draft, field));
     setSaving(`${product.id}:${field}`);
     setSaveError(null);
     try {
-      await onSave(draft, field, value);
+      await onSave(draft, field, String(fieldValue(draft, field)));
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "No se pudo guardar el cambio");
     } finally {
@@ -220,11 +279,109 @@ export default function ShoppingTable({
     }
   }
 
+  function updateDraft(product: ShoppingTableProduct, field: Field, value: string) {
+    setDrafts((current) => ({
+      ...current,
+      [product.id]: {
+        ...product,
+        ...current[product.id],
+        ...(field === "store" ? { storeName: value } : {}),
+        ...(field === "category" ? { categoryName: value } : {}),
+        ...(field !== "store" && field !== "category" ? { [field]: value } : {}),
+      },
+    }));
+  }
+
+  function renderField(product: ShoppingTableProduct, field: Field, options: Option[] = []) {
+    const draft = drafts[product.id] ?? product;
+    return (
+      <EditableCell
+        disabled={readOnly || saving !== null}
+        field={field}
+        onChange={(value) => updateDraft(product, field, value)}
+        onCommit={() => void commit(product, field)}
+        onCreateCategory={field === "category" ? onCreateCategory : undefined}
+        onError={(error) =>
+          setSaveError(error instanceof Error ? error.message : "No se pudo crear la categoría")
+        }
+        options={options}
+        product={product}
+        value={String(fieldValue(draft, field))}
+      />
+    );
+  }
+
+  function hasFilters() {
+    return Object.values(filters).some(Boolean);
+  }
+
   return (
     <div className={styles.tableFrame}>
       <div className={styles.tableMeta}>
         <span>{visibleProducts.length} productos visibles</span>
-        <span>{readOnly ? "Sólo lectura" : "Haz clic en una celda para editar"}</span>
+        <span>{readOnly ? "Sólo lectura" : "Edición directa activada"}</span>
+      </div>
+      <div className={styles.filterBar}>
+        <span className={styles.filterTitle}>Filtrar</span>
+        <input
+          aria-label="Filtrar productos"
+          className={styles.filterInput}
+          onChange={(event) => onFilterChange("query", event.target.value)}
+          placeholder="Producto o nota"
+          type="search"
+          value={filters.query}
+        />
+        <select
+          aria-label="Filtrar por estado"
+          className={styles.filterSelect}
+          onChange={(event) => onFilterChange("status", event.target.value)}
+          value={filters.status}
+        >
+          <option value="">Todos los estados</option>
+          {statuses.map(([status, text]) => (
+            <option key={status} value={status}>
+              {text}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Filtrar por tienda"
+          className={styles.filterSelect}
+          onChange={(event) => onFilterChange("storeId", event.target.value)}
+          value={filters.storeId}
+        >
+          <option value="">Todas las tiendas</option>
+          {stores.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Filtrar por categoría"
+          className={styles.filterSelect}
+          onChange={(event) => onFilterChange("categoryId", event.target.value)}
+          value={filters.categoryId}
+        >
+          <option value="">Todas las categorías</option>
+          {categories.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </select>
+        <input
+          aria-label="Filtrar por asignación"
+          className={styles.filterInput}
+          onChange={(event) => onFilterChange("assignment", event.target.value)}
+          placeholder="Asignación"
+          value={filters.assignment}
+        />
+        {hasFilters() ? (
+          <button className={styles.clearFilters} onClick={onClearFilters} type="button">
+            Limpiar
+          </button>
+        ) : null}
       </div>
       {saveError ? (
         <p className={styles.tableError} role="alert">
@@ -235,84 +392,15 @@ export default function ShoppingTable({
         <table className={styles.shoppingTable}>
           <thead>
             <tr className={styles.tableLabels}>
-              {columns.map((column) => (
-                <th
-                  className={column.className ? styles[column.className] : undefined}
-                  key={column.field}
-                >
-                  {column.label}
-                </th>
-              ))}
-              <th className={styles.numberColumn}>Total prev.</th>
-              <th className={styles.numberColumn}>Total real</th>
-            </tr>
-            <tr className={styles.tableFilters}>
-              <th className={styles.productColumn}>
-                <input
-                  aria-label="Filtrar productos"
-                  className={styles.filterInput}
-                  onChange={(event) => onFilterChange("query", event.target.value)}
-                  placeholder="Buscar"
-                  type="search"
-                  value={filters.query}
-                />
-              </th>
-              <th>
-                <select
-                  aria-label="Filtrar por tienda"
-                  className={styles.filterSelect}
-                  onChange={(event) => onFilterChange("storeId", event.target.value)}
-                  value={filters.storeId}
-                >
-                  <option value="">Todas</option>
-                  {stores.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
-                    </option>
-                  ))}
-                </select>
-              </th>
-              <th>
-                <select
-                  aria-label="Filtrar por categoría"
-                  className={styles.filterSelect}
-                  onChange={(event) => onFilterChange("categoryId", event.target.value)}
-                  value={filters.categoryId}
-                >
-                  <option value="">Todas</option>
-                  {categories.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
-                    </option>
-                  ))}
-                </select>
-              </th>
-              <th>
-                <input
-                  aria-label="Filtrar por asignación"
-                  className={styles.filterInput}
-                  onChange={(event) => onFilterChange("assignment", event.target.value)}
-                  placeholder="Todas"
-                  value={filters.assignment}
-                />
-              </th>
-              <th colSpan={5} />
-              <th>
-                <select
-                  aria-label="Filtrar por estado"
-                  className={styles.filterSelect}
-                  onChange={(event) => onFilterChange("status", event.target.value)}
-                  value={filters.status}
-                >
-                  <option value="">Todos</option>
-                  {statuses.map(([status, label]) => (
-                    <option key={status} value={status}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </th>
-              <th colSpan={2} />
+              <th className={styles.productColumn}>Producto</th>
+              <th className={styles.statusColumn}>Estado</th>
+              <th className={styles.storeColumn}>Tienda</th>
+              <th className={styles.numberColumn}>Cant. prev.</th>
+              <th className={styles.numberColumn}>Cant. real</th>
+              <th className={styles.numberColumn}>Precio real</th>
+              <th className={styles.numberColumn}>Presupuesto</th>
+              <th className={styles.numberColumn}>Carrito</th>
+              <th className={styles.actionColumn} />
             </tr>
           </thead>
           <tbody>
@@ -329,49 +417,75 @@ export default function ShoppingTable({
               const group = groupLabel(product, groupBy);
               const previousGroup =
                 index > 0 ? groupLabel(visibleProducts[index - 1], groupBy) : null;
+              const isExpanded = expanded.has(product.id);
               return (
                 <Fragment key={product.id}>
                   {group !== previousGroup ? (
                     <tr className={styles.groupRow}>
-                      <th colSpan={12}>{group}</th>
+                      <th colSpan={9}>{group}</th>
                     </tr>
                   ) : null}
-                  <tr>
-                    {columns.map((column) => (
-                      <td
-                        className={column.className ? styles[column.className] : undefined}
-                        key={column.field}
-                      >
-                        <EditableCell
-                          disabled={readOnly || saving !== null}
-                          field={column.field}
-                          onChange={(value) =>
-                            setDrafts((current) => ({
-                              ...current,
-                              [product.id]: {
-                                ...draft,
-                                ...(column.field === "store" ? { storeName: value } : {}),
-                                ...(column.field === "category" ? { categoryName: value } : {}),
-                                ...(column.field !== "store" && column.field !== "category"
-                                  ? { [column.field]: value }
-                                  : {}),
-                              },
-                            }))
-                          }
-                          onCommit={() => void commit(product, column.field)}
-                          options={column.field === "store" ? stores : categories}
-                          product={product}
-                          value={String(fieldValue(draft, column.field))}
-                        />
-                      </td>
-                    ))}
+                  <tr className={isExpanded ? styles.expandedRow : undefined}>
+                    <td className={styles.productColumn}>{renderField(product, "description")}</td>
+                    <td className={styles.statusColumn}>{renderField(product, "status")}</td>
+                    <td className={styles.storeColumn}>{renderField(product, "store", stores)}</td>
+                    <td className={styles.numberColumn}>
+                      {renderField(product, "plannedQuantity")}
+                    </td>
+                    <td className={styles.numberColumn}>{renderField(product, "realQuantity")}</td>
+                    <td className={styles.numberColumn}>{renderField(product, "realUnitPrice")}</td>
                     <td className={styles.numberColumn}>
                       <MoneyCell amount={plannedTotal} />
                     </td>
                     <td className={styles.numberColumn}>
                       <MoneyCell amount={realTotal} />
                     </td>
+                    <td className={styles.actionColumn}>
+                      <button
+                        aria-expanded={isExpanded}
+                        className={styles.detailToggle}
+                        onClick={() =>
+                          setExpanded((current) => {
+                            const next = new Set(current);
+                            if (next.has(product.id)) next.delete(product.id);
+                            else next.add(product.id);
+                            return next;
+                          })
+                        }
+                        type="button"
+                      >
+                        {isExpanded ? "Cerrar" : "Detalle"}
+                      </button>
+                    </td>
                   </tr>
+                  {isExpanded ? (
+                    <tr className={styles.detailRow}>
+                      <td colSpan={9}>
+                        <div className={styles.detailGrid}>
+                          <div className={styles.detailIntro}>
+                            <span>Detalle del producto</span>
+                            <small>Los cambios se guardan al salir de cada campo.</small>
+                          </div>
+                          <label>
+                            Categoría
+                            {renderField(product, "category", categories)}
+                          </label>
+                          <label>
+                            Asignación
+                            {renderField(product, "assignment")}
+                          </label>
+                          <label>
+                            Precio previsto
+                            {renderField(product, "plannedUnitPrice")}
+                          </label>
+                          <label className={styles.notesField}>
+                            Notas
+                            {renderField(product, "notes")}
+                          </label>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
                 </Fragment>
               );
             })}

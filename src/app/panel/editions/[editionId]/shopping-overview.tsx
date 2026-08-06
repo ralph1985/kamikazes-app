@@ -175,6 +175,21 @@ export default function ShoppingOverview({
     });
   }
 
+  function clearEditionFilters() {
+    setQuery("");
+    setStatus("");
+    setCategoryId("");
+    setStoreId("");
+    setAssignment("");
+    persistPreference({
+      scope: "edition",
+      query: "",
+      status: null,
+      categoryId: null,
+      storeId: null,
+    });
+  }
+
   function edit(product?: Product) {
     setForm(
       product
@@ -254,6 +269,25 @@ export default function ShoppingOverview({
     const result = (await response.json()) as { error?: { message: string } };
     if (!response.ok) throw new Error(result.error?.message ?? "No se pudo guardar el cambio");
     await load();
+  }
+
+  async function createCategory(name: string) {
+    const response = await fetch(`/api/v1/editions/${editionId}/shopping/categories`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    const result = (await response.json()) as {
+      data?: Option;
+      error?: { message: string };
+    };
+    if (!response.ok || !result.data)
+      throw new Error(result.error?.message ?? "No se pudo crear la categoría");
+    setCategories((current) =>
+      [...current.filter((category) => category.id !== result.data!.id), result.data!].sort(
+        (a, b) => a.name.localeCompare(b.name),
+      ),
+    );
   }
 
   async function copyFromEdition(event: FormEvent<HTMLFormElement>) {
@@ -386,6 +420,8 @@ export default function ShoppingOverview({
         <ShoppingTable
           categories={categories}
           filters={{ query, status, categoryId, storeId, assignment }}
+          onClearFilters={clearEditionFilters}
+          onCreateCategory={createCategory}
           onFilterChange={(field, value) =>
             field === "assignment" ? setAssignment(value) : updateEditionPreference(field, value)
           }

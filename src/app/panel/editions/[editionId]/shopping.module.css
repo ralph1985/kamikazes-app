@@ -462,6 +462,245 @@
   }
 }
 
+/* Operational view: keep the first scan short and move secondary fields into detail. */
+.filterBar {
+  align-items: center;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 7px 9px;
+}
+
+.filterTitle {
+  color: var(--ink-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-right: 3px;
+  text-transform: uppercase;
+}
+
+.filterBar .filterInput,
+.filterBar .filterSelect {
+  flex: 1 1 130px;
+  max-width: 190px;
+}
+
+.filterBar .filterInput:first-of-type {
+  flex-basis: 190px;
+}
+
+.clearFilters,
+.detailToggle {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.67rem;
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+
+.clearFilters:hover,
+.detailToggle:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.shoppingTable {
+  min-width: 940px;
+}
+
+.shoppingTable th,
+.shoppingTable td {
+  min-width: 100px;
+}
+
+.shoppingTable .productColumn {
+  min-width: 220px;
+  width: 220px;
+}
+
+.shoppingTable .statusColumn {
+  min-width: 112px;
+  width: 112px;
+}
+
+.shoppingTable .storeColumn {
+  min-width: 142px;
+  width: 142px;
+}
+
+.shoppingTable .actionColumn {
+  min-width: 70px;
+  text-align: center;
+  width: 70px;
+}
+
+.shoppingTable .tableLabels th {
+  font-size: 0.64rem;
+  padding: 6px 5px;
+}
+
+.shoppingTable .tableLabels th.productColumn {
+  left: 0;
+  position: sticky;
+  z-index: 10;
+}
+
+.shoppingTable tbody td.productColumn {
+  background: var(--surface-raised);
+  left: 0;
+  position: sticky;
+  z-index: 6;
+}
+
+.shoppingTable tbody tr:hover td.productColumn,
+.shoppingTable tbody .expandedRow td.productColumn {
+  background: #f4eee5;
+}
+
+.shoppingTable .groupRow th {
+  min-width: 0;
+  padding: 5px 8px;
+}
+
+.shoppingTable .detailRow td {
+  background: var(--surface-muted);
+  padding: 9px 12px;
+}
+
+.detailGrid {
+  align-items: end;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1.1fr 1.1fr 0.8fr 2fr;
+}
+
+.detailGrid label {
+  color: var(--ink-muted);
+  display: grid;
+  font-size: 0.66rem;
+  font-weight: 700;
+  gap: 4px;
+}
+
+.detailIntro {
+  display: grid;
+  gap: 2px;
+}
+
+.detailIntro span {
+  color: var(--accent-dark);
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.detailIntro small {
+  color: var(--ink-muted);
+  font-size: 0.63rem;
+  font-weight: 400;
+}
+
+.notesField {
+  min-width: 0;
+}
+
+.categoryEditor {
+  align-items: center;
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+}
+
+.categoryEditor .tableSelect,
+.categoryEditor .tableInput {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.categoryAdd {
+  align-items: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--accent-dark);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 20px;
+  font: inherit;
+  font-size: 0.85rem;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.categoryAdd:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.categoryAdd:focus-visible,
+.clearFilters:focus-visible,
+.detailToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .filterBar {
+    align-items: stretch;
+  }
+
+  .filterTitle {
+    flex-basis: 100%;
+  }
+
+  .filterBar .filterInput,
+  .filterBar .filterSelect {
+    max-width: none;
+  }
+
+  .shoppingTable {
+    min-width: 880px;
+  }
+
+  .shoppingTable .productColumn {
+    min-width: 172px;
+    width: 172px;
+  }
+
+  .shoppingTable .statusColumn {
+    min-width: 98px;
+    width: 98px;
+  }
+
+  .shoppingTable .storeColumn {
+    min-width: 120px;
+    width: 120px;
+  }
+
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detailIntro,
+  .notesField {
+    grid-column: 1 / -1;
+  }
+}
+
 /* Dense data view: prioritize scanability for the operational grid. */
 .tableMeta {
   font-size: 0.64rem;
