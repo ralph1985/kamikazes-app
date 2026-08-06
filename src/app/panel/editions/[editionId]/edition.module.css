@@ -4,6 +4,173 @@
   padding: 4vh 24px 12vh;
 }
 
+/* Shared edition surface refresh */
+.page {
+  max-width: 1180px;
+  padding: 5vh clamp(18px, 4vw, 48px) 14vh;
+}
+
+.backLink {
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-bottom: 44px;
+}
+
+.backLink:hover {
+  color: var(--accent-dark);
+  transform: translateX(-3px);
+}
+
+.header {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 28px;
+}
+
+.header h1 {
+  font-size: clamp(2.8rem, 7vw, 5.8rem);
+  max-width: 760px;
+}
+
+.status,
+.budgetState {
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+  padding: 8px 11px;
+}
+
+.content {
+  padding-top: 36px;
+}
+
+.welcome,
+.comingSoon,
+.summaryCard,
+.participantList {
+  background: rgb(251 248 242 / 82%);
+  border-color: var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 35px rgb(37 30 21 / 5%);
+}
+
+.welcome,
+.comingSoon {
+  padding: clamp(28px, 5vw, 56px);
+}
+
+.budgetLayout {
+  gap: 30px;
+}
+
+.budgetHeader {
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 24px;
+}
+
+.budgetHeader h2 {
+  font-size: clamp(2rem, 5vw, 3.6rem);
+}
+
+.summaryGrid {
+  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.summaryCard {
+  min-height: 138px;
+  padding: 22px;
+}
+
+.summaryCard strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryCard:first-child {
+  background: var(--bg);
+  color: #f5eee3;
+}
+
+.summaryCard:first-child span,
+.summaryCard:first-child small {
+  color: #b8c0b7;
+}
+
+.summaryCard:first-child strong {
+  color: #fff8ef;
+}
+
+.primary,
+.secondary,
+.cancel {
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+
+.primary:hover {
+  background: var(--accent-dark);
+  box-shadow: 0 8px 18px rgb(143 56 43 / 18%);
+  transform: translateY(-1px);
+}
+
+.secondary:hover,
+.cancel:hover {
+  background: var(--surface-muted);
+}
+
+.form input,
+.form select,
+.form textarea,
+.rateForm input,
+.rateForm select,
+.rateForm textarea {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  min-height: 42px;
+  padding: 10px 12px;
+}
+
+.form input:focus,
+.form select:focus,
+.form textarea:focus,
+.rateForm input:focus,
+.rateForm select:focus,
+.rateForm textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgb(179 75 56 / 12%);
+  outline: 0;
+}
+
+@media (max-width: 800px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .summaryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .summaryCard {
+    min-height: 116px;
+    padding: 16px;
+  }
+
+  .summaryCard strong {
+    font-size: 1.45rem;
+  }
+}
+
 .backLink {
   color: #687169;
   display: inline-block;

@@ -27,3 +27,20 @@
   margin: 0 0 34px;
   max-width: 540px;
 }
+
+.page {
+  max-width: 760px;
+}
+
+.code {
+  color: var(--accent);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.page h1 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.text {
+  color: var(--ink-muted);
+}

@@ -11,6 +11,23 @@
   z-index: 20;
 }
 
+.nav {
+  border-bottom-color: var(--line);
+  gap: 6px;
+}
+
+.link {
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+
+.link:hover,
+.active {
+  background: var(--surface-muted);
+  color: var(--accent-dark);
+}
+
 .nav::-webkit-scrollbar {
   display: none;
 }
@@ -28,4 +45,18 @@
 .active {
   border-bottom-color: #d95d39;
   color: #1f2421;
+}
+
+/* Final navigation tokens: these rules intentionally come last. */
+.link {
+  border-bottom-color: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+}
+
+.link:hover,
+.active {
+  background: var(--surface-muted);
+  border-bottom-color: var(--accent);
+  color: var(--accent-dark);
 }

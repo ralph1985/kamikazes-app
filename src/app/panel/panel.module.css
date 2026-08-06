@@ -84,6 +84,138 @@
   padding: 22px;
 }
 
+/* Panel overview refresh */
+.page {
+  max-width: 1180px;
+}
+
+.heading h1,
+.card h2,
+.empty h1,
+.empty h2 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.intro,
+.member,
+.card p,
+.empty p {
+  color: var(--ink-muted);
+}
+
+.createControls input,
+.card,
+.empty {
+  background: var(--surface-raised);
+  border-color: var(--line);
+}
+
+.card,
+.empty {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.cardLink:hover .card {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+  transform: translateY(-2px);
+}
+
+.card,
+.cardLink:hover .card {
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.open {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.closed {
+  background: var(--surface-muted);
+  color: var(--ink-muted);
+}
+
+.cardAction {
+  color: var(--accent-dark);
+}
+
+.createError {
+  color: var(--danger);
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-inline: 18px;
+  }
+}
+
+/* Final panel tokens: these rules follow the legacy declarations intentionally. */
+.page {
+  max-width: 1180px;
+}
+
+.heading h1,
+.card h2,
+.empty h1,
+.empty h2 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.intro,
+.member,
+.card p,
+.empty p {
+  color: var(--ink-muted);
+}
+
+.createControls input,
+.card,
+.empty {
+  background: var(--surface-raised);
+  border-color: var(--line);
+}
+
+.card,
+.empty {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.cardLink:hover .card {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+  transform: translateY(-2px);
+}
+
+.open {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.closed {
+  background: var(--surface-muted);
+  color: var(--ink-muted);
+}
+
+.cardAction {
+  color: var(--accent-dark);
+}
+
+.createError {
+  color: var(--danger);
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-inline: 18px;
+  }
+}
+
 .cardLink {
   color: inherit;
   text-decoration: none;
@@ -165,4 +297,40 @@
   .createError {
     text-align: left;
   }
+}
+
+/* Final panel token precedence */
+.cardLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card,
+.empty {
+  background: var(--surface-raised);
+  border-color: var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.cardLink:hover .card {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+  transform: translateY(-2px);
+}
+
+.open {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.closed {
+  background: var(--surface-muted);
+  color: var(--ink-muted);
+}
+
+.cardAction {
+  color: var(--accent-dark);
 }

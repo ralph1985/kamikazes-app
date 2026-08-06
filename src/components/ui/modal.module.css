@@ -9,6 +9,23 @@
   z-index: 100;
 }
 
+.backdrop {
+  background: rgb(17 19 18 / 58%);
+  backdrop-filter: blur(5px);
+}
+
+.dialog {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+}
+
+.dialog h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -0.03em;
+}
+
 .dialog {
   background: #fffdf9;
   border: 1px solid #ded8ce;
@@ -62,4 +79,17 @@
     max-height: min(90dvh, 760px);
     padding: 20px;
   }
+}
+
+/* Final surface tokens: keep the shared modal consistent with the redesign. */
+.dialog {
+  background: var(--surface-raised);
+  border-color: var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+}
+
+.close {
+  background: var(--surface-muted);
+  color: var(--ink);
 }

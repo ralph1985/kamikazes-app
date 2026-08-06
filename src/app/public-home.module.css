@@ -111,3 +111,58 @@
     justify-self: start;
   }
 }
+
+/* Public editorial landing surface */
+.page {
+  max-width: 1180px;
+}
+
+.hero {
+  background: var(--bg);
+  border: 1px solid var(--line-dark);
+  box-shadow: var(--shadow-float);
+}
+
+.hero h1 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.eyebrow {
+  color: #e2a05c;
+}
+
+.mark {
+  background: var(--accent);
+  border-color: #343d37;
+}
+
+.section {
+  background: var(--surface-raised);
+  border-color: var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.section p,
+.social p,
+.empty {
+  color: var(--ink-muted);
+}
+
+.social {
+  border-color: var(--line);
+}
+
+.social a {
+  color: var(--accent-dark);
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding-inline: 18px;
+  }
+
+  .hero {
+    border-radius: var(--radius-lg);
+  }
+}

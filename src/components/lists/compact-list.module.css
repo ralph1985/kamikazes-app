@@ -12,6 +12,16 @@
   min-height: 62px;
   padding: 10px 14px 10px 18px;
 }
+
+.row {
+  background: transparent;
+  border-bottom-color: var(--line);
+  padding: 17px 18px;
+}
+
+.row:hover {
+  background: rgb(231 224 213 / 42%);
+}
 .row:last-child {
   border-bottom: 0;
 }
