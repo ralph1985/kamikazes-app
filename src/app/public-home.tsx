@@ -30,7 +30,7 @@ const fallbackSections = [
   {
     id: "history",
     title: "Nuestra historia",
-    body: "Aquí reuniremos la historia de Kamikazes y los momentos que nos han traído hasta hoy.",
+    body: "Los Kamikazes se fundaron en 1999 en Palomares del Campo (Cuenca). En el archivo de la web antigua aparecen ya los recuerdos de los primeros años: las fiestas, las peñas, las reuniones y las historias compartidas por sus miembros. Esta nueva web recupera ese legado y lo ordena para que siga formando parte de la vida de la peña.",
   },
 ];
 
