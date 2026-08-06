@@ -214,7 +214,7 @@ Resultado: módulo de catering separado del presupuesto general.
 
 ## Hito 9 — Inventario y sobrantes
 
-Estado: En desarrollo.
+Estado: Pendiente de validar funcionalmente por Rafa.
 
 Primera rebanada:
 
