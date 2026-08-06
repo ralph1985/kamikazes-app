@@ -14,7 +14,7 @@ import {
   canEditEditionArea,
 } from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
-import { canApplyBudgetTransaction, signedBudgetAmount } from "@/modules/budget/domain/transaction";
+import { prepareBudgetTransaction } from "@/modules/budget/application/prepare-transaction";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
@@ -112,7 +112,6 @@ async function mutate(
       .limit(1);
     if (participant.length === 0) throw new Error("not_annual_participant");
 
-    const signedAmount = signedBudgetAmount(parsed.data.kind, parsed.data.amount);
     const existing = await database
       .select({ id: budgetTransactions.id, amount: budgetTransactions.amount })
       .from(budgetTransactions)
@@ -122,19 +121,20 @@ async function mutate(
           eq(budgetTransactions.memberId, parsed.data.memberId),
         ),
       );
-    const currentNet = existing.reduce(
-      (total, item) => (item.id === transactionId ? total : total + Number(item.amount)),
-      0,
+    const transaction = prepareBudgetTransaction(
+      parsed.data.kind,
+      parsed.data.amount,
+      transactionId,
+      existing,
     );
-    if (!canApplyBudgetTransaction(currentNet, signedAmount))
-      throw new Error("refund_exceeds_paid");
+    if (!transaction.canApply) throw new Error("refund_exceeds_paid");
 
     const now = new Date();
     const values = {
       editionId,
       memberId: parsed.data.memberId,
       kind: parsed.data.kind,
-      amount: signedAmount.toFixed(2),
+      amount: transaction.signedAmount.toFixed(2),
       occurredAt: parsed.data.occurredAt,
       method: parsed.data.method,
       notes: parsed.data.notes,
