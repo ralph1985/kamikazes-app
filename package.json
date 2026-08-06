@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "import:inventory": "node scripts/import-inventory-excel.mjs",
     "import:shopping": "node scripts/import-shopping-excel.mjs",
     "start": "next start",
     "lint": "eslint .",
