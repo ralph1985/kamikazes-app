@@ -51,7 +51,6 @@ export function MealForm({
             <input
               min="0"
               onChange={(event) => onRealPriceChange(event.target.value)}
-              required
               step="0.01"
               type="number"
               value={realPrice}

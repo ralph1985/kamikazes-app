@@ -223,6 +223,200 @@
   padding-top: 28px;
 }
 
+.cateringHeading {
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 20px;
+}
+
+.cateringHeading h2 {
+  margin: 8px 0 6px;
+}
+
+.cateringHeading p:last-child {
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.cateringSummary {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  margin-bottom: 14px;
+}
+
+.cateringSummary > div {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+}
+
+.cateringSummary span {
+  color: var(--ink-muted);
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cateringSummary strong {
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cateringTableScroll {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  overflow-y: clip;
+}
+
+.cateringTable {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.72rem;
+  min-width: 760px;
+  width: 100%;
+}
+
+.cateringTable th,
+.cateringTable td {
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  padding: 5px 6px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.cateringTable tr > :last-child {
+  border-right: 0;
+}
+
+.cateringTable tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.cateringTable thead th {
+  background: var(--bg);
+  color: #f8f1e7;
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cateringTable .cateringMealHeader {
+  min-width: 168px;
+  padding: 7px 8px;
+  text-align: center;
+}
+
+.cateringMealHeader span,
+.cateringMealHeader small {
+  display: block;
+}
+
+.cateringMealHeader small {
+  color: #c8cec9;
+  font-size: 0.61rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-top: 3px;
+  text-transform: none;
+}
+
+.cateringMealHeader button {
+  background: transparent;
+  border: 0;
+  color: #f0b68b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.6rem;
+  margin-top: 4px;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-transform: none;
+}
+
+.cateringMemberColumn {
+  left: 0;
+  min-width: 150px;
+  position: sticky;
+  width: 150px;
+  z-index: 2;
+}
+
+.cateringTable thead .cateringMemberColumn {
+  background: var(--bg);
+  z-index: 4;
+}
+
+.cateringTable tbody .cateringMemberColumn {
+  background: var(--surface-raised);
+  font-size: 0.71rem;
+  font-weight: 700;
+}
+
+.cateringTable tbody tr:hover .cateringMemberColumn,
+.cateringTable tbody tr:hover td {
+  background: #f4eee5;
+}
+
+.cateringSubheader th {
+  background: var(--surface-muted) !important;
+  color: var(--ink-muted) !important;
+  font-size: 0.59rem !important;
+  letter-spacing: 0.03em !important;
+  text-align: center !important;
+}
+
+.cateringTable select {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font: inherit;
+  min-width: 86px;
+  padding: 3px 2px;
+  width: 100%;
+}
+
+.cateringTable select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+  outline: 0;
+}
+
+.cateringPaymentCell select {
+  color: var(--ink-muted);
+  min-width: 92px;
+}
+
+.cateringTotalColumn,
+.cateringAmountCell {
+  min-width: 84px;
+  text-align: right !important;
+}
+
+.cateringAmountCell {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cateringHint {
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  margin: 8px 2px 0;
+}
+
 .welcome,
 .comingSoon {
   background: #fffdf9;

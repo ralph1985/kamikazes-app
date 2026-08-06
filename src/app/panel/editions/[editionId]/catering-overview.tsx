@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { CompactList, CompactListRow } from "@/components/lists/compact-list";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { ListState, MoneyCell } from "@/components/lists/list-patterns";
 import { MealForm } from "./catering-forms";
 import styles from "./edition.module.css";
@@ -23,9 +22,11 @@ type Attendance = {
   paymentNotes: string | null;
 };
 
-const attendanceLabels = { yes: "Sí", no: "No", cancelled: "Cancelado" };
-const paymentLabels = { pending: "Pendiente", partial: "Parcial", paid: "Pagado" };
-const money = (value: string | number) => `${Number(value).toFixed(2)} €`;
+function mealAmount(meal: Meal, status: string, real: boolean) {
+  return status === "yes"
+    ? Number(real ? (meal.realPrice ?? meal.plannedPrice) : meal.plannedPrice)
+    : 0;
+}
 
 export default function CateringOverview({
   editionId,
@@ -90,22 +91,21 @@ export default function CateringOverview({
     () => new Map(attendance.map((item) => [`${item.mealId}:${item.memberId}`, item])),
     [attendance],
   );
-  const totals = useMemo(
-    () =>
-      meals.reduce(
-        (result, meal) => {
-          const confirmed = attendance.filter(
-            (item) => item.mealId === meal.id && item.status === "yes",
-          ).length;
-          result.people += confirmed;
-          result.planned += confirmed * Number(meal.plannedPrice);
-          result.real += confirmed * Number(meal.realPrice ?? meal.plannedPrice);
-          return result;
-        },
-        { people: 0, planned: 0, real: 0 },
-      ),
-    [attendance, meals],
-  );
+
+  const totals = useMemo(() => {
+    const result = { people: 0, planned: 0, real: 0, paid: 0 };
+    attendance.forEach((item) => {
+      const meal = meals.find((candidate) => candidate.id === item.mealId);
+      if (!meal) return;
+      if (item.status === "yes") {
+        result.people += 1;
+        result.planned += mealAmount(meal, item.status, false);
+        result.real += mealAmount(meal, item.status, true);
+      }
+      if (item.status === "yes" && item.paymentStatus === "paid") result.paid += 1;
+    });
+    return result;
+  }, [attendance, meals]);
 
   async function updateAttendance(
     mealId: string,
@@ -114,22 +114,29 @@ export default function CateringOverview({
   ) {
     setEditing(true);
     setError(null);
-    const current = byMealAndMember.get(`${mealId}:${participantId}`);
-    const response = await fetch(`/api/v1/editions/${editionId}/catering/attendance`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        mealId,
-        memberId: participantId,
-        status: values.status ?? current?.status ?? "yes",
-        paymentStatus: values.paymentStatus ?? current?.paymentStatus ?? "pending",
-        paymentNotes: values.paymentNotes ?? current?.paymentNotes ?? null,
-      }),
-    });
-    const result = (await response.json()) as { error?: { message: string } };
-    if (!response.ok) setError(result.error?.message ?? "No se pudo actualizar catering");
-    else await load();
-    setEditing(false);
+    try {
+      const current = byMealAndMember.get(`${mealId}:${participantId}`);
+      const response = await fetch(`/api/v1/editions/${editionId}/catering/attendance`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mealId,
+          memberId: participantId,
+          status: values.status ?? current?.status ?? "yes",
+          paymentStatus: values.paymentStatus ?? current?.paymentStatus ?? "pending",
+          paymentNotes: values.paymentNotes ?? current?.paymentNotes ?? null,
+        }),
+      });
+      const result = (await response.json()) as { error?: { message: string } };
+      if (!response.ok) setError(result.error?.message ?? "No se pudo actualizar catering");
+      else await load();
+    } catch (updateError) {
+      setError(
+        updateError instanceof Error ? updateError.message : "No se pudo actualizar catering",
+      );
+    } finally {
+      setEditing(false);
+    }
   }
 
   function openMeal(meal?: Meal) {
@@ -165,40 +172,23 @@ export default function CateringOverview({
 
   return (
     <section className={styles.content}>
-      <div className={styles.welcome}>
-        <div className={styles.header}>
-          <div>
-            <p className="eyebrow">Catering</p>
-            <h2>Comidas y asistencia</h2>
-            <p>La asistencia es independiente del presupuesto general y se gestiona por comida.</p>
-          </div>
-          {canEdit && !readOnly && (
-            <button className={styles.primary} onClick={() => openMeal()} type="button">
-              Añadir comida
-            </button>
-          )}
+      <div className={styles.cateringHeading}>
+        <div>
+          <p className="eyebrow">Catering</p>
+          <h2>Comidas y asistencia</h2>
+          <p>Una fila por persona y una columna por comida, como en la hoja original.</p>
         </div>
+        {canEdit && !readOnly ? (
+          <button className={styles.primary} onClick={() => openMeal()} type="button">
+            Añadir comida
+          </button>
+        ) : null}
       </div>
-      {error && <p role="alert">{error}</p>}
-      {!loading && meals.length > 0 && (
-        <div className={styles.summaryGrid}>
-          <div className={styles.summaryCard}>
-            <span>Asistencias confirmadas</span>
-            <strong>{totals.people}</strong>
-            <small>Sumadas entre todas las comidas</small>
-          </div>
-          <div className={styles.summaryCard}>
-            <span>Total previsto</span>
-            <strong>{money(totals.planned)}</strong>
-            <small>Según precio previsto y asistentes</small>
-          </div>
-          <div className={styles.summaryCard}>
-            <span>Total real</span>
-            <strong>{money(totals.real)}</strong>
-            <small>Según precio real disponible</small>
-          </div>
-        </div>
-      )}
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
       {loading ? (
         <ListState description="Cargando comidas y asistencia…" title="Catering" />
       ) : meals.length === 0 ? (
@@ -207,77 +197,129 @@ export default function CateringOverview({
           title="Todavía no hay comidas"
         />
       ) : (
-        meals.map((meal) => (
-          <section className={styles.welcome} key={meal.id}>
-            <div className={styles.header}>
-              <div>
-                <p className="eyebrow">Comida</p>
-                <h2>{meal.name}</h2>
-              </div>
-              <div>
-                <span>
-                  <MoneyCell amount={meal.plannedPrice} /> previsto
-                  {meal.realPrice ? ` · ${meal.realPrice} € real` : ""}
-                </span>
-                {canEdit && !readOnly && (
-                  <button className={styles.secondary} onClick={() => openMeal(meal)} type="button">
-                    Editar
-                  </button>
-                )}
-              </div>
+        <>
+          <div className={styles.cateringSummary}>
+            <div>
+              <span>Asistencias confirmadas</span>
+              <strong>{totals.people}</strong>
             </div>
-            <CompactList>
-              {participants.map((participant) => {
-                const item = byMealAndMember.get(`${meal.id}:${participant.memberId}`);
-                const ownRow = participant.memberId === memberId;
-                return (
-                  <CompactListRow
-                    key={participant.memberId}
-                    meta={
-                      item
-                        ? `${attendanceLabels[item.status as keyof typeof attendanceLabels]} · ${paymentLabels[item.paymentStatus as keyof typeof paymentLabels]}`
-                        : "Sin respuesta"
-                    }
-                  >
-                    <strong>{participant.displayName}</strong>
-                    <div className={styles.rowActions}>
-                      <select
-                        aria-label={`Asistencia de ${participant.displayName} en ${meal.name}`}
-                        disabled={readOnly || editing || (!canEdit && !ownRow)}
-                        onChange={(event) =>
-                          void updateAttendance(meal.id, participant.memberId, {
-                            status: event.target.value,
-                          })
-                        }
-                        value={item?.status ?? "yes"}
-                      >
-                        <option value="yes">Sí</option>
-                        <option value="no">No</option>
-                        <option value="cancelled">Cancelado</option>
-                      </select>
-                      {canEdit && !readOnly && (
-                        <select
-                          aria-label={`Pago de ${participant.displayName} en ${meal.name}`}
-                          disabled={editing}
-                          onChange={(event) =>
-                            void updateAttendance(meal.id, participant.memberId, {
-                              paymentStatus: event.target.value,
-                            })
-                          }
-                          value={item?.paymentStatus ?? "pending"}
-                        >
-                          <option value="pending">Pendiente</option>
-                          <option value="partial">Parcial</option>
-                          <option value="paid">Pagado</option>
-                        </select>
-                      )}
-                    </div>
-                  </CompactListRow>
-                );
-              })}
-            </CompactList>
-          </section>
-        ))
+            <div>
+              <span>Total previsto</span>
+              <strong>
+                <MoneyCell amount={totals.planned} />
+              </strong>
+            </div>
+            <div>
+              <span>Total real</span>
+              <strong>
+                <MoneyCell amount={totals.real} />
+              </strong>
+            </div>
+            <div>
+              <span>Pagos completos</span>
+              <strong>{totals.paid}</strong>
+            </div>
+          </div>
+          <div className={styles.cateringTableScroll}>
+            <table className={styles.cateringTable}>
+              <thead>
+                <tr>
+                  <th className={styles.cateringMemberColumn}>Miembro</th>
+                  {meals.map((meal) => (
+                    <th className={styles.cateringMealHeader} colSpan={2} key={meal.id}>
+                      <span>{meal.name}</span>
+                      <small>
+                        {meal.plannedPrice} € previsto
+                        {meal.realPrice ? ` · ${meal.realPrice} € real` : ""}
+                      </small>
+                      {canEdit && !readOnly ? (
+                        <button onClick={() => openMeal(meal)} type="button">
+                          Editar
+                        </button>
+                      ) : null}
+                    </th>
+                  ))}
+                  <th className={styles.cateringTotalColumn}>Total prev.</th>
+                  <th className={styles.cateringTotalColumn}>Total real</th>
+                </tr>
+                <tr className={styles.cateringSubheader}>
+                  <th className={styles.cateringMemberColumn} />
+                  {meals.map((meal) => (
+                    <Fragment key={meal.id}>
+                      <th>Asistencia</th>
+                      <th>Pago</th>
+                    </Fragment>
+                  ))}
+                  <th />
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {participants.map((participant) => {
+                  const ownRow = participant.memberId === memberId;
+                  let plannedTotal = 0;
+                  let realTotal = 0;
+                  return (
+                    <tr key={participant.memberId}>
+                      <th className={styles.cateringMemberColumn} scope="row">
+                        {participant.displayName}
+                      </th>
+                      {meals.map((meal) => {
+                        const item = byMealAndMember.get(`${meal.id}:${participant.memberId}`);
+                        const status = item?.status ?? "yes";
+                        plannedTotal += mealAmount(meal, status, false);
+                        realTotal += mealAmount(meal, status, true);
+                        return (
+                          <Fragment key={meal.id}>
+                            <td>
+                              <select
+                                aria-label={`Asistencia de ${participant.displayName} en ${meal.name}`}
+                                disabled={readOnly || editing || (!canEdit && !ownRow)}
+                                onChange={(event) =>
+                                  void updateAttendance(meal.id, participant.memberId, {
+                                    status: event.target.value,
+                                  })
+                                }
+                                value={status}
+                              >
+                                <option value="yes">Sí</option>
+                                <option value="no">No</option>
+                                <option value="cancelled">Cancelado</option>
+                              </select>
+                            </td>
+                            <td className={styles.cateringPaymentCell}>
+                              <select
+                                aria-label={`Pago de ${participant.displayName} en ${meal.name}`}
+                                disabled={readOnly || editing || !canEdit}
+                                onChange={(event) =>
+                                  void updateAttendance(meal.id, participant.memberId, {
+                                    paymentStatus: event.target.value,
+                                  })
+                                }
+                                value={item?.paymentStatus ?? "pending"}
+                              >
+                                <option value="pending">Pendiente</option>
+                                <option value="partial">Parcial</option>
+                                <option value="paid">Pagado</option>
+                              </select>
+                            </td>
+                          </Fragment>
+                        );
+                      })}
+                      <td className={styles.cateringAmountCell}>{plannedTotal.toFixed(2)} €</td>
+                      <td className={styles.cateringAmountCell}>{realTotal.toFixed(2)} €</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className={styles.cateringHint}>
+            {canEdit
+              ? "Puedes corregir asistencia y pagos de cualquier miembro."
+              : "Puedes modificar únicamente tu propia asistencia; los pagos los gestionan los editores."}
+          </p>
+        </>
       )}
       <MealForm
         editing={selectedMeal !== null}
