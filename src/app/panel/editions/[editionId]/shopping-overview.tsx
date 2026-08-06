@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ListState } from "@/components/lists/list-patterns";
 import PurchasesOverview from "./purchases-overview";
-import { CopyShoppingForm, ShoppingProductForm, type ShoppingFormState } from "./shopping-forms";
+import { CopyShoppingForm } from "./shopping-forms";
 import ShoppingTable, { type ShoppingTableProduct } from "./shopping-table";
 import styles from "./shopping.module.css";
 
@@ -20,19 +20,6 @@ type ShoppingSummary = {
   availableReal: number;
 };
 
-const emptyForm: ShoppingFormState = {
-  description: "",
-  category: "",
-  store: "",
-  assignment: "",
-  plannedQuantity: "",
-  realQuantity: "",
-  plannedUnitPrice: "",
-  realUnitPrice: "",
-  notes: "",
-  status: "pending",
-};
-
 function numberOrNull(value: string) {
   return value === "" ? null : Number(value);
 }
@@ -47,10 +34,10 @@ export default function ShoppingOverview({
   const [stores, setStores] = useState<Option[]>([]);
   const [assignments, setAssignments] = useState<Option[]>([]);
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [storeId, setStoreId] = useState("");
-  const [assignment, setAssignment] = useState("");
+  const [status, setStatus] = useState<string[]>([]);
+  const [categoryId, setCategoryId] = useState<string[]>([]);
+  const [storeId, setStoreId] = useState<string[]>([]);
+  const [assignment, setAssignment] = useState<string[]>([]);
   const [groupBy, setGroupBy] = useState("category");
   const [sortBy, setSortBy] = useState("description");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -61,8 +48,6 @@ export default function ShoppingOverview({
   const [copying, setCopying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState<ShoppingFormState>(emptyForm);
   const [summary, setSummary] = useState<ShoppingSummary>({
     budgetTotal: 0,
     plannedTotal: 0,
@@ -76,10 +61,6 @@ export default function ShoppingOverview({
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (query) params.set("q", query);
-      if (status) params.set("status", status);
-      if (categoryId) params.set("categoryId", categoryId);
-      if (storeId) params.set("storeId", storeId);
       const response = await fetch(`/api/v1/editions/${editionId}/shopping?${params}`);
       const result = (await response.json()) as {
         data?: {
@@ -112,9 +93,17 @@ export default function ShoppingOverview({
         setSortBy(result.data.preferences.general.sortBy);
         setSortDirection(result.data.preferences.general.sortDirection);
         setQuery(result.data.preferences.edition.query);
-        setStatus(result.data.preferences.edition.status ?? "");
-        setCategoryId(result.data.preferences.edition.categoryId ?? "");
-        setStoreId(result.data.preferences.edition.storeId ?? "");
+        setStatus(
+          result.data.preferences.edition.status ? [result.data.preferences.edition.status] : [],
+        );
+        setCategoryId(
+          result.data.preferences.edition.categoryId
+            ? [result.data.preferences.edition.categoryId]
+            : [],
+        );
+        setStoreId(
+          result.data.preferences.edition.storeId ? [result.data.preferences.edition.storeId] : [],
+        );
         setPreferencesLoaded(true);
       }
       setError(null);
@@ -125,7 +114,7 @@ export default function ShoppingOverview({
     } finally {
       setLoading(false);
     }
-  }, [categoryId, editionId, preferencesLoaded, query, status, storeId]);
+  }, [editionId, preferencesLoaded]);
 
   useEffect(() => {
     void load();
@@ -161,84 +150,16 @@ export default function ShoppingOverview({
     });
   }
 
-  function updateEditionPreference(
-    field: "query" | "status" | "categoryId" | "storeId",
-    value: string,
-  ) {
-    if (field === "query") setQuery(value);
-    if (field === "status") setStatus(value);
-    if (field === "categoryId") setCategoryId(value);
-    if (field === "storeId") setStoreId(value);
-    persistPreference({
-      scope: "edition",
-      query: field === "query" ? value : query,
-      status: (field === "status" ? value : status) || null,
-      categoryId: (field === "categoryId" ? value : categoryId) || null,
-      storeId: (field === "storeId" ? value : storeId) || null,
-    });
+  function updateEditionPreference(field: "query", value: string[]) {
+    setQuery(value[0] ?? "");
   }
 
   function clearEditionFilters() {
     setQuery("");
-    setStatus("");
-    setCategoryId("");
-    setStoreId("");
-    setAssignment("");
-    persistPreference({
-      scope: "edition",
-      query: "",
-      status: null,
-      categoryId: null,
-      storeId: null,
-    });
-  }
-
-  function edit(product?: Product) {
-    setForm(
-      product
-        ? {
-            id: product.id,
-            description: product.description,
-            category: product.categoryName ?? "",
-            store: product.storeName ?? "",
-            assignment: product.assignment ?? "",
-            plannedQuantity: product.plannedQuantity ?? "",
-            realQuantity: product.realQuantity ?? "",
-            plannedUnitPrice: product.plannedUnitPrice ?? "",
-            realUnitPrice: product.realUnitPrice ?? "",
-            notes: product.notes ?? "",
-            status: product.status,
-          }
-        : emptyForm,
-    );
-    setModalOpen(true);
-  }
-
-  async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    const response = await fetch(`/api/v1/editions/${editionId}/shopping`, {
-      method: form.id ? "PATCH" : "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        plannedQuantity: numberOrNull(form.plannedQuantity),
-        realQuantity: numberOrNull(form.realQuantity),
-        plannedUnitPrice: numberOrNull(form.plannedUnitPrice),
-        realUnitPrice: numberOrNull(form.realUnitPrice),
-        category: form.category || null,
-        store: form.store || null,
-        assignment: form.assignment || null,
-        notes: form.notes || null,
-      }),
-    });
-    const result = (await response.json()) as { error?: { message: string } };
-    if (!response.ok) {
-      setError(result.error?.message ?? "No se pudo guardar el producto");
-      return;
-    }
-    setModalOpen(false);
-    await load();
+    setStatus([]);
+    setCategoryId([]);
+    setStoreId([]);
+    setAssignment([]);
   }
 
   async function saveInline(product: Product, field: string, value: string) {
@@ -272,6 +193,58 @@ export default function ShoppingOverview({
     const result = (await response.json()) as { error?: { message: string } };
     if (!response.ok) throw new Error(result.error?.message ?? "No se pudo guardar el cambio");
     await load();
+  }
+
+  async function createInlineProduct(defaults: {
+    category: string | null;
+    store: string | null;
+    assignment: string | null;
+    status: string;
+  }): Promise<Product> {
+    const response = await fetch(`/api/v1/editions/${editionId}/shopping`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        description: "",
+        category: defaults.category,
+        store: defaults.store,
+        assignment: defaults.assignment,
+        plannedQuantity: null,
+        realQuantity: null,
+        plannedUnitPrice: null,
+        realUnitPrice: null,
+        notes: null,
+        status: defaults.status,
+      }),
+    });
+    const result = (await response.json()) as {
+      data?: {
+        id: string;
+        editionId: string;
+        description: string;
+        categoryId: string | null;
+        storeId: string | null;
+        assignment: string | null;
+        plannedQuantity: string | null;
+        realQuantity: string | null;
+        plannedUnitPrice: string | null;
+        realUnitPrice: string | null;
+        notes: string | null;
+        status: string;
+      };
+      error?: { message: string };
+    };
+    if (!response.ok || !result.data)
+      throw new Error(result.error?.message ?? "No se pudo crear el producto");
+    const created: Product = {
+      ...result.data,
+      categoryName: defaults.category,
+      storeName: defaults.store,
+      plannedTotal: null,
+      realTotal: null,
+    };
+    await load();
+    return created;
   }
 
   async function createCategory(name: string) {
@@ -320,9 +293,6 @@ export default function ShoppingOverview({
     }
   }
 
-  const setField = (field: keyof ShoppingFormState, value: string) =>
-    setForm((current) => ({ ...current, [field]: value }));
-
   return (
     <div className={styles.wrapper}>
       <div className={styles.heading}>
@@ -341,9 +311,6 @@ export default function ShoppingOverview({
               type="button"
             >
               Copiar otra edición
-            </button>
-            <button className={styles.primary} onClick={() => edit()} type="button">
-              Añadir producto
             </button>
           </div>
         ) : null}
@@ -415,10 +382,34 @@ export default function ShoppingOverview({
       {loading ? (
         <ListState description="Cargando productos…" title="Lista de compra" />
       ) : products.length === 0 ? (
-        <ListState
-          description="Añade el primer producto de esta edición."
-          title="Todavía no hay productos"
-        />
+        <div className={styles.emptyShoppingState}>
+          <ListState
+            description="Añade el primer producto de esta edición."
+            title="Todavía no hay productos"
+          />
+          {!readOnly ? (
+            <button
+              className={styles.primary}
+              onClick={() =>
+                void createInlineProduct({
+                  category: null,
+                  store: null,
+                  assignment: null,
+                  status: "pending",
+                }).catch((createError) =>
+                  setError(
+                    createError instanceof Error
+                      ? createError.message
+                      : "No se pudo crear el producto",
+                  ),
+                )
+              }
+              type="button"
+            >
+              Añadir primera línea
+            </button>
+          ) : null}
+        </div>
       ) : (
         <ShoppingTable
           categories={categories}
@@ -426,8 +417,17 @@ export default function ShoppingOverview({
           filters={{ query, status, categoryId, storeId, assignment }}
           onClearFilters={clearEditionFilters}
           onCreateCategory={createCategory}
+          onCreateProduct={createInlineProduct}
           onFilterChange={(field, value) =>
-            field === "assignment" ? setAssignment(value) : updateEditionPreference(field, value)
+            field === "status"
+              ? setStatus(value)
+              : field === "categoryId"
+                ? setCategoryId(value)
+                : field === "storeId"
+                  ? setStoreId(value)
+                  : field === "assignment"
+                    ? setAssignment(value)
+                    : updateEditionPreference(field, value)
           }
           onSave={saveInline}
           groupBy={groupBy}
@@ -439,15 +439,6 @@ export default function ShoppingOverview({
         />
       )}
       <PurchasesOverview editionId={editionId} readOnly={readOnly} stores={stores} />
-      <ShoppingProductForm
-        categories={categories}
-        form={form}
-        onChange={setField}
-        onClose={() => setModalOpen(false)}
-        onSubmit={save}
-        open={modalOpen}
-        stores={stores}
-      />
       <CopyShoppingForm
         copying={copying}
         currentEditionId={editionId}

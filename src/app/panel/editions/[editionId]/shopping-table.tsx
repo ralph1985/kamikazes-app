@@ -35,6 +35,12 @@ type Field =
   | "notes"
   | "status";
 type FilterField = "query" | "storeId" | "categoryId" | "assignment" | "status";
+type NewProductDefaults = {
+  category: string | null;
+  store: string | null;
+  assignment: string | null;
+  status: string;
+};
 
 const statuses = [
   ["pending", "Pendiente"],
@@ -43,6 +49,50 @@ const statuses = [
   ["not_buying", "No se compra"],
   ["gifted", "Regalado"],
 ] as const;
+
+function MultiFilter({
+  label,
+  options,
+  selected,
+  onChange,
+}: Readonly<{
+  label: string;
+  options: Option[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+}>) {
+  const toggle = (value: string) =>
+    onChange(
+      selected.includes(value) ? selected.filter((item) => item !== value) : [...selected, value],
+    );
+
+  return (
+    <details className={styles.filterMenu}>
+      <summary>
+        {label}
+        {selected.length ? ` · ${selected.length}` : ""}
+      </summary>
+      <div className={styles.filterOptions}>
+        {options.length === 0 ? <span className={styles.filterEmpty}>Sin opciones</span> : null}
+        {options.map((option) => (
+          <label key={option.id}>
+            <input
+              checked={selected.includes(option.id)}
+              onChange={() => toggle(option.id)}
+              type="checkbox"
+            />
+            <span>{option.name}</span>
+          </label>
+        ))}
+        {selected.length ? (
+          <button onClick={() => onChange([])} type="button">
+            Limpiar
+          </button>
+        ) : null}
+      </div>
+    </details>
+  );
+}
 
 function groupLabel(product: ShoppingTableProduct, groupBy: string) {
   if (groupBy === "store") return product.storeName || "Sin tienda";
@@ -211,10 +261,10 @@ function EditableCell({
 
 export type ShoppingTableFilters = {
   query: string;
-  storeId: string;
-  categoryId: string;
-  assignment: string;
-  status: string;
+  storeId: string[];
+  categoryId: string[];
+  assignment: string[];
+  status: string[];
 };
 
 export default function ShoppingTable({
@@ -227,6 +277,7 @@ export default function ShoppingTable({
   onFilterChange,
   onClearFilters,
   onCreateCategory,
+  onCreateProduct,
   onSave,
   groupBy,
   sortBy,
@@ -238,9 +289,10 @@ export default function ShoppingTable({
   stores: Option[];
   assignments: Option[];
   readOnly: boolean;
-  onFilterChange: (field: FilterField, value: string) => void;
+  onFilterChange: (field: FilterField, value: string[]) => void;
   onClearFilters: () => void;
   onCreateCategory: (name: string) => Promise<void>;
+  onCreateProduct: (defaults: NewProductDefaults) => Promise<ShoppingTableProduct>;
   onSave: (product: ShoppingTableProduct, field: Field, value: string) => Promise<void>;
   groupBy: string;
   sortBy: string;
@@ -250,19 +302,30 @@ export default function ShoppingTable({
   const [saving, setSaving] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [insertedAfter, setInsertedAfter] = useState<Record<string, string>>({});
+  const [creatingAfter, setCreatingAfter] = useState<string | null>(null);
 
   useEffect(() => {
     setDrafts(Object.fromEntries(products.map((product) => [product.id, product])));
   }, [products]);
 
   const visibleProducts = useMemo(() => {
-    const assignment = filters.assignment.trim().toLocaleLowerCase();
-    const filtered = assignment
-      ? products.filter((product) =>
-          (product.assignment ?? "").toLocaleLowerCase().includes(assignment),
-        )
-      : products;
-    return [...filtered].sort((a, b) => {
+    const query = filters.query.trim().toLocaleLowerCase();
+    const filtered = products.filter((product) => {
+      const matchesQuery =
+        !query ||
+        product.description.toLocaleLowerCase().includes(query) ||
+        (product.notes ?? "").toLocaleLowerCase().includes(query);
+      const matchesStatus = !filters.status.length || filters.status.includes(product.status);
+      const matchesStore =
+        !filters.storeId.length || filters.storeId.includes(product.storeId ?? "__none__");
+      const matchesCategory =
+        !filters.categoryId.length || filters.categoryId.includes(product.categoryId ?? "__none__");
+      const matchesAssignment =
+        !filters.assignment.length || filters.assignment.includes(product.assignment ?? "__none__");
+      return matchesQuery && matchesStatus && matchesStore && matchesCategory && matchesAssignment;
+    });
+    const sorted = [...filtered].sort((a, b) => {
       const value = (product: ShoppingTableProduct) =>
         sortBy === "unit_price"
           ? Number(product.plannedUnitPrice ?? 0)
@@ -274,7 +337,16 @@ export default function ShoppingTable({
       const comparison = value(a) < value(b) ? -1 : value(a) > value(b) ? 1 : 0;
       return sortDirection === "desc" ? -comparison : comparison;
     });
-  }, [filters.assignment, products, sortBy, sortDirection]);
+    const children = new Map<string, ShoppingTableProduct[]>();
+    sorted.forEach((product) => {
+      const anchorId = insertedAfter[product.id];
+      if (anchorId) children.set(anchorId, [...(children.get(anchorId) ?? []), product]);
+    });
+    const insertedIds = new Set(Object.keys(insertedAfter));
+    return sorted
+      .filter((product) => !insertedIds.has(product.id))
+      .flatMap((product) => [product, ...(children.get(product.id) ?? [])]);
+  }, [filters, insertedAfter, products, sortBy, sortDirection]);
 
   async function commit(product: ShoppingTableProduct, field: Field) {
     const draft = drafts[product.id];
@@ -326,8 +398,33 @@ export default function ShoppingTable({
     );
   }
 
+  async function createProductAfter(product: ShoppingTableProduct) {
+    setCreatingAfter(product.id);
+    setSaveError(null);
+    try {
+      const created = await onCreateProduct({
+        category: groupBy === "category" ? product.categoryName : null,
+        store: groupBy === "store" ? product.storeName : null,
+        assignment: groupBy === "assignment" ? product.assignment : null,
+        status: groupBy === "status" ? product.status : "pending",
+      });
+      setDrafts((current) => ({ ...current, [created.id]: created }));
+      setInsertedAfter((current) => ({ ...current, [created.id]: product.id }));
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "No se pudo crear el producto");
+    } finally {
+      setCreatingAfter(null);
+    }
+  }
+
   function hasFilters() {
-    return Object.values(filters).some(Boolean);
+    return Boolean(
+      filters.query ||
+      filters.status.length ||
+      filters.storeId.length ||
+      filters.categoryId.length ||
+      filters.assignment.length,
+    );
   }
 
   return (
@@ -341,56 +438,34 @@ export default function ShoppingTable({
         <input
           aria-label="Filtrar productos"
           className={styles.filterInput}
-          onChange={(event) => onFilterChange("query", event.target.value)}
+          onChange={(event) => onFilterChange("query", [event.target.value])}
           placeholder="Producto o nota"
           type="search"
           value={filters.query}
         />
-        <select
-          aria-label="Filtrar por estado"
-          className={styles.filterSelect}
-          onChange={(event) => onFilterChange("status", event.target.value)}
-          value={filters.status}
-        >
-          <option value="">Todos los estados</option>
-          {statuses.map(([status, text]) => (
-            <option key={status} value={status}>
-              {text}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filtrar por tienda"
-          className={styles.filterSelect}
-          onChange={(event) => onFilterChange("storeId", event.target.value)}
-          value={filters.storeId}
-        >
-          <option value="">Todas las tiendas</option>
-          {stores.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filtrar por categoría"
-          className={styles.filterSelect}
-          onChange={(event) => onFilterChange("categoryId", event.target.value)}
-          value={filters.categoryId}
-        >
-          <option value="">Todas las categorías</option>
-          {categories.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-        <input
-          aria-label="Filtrar por asignación"
-          className={styles.filterInput}
-          onChange={(event) => onFilterChange("assignment", event.target.value)}
-          placeholder="Asignación"
-          value={filters.assignment}
+        <MultiFilter
+          label="Estado"
+          onChange={(values) => onFilterChange("status", values)}
+          options={statuses.map(([id, name]) => ({ id, name }))}
+          selected={filters.status}
+        />
+        <MultiFilter
+          label="Tienda"
+          onChange={(values) => onFilterChange("storeId", values)}
+          options={stores}
+          selected={filters.storeId}
+        />
+        <MultiFilter
+          label="Categoría"
+          onChange={(values) => onFilterChange("categoryId", values)}
+          options={categories}
+          selected={filters.categoryId}
+        />
+        <MultiFilter
+          label="Asignación"
+          onChange={(values) => onFilterChange("assignment", values)}
+          options={[{ id: "__none__", name: "Sin asignación" }, ...assignments]}
+          selected={filters.assignment}
         />
         {hasFilters() ? (
           <button className={styles.clearFilters} onClick={onClearFilters} type="button">
@@ -441,7 +516,23 @@ export default function ShoppingTable({
                     </tr>
                   ) : null}
                   <tr className={isExpanded ? styles.expandedRow : undefined}>
-                    <td className={styles.productColumn}>{renderField(product, "description")}</td>
+                    <td className={styles.productColumn}>
+                      <div className={styles.productCell}>
+                        {!readOnly ? (
+                          <button
+                            aria-label={`Añadir producto después de ${product.description || "esta fila"}`}
+                            className={styles.rowAddButton}
+                            disabled={creatingAfter !== null || saving !== null}
+                            onClick={() => void createProductAfter(product)}
+                            title="Añadir producto debajo"
+                            type="button"
+                          >
+                            +
+                          </button>
+                        ) : null}
+                        {renderField(product, "description")}
+                      </div>
+                    </td>
                     <td className={styles.statusColumn}>{renderField(product, "status")}</td>
                     <td className={styles.storeColumn}>{renderField(product, "store", stores)}</td>
                     <td className={styles.numberColumn}>
