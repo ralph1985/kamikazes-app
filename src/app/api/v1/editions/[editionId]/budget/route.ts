@@ -2,18 +2,17 @@ import { and, asc, eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
   budgetRates,
   editionParticipants,
-  editions,
   members,
-  roleAssignments,
 } from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+import {
+  assertEditionOpen,
+  authenticateRequest,
+  canEditEditionArea,
+} from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
@@ -24,38 +23,6 @@ const rateInputSchema = z.object({
 });
 const rateAssignmentSchema = z.object({ memberId: z.uuid(), rateId: z.uuid().nullable() });
 
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-
-async function canEditBudget(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const editor = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "budget"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return editor.length > 0;
-}
-
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ editionId: string }> },
@@ -64,7 +31,7 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database } = await authenticate(request);
+    const { database } = await authenticateRequest(request);
     const [rates, rows] = await Promise.all([
       database
         .select({ id: budgetRates.id, name: budgetRates.name, amount: budgetRates.amount })
@@ -117,17 +84,11 @@ export async function POST(
   const input = rateInputSchema.safeParse(body);
   if (!input.success) return apiFailure("invalid_request", "La tarifa no es válida", 400);
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEditBudget(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "budget")))
       return apiFailure("forbidden", "No tienes permiso para editar el presupuesto", 403);
     const rateId = randomUUID();
-    const edition = await database
-      .select({ status: editions.status })
-      .from(editions)
-      .where(eq(editions.id, editionId))
-      .limit(1);
-    if (edition.length === 0) throw new Error("edition_not_found");
-    if (edition[0].status === "closed") throw new Error("edition_closed");
+    await assertEditionOpen(database, editionId);
     const rate = {
       id: rateId,
       editionId,
@@ -178,16 +139,10 @@ export async function PUT(
   if (!input.success)
     return apiFailure("invalid_request", "La asignación de tarifa no es válida", 400);
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEditBudget(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "budget")))
       return apiFailure("forbidden", "No tienes permiso para editar el presupuesto", 403);
-    const edition = await database
-      .select({ status: editions.status })
-      .from(editions)
-      .where(eq(editions.id, editionId))
-      .limit(1);
-    if (edition.length === 0) throw new Error("edition_not_found");
-    if (edition[0].status === "closed") throw new Error("edition_closed");
+    await assertEditionOpen(database, editionId);
     const participant = await database
       .select({ id: editionParticipants.id, rateId: editionParticipants.rateId })
       .from(editionParticipants)

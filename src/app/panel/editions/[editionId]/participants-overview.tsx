@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
 import { Modal } from "@/components/ui/modal";
+import { requestApi, requestApiVoid } from "@/shared/http/client";
 import styles from "./edition.module.css";
 
 type Rate = { id: string; name: string; amount: string };
@@ -28,50 +29,49 @@ export default function ParticipantsOverview({
   const [draftRateId, setDraftRateId] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/v1/editions/${editionId}/participants`),
-      fetch(`/api/v1/editions/${editionId}/budget`),
-    ])
-      .then(async ([participantsResponse, budgetResponse]) => {
-        const participantsResult = (await participantsResponse.json()) as {
-          data?: { memberId: string; displayName: string; participating: boolean }[];
-          error?: { message: string };
-        };
-        const budgetResult = (await budgetResponse.json()) as {
-          data?: { rates: Rate[]; participants: BudgetParticipant[] };
-          error?: { message: string };
-        };
-        if (!participantsResponse.ok || !participantsResult.data)
-          throw new Error(participantsResult.error?.message ?? "No se pudo cargar la lista");
-        if (!budgetResponse.ok || !budgetResult.data)
-          throw new Error(budgetResult.error?.message ?? "No se pudo cargar las tarifas");
+    async function load() {
+      try {
+        const [participantData, budgetData] = await Promise.all([
+          requestApi<{ memberId: string; displayName: string; participating: boolean }[]>(
+            `/api/v1/editions/${editionId}/participants`,
+          ),
+          requestApi<{ rates: Rate[]; participants: BudgetParticipant[] }>(
+            `/api/v1/editions/${editionId}/budget`,
+          ),
+        ]);
         const ratesByMember = new Map(
-          budgetResult.data.participants.map((item) => [item.memberId, item.rateId]),
+          budgetData.participants.map((item) => [item.memberId, item.rateId]),
         );
-        setRates(budgetResult.data.rates);
+        setRates(budgetData.rates);
         setParticipants(
-          participantsResult.data.map((item) => ({
+          participantData.map((item) => ({
             ...item,
             rateId: ratesByMember.get(item.memberId) ?? null,
           })),
         );
-      })
-      .catch((loadError: unknown) =>
-        setError(loadError instanceof Error ? loadError.message : "No se pudo cargar la lista"),
-      )
-      .finally(() => setLoading(false));
+      } catch (loadError: unknown) {
+        setError(loadError instanceof Error ? loadError.message : "No se pudo cargar la lista");
+      } finally {
+        setLoading(false);
+      }
+    }
+    void load();
   }, [editionId]);
 
   async function updateAnnual(memberId: string, participating: boolean) {
     setError(null);
-    const response = await fetch(`/api/v1/editions/${editionId}/participants`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ memberId, participating }),
-    });
-    if (!response.ok) {
-      const result = (await response.json()) as { error?: { message: string } };
-      setError(result.error?.message ?? "No se pudo actualizar el participante");
+    try {
+      await requestApiVoid(`/api/v1/editions/${editionId}/participants`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ memberId, participating }),
+      });
+    } catch (updateError: unknown) {
+      setError(
+        updateError instanceof Error
+          ? updateError.message
+          : "No se pudo actualizar el participante",
+      );
       return false;
     }
     setParticipants((current) =>
@@ -86,14 +86,14 @@ export default function ParticipantsOverview({
 
   async function updateRate(memberId: string, rateId: string | null) {
     setError(null);
-    const response = await fetch(`/api/v1/editions/${editionId}/budget`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ memberId, rateId }),
-    });
-    if (!response.ok) {
-      const result = (await response.json()) as { error?: { message: string } };
-      setError(result.error?.message ?? "No se pudo asignar la tarifa");
+    try {
+      await requestApiVoid(`/api/v1/editions/${editionId}/budget`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ memberId, rateId }),
+      });
+    } catch (updateError: unknown) {
+      setError(updateError instanceof Error ? updateError.message : "No se pudo asignar la tarifa");
       return false;
     }
     setParticipants((current) =>

@@ -2,19 +2,19 @@ import { and, desc, eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
   budgetTransactions,
   editionParticipants,
-  editions,
   members,
-  roleAssignments,
 } from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+import {
+  assertEditionOpen,
+  authenticateRequest,
+  canEditEditionArea,
+} from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import { canApplyBudgetTransaction, signedBudgetAmount } from "@/modules/budget/domain/transaction";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
@@ -28,48 +28,6 @@ const transactionSchema = z.object({
   notes: z.string().trim().max(1000).nullable(),
 });
 
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-
-async function canEditBudget(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const rows = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "budget"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return rows.length > 0;
-}
-
-async function assertOpenEdition(database: ReturnType<typeof getDatabase>, editionId: string) {
-  const rows = await database
-    .select({ status: editions.status })
-    .from(editions)
-    .where(eq(editions.id, editionId))
-    .limit(1);
-  if (rows.length === 0) throw new Error("edition_not_found");
-  if (rows[0].status === "closed") throw new Error("edition_closed");
-}
-
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ editionId: string }> },
@@ -78,7 +36,7 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database } = await authenticate(request);
+    const { database } = await authenticateRequest(request);
     const transactions = await database
       .select({
         id: budgetTransactions.id,
@@ -138,10 +96,10 @@ async function mutate(
   if (!parsed.success) return apiFailure("invalid_request", "El movimiento no es válido", 400);
 
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEditBudget(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "budget")))
       return apiFailure("forbidden", "No tienes permiso para editar el presupuesto", 403);
-    await assertOpenEdition(database, editionId);
+    await assertEditionOpen(database, editionId);
     const participant = await database
       .select({ id: editionParticipants.id })
       .from(editionParticipants)
@@ -154,7 +112,7 @@ async function mutate(
       .limit(1);
     if (participant.length === 0) throw new Error("not_annual_participant");
 
-    const signedAmount = parsed.data.kind === "refund" ? -parsed.data.amount : parsed.data.amount;
+    const signedAmount = signedBudgetAmount(parsed.data.kind, parsed.data.amount);
     const existing = await database
       .select({ id: budgetTransactions.id, amount: budgetTransactions.amount })
       .from(budgetTransactions)
@@ -168,7 +126,8 @@ async function mutate(
       (total, item) => (item.id === transactionId ? total : total + Number(item.amount)),
       0,
     );
-    if (currentNet + signedAmount < -0.000001) throw new Error("refund_exceeds_paid");
+    if (!canApplyBudgetTransaction(currentNet, signedAmount))
+      throw new Error("refund_exceeds_paid");
 
     const now = new Date();
     const values = {

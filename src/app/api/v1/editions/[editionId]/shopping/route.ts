@@ -2,20 +2,16 @@ import { and, asc, eq, ilike, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
   editions,
-  roleAssignments,
   shoppingCategories,
   shoppingEditionPreferences,
   shoppingPreferences,
   shoppingProducts,
   shoppingStores,
 } from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+import { authenticateRequest, canEditEditionArea } from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import {
   calculateShoppingTotal,
@@ -55,38 +51,6 @@ const preferencesInputSchema = z.discriminatedUnion("scope", [
   }),
 ]);
 
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-
-async function canEdit(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const editor = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "shopping"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return editor.length > 0;
-}
-
 function serialize(row: {
   plannedQuantity: string | null;
   plannedUnitPrice: string | null;
@@ -109,7 +73,7 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database, member } = await authenticate(request);
+    const { database, member } = await authenticateRequest(request);
     const params = request.nextUrl.searchParams;
     const search = params.get("q")?.trim();
     const status = params.get("status");
@@ -230,7 +194,7 @@ export async function PUT(
   const input = preferencesInputSchema.safeParse(body);
   if (!input.success) return apiFailure("invalid_request", "Las preferencias no son válidas", 400);
   try {
-    const { database, member } = await authenticate(request);
+    const { database, member } = await authenticateRequest(request);
     if (input.data.scope === "general") {
       await database
         .insert(shoppingPreferences)
@@ -327,8 +291,8 @@ async function mutate(
   if (ruleError === "purchased_requires_real_price")
     return apiFailure("invalid_request", "Un producto comprado necesita precio real", 400);
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEdit(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "shopping")))
       return apiFailure("forbidden", "No tienes permiso para editar compras", 403);
     const edition = await database
       .select({ status: editions.status })

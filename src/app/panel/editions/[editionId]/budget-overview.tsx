@@ -8,7 +8,7 @@ import {
   ListState,
   MoneyCell,
 } from "@/components/lists/list-patterns";
-import { Modal } from "@/components/ui/modal";
+import { BalanceForm, MovementForm, RateForm, TransactionForm } from "./budget-forms";
 import styles from "./edition.module.css";
 
 type Rate = { id: string; name: string; amount: string };
@@ -566,210 +566,66 @@ export default function BudgetOverview({
               />
             )}
           </EditPanel>
-          <Modal onClose={() => setRateModalOpen(false)} open={rateModalOpen} title="Nueva tarifa">
-            <form className={styles.rateForm} onSubmit={(event) => void createRate(event)}>
-              <label>
-                Nombre
-                <input
-                  onChange={(event) => setRateName(event.target.value)}
-                  required
-                  value={rateName}
-                />
-              </label>
-              <label>
-                Importe
-                <input
-                  min="0"
-                  onChange={(event) => setRateAmount(event.target.value)}
-                  required
-                  step="0.01"
-                  type="number"
-                  value={rateAmount}
-                />
-              </label>
-              <button type="submit">Crear tarifa</button>
-            </form>
-          </Modal>
-          <Modal
+          <RateForm
+            amount={rateAmount}
+            name={rateName}
+            onAmountChange={setRateAmount}
+            onClose={() => setRateModalOpen(false)}
+            onNameChange={setRateName}
+            onSubmit={(event) => void createRate(event)}
+            open={rateModalOpen}
+          />
+          <TransactionForm
+            amount={transactionAmount}
+            date={transactionDate}
+            editing={editingTransaction !== null}
+            kind={transactionKind}
+            memberId={transactionMemberId}
+            notes={transactionNotes}
+            onAmountChange={setTransactionAmount}
             onClose={() => setTransactionModalOpen(false)}
+            onDateChange={setTransactionDate}
+            onKindChange={setTransactionKind}
+            onMemberChange={setTransactionMemberId}
+            onMethodChange={setTransactionMethod}
+            onNotesChange={setTransactionNotes}
+            onSubmit={(event) => void saveTransaction(event)}
             open={transactionModalOpen}
-            title={
-              editingTransaction ? "Corregir pago o devolución" : "Registrar pago o devolución"
-            }
-          >
-            <form className={styles.rateForm} onSubmit={(event) => void saveTransaction(event)}>
-              <label>
-                Miembro
-                <select
-                  onChange={(event) => setTransactionMemberId(event.target.value)}
-                  required
-                  value={transactionMemberId}
-                >
-                  <option value="">Selecciona un miembro</option>
-                  {participants
-                    .filter((participant) => participant.participating)
-                    .map((participant) => (
-                      <option key={participant.memberId} value={participant.memberId}>
-                        {participant.displayName}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              <label>
-                Tipo
-                <select
-                  onChange={(event) =>
-                    setTransactionKind(event.target.value as "payment" | "refund")
-                  }
-                  value={transactionKind}
-                >
-                  <option value="payment">Pago</option>
-                  <option value="refund">Devolución</option>
-                </select>
-              </label>
-              <label>
-                Importe
-                <input
-                  min="0.01"
-                  onChange={(event) => setTransactionAmount(event.target.value)}
-                  required
-                  step="0.01"
-                  type="number"
-                  value={transactionAmount}
-                />
-              </label>
-              <label>
-                Fecha
-                <input
-                  onChange={(event) => setTransactionDate(event.target.value)}
-                  required
-                  type="date"
-                  value={transactionDate}
-                />
-              </label>
-              <label>
-                Método
-                <select
-                  onChange={(event) =>
-                    setTransactionMethod(event.target.value as "cash" | "bizum" | "transfer")
-                  }
-                  value={transactionMethod}
-                >
-                  <option value="cash">Efectivo</option>
-                  <option value="bizum">Bizum</option>
-                  <option value="transfer">Transferencia</option>
-                </select>
-              </label>
-              <label>
-                Notas
-                <textarea
-                  onChange={(event) => setTransactionNotes(event.target.value)}
-                  value={transactionNotes}
-                />
-              </label>
-              <button type="submit">Guardar</button>
-            </form>
-          </Modal>
-          <Modal
+            participants={participants
+              .filter((participant) => participant.participating)
+              .map(({ memberId, displayName }) => ({ memberId, displayName }))}
+            method={transactionMethod}
+          />
+          <BalanceForm
+            amount={balanceAmount}
+            concept={balanceConcept}
+            editing={editingBalance !== null}
+            onAmountChange={setBalanceAmount}
             onClose={() => setBalanceModalOpen(false)}
+            onConceptChange={setBalanceConcept}
+            onOriginYearChange={setBalanceOriginYear}
+            onSubmit={(event) => void saveBalance(event)}
             open={balanceModalOpen}
-            title={editingBalance ? "Editar saldo" : "Añadir saldo"}
-          >
-            <form className={styles.rateForm} onSubmit={(event) => void saveBalance(event)}>
-              <label>
-                Importe
-                <input
-                  min="-9999999999.99"
-                  onChange={(event) => setBalanceAmount(event.target.value)}
-                  required
-                  step="0.01"
-                  type="number"
-                  value={balanceAmount}
-                />
-              </label>
-              <label>
-                Concepto
-                <input
-                  onChange={(event) => setBalanceConcept(event.target.value)}
-                  required
-                  value={balanceConcept}
-                />
-              </label>
-              <label>
-                Año de origen (opcional)
-                <input
-                  max="2200"
-                  min="1900"
-                  onChange={(event) => setBalanceOriginYear(event.target.value)}
-                  type="number"
-                  value={balanceOriginYear}
-                />
-              </label>
-              <button type="submit">Guardar saldo</button>
-            </form>
-          </Modal>
-          <Modal
+            originYear={balanceOriginYear}
+          />
+          <MovementForm
+            amount={movementAmount}
+            concept={movementConcept}
+            date={movementDate}
+            editing={editingMovement !== null}
+            kind={movementKind}
+            notes={movementNotes}
+            onAmountChange={setMovementAmount}
             onClose={() => setMovementModalOpen(false)}
+            onConceptChange={setMovementConcept}
+            onDateChange={setMovementDate}
+            onKindChange={setMovementKind}
+            onNotesChange={setMovementNotes}
+            onPlannedChange={setMovementPlanned}
+            onSubmit={(event) => void saveMovement(event)}
             open={movementModalOpen}
-            title={editingMovement ? "Editar movimiento" : "Añadir movimiento"}
-          >
-            <form className={styles.rateForm} onSubmit={(event) => void saveMovement(event)}>
-              <label>
-                Tipo
-                <select
-                  onChange={(event) => setMovementKind(event.target.value as "income" | "expense")}
-                  value={movementKind}
-                >
-                  <option value="expense">Gasto</option>
-                  <option value="income">Ingreso</option>
-                </select>
-              </label>
-              <label>
-                Importe
-                <input
-                  min="0.01"
-                  onChange={(event) => setMovementAmount(event.target.value)}
-                  required
-                  step="0.01"
-                  type="number"
-                  value={movementAmount}
-                />
-              </label>
-              <label className={styles.checkboxLabel}>
-                <input
-                  checked={movementPlanned}
-                  onChange={(event) => setMovementPlanned(event.target.checked)}
-                  type="checkbox"
-                />{" "}
-                Previsto
-              </label>
-              <label>
-                Fecha
-                <input
-                  onChange={(event) => setMovementDate(event.target.value)}
-                  required
-                  type="date"
-                  value={movementDate}
-                />
-              </label>
-              <label>
-                Concepto
-                <input
-                  onChange={(event) => setMovementConcept(event.target.value)}
-                  required
-                  value={movementConcept}
-                />
-              </label>
-              <label>
-                Notas
-                <textarea
-                  onChange={(event) => setMovementNotes(event.target.value)}
-                  value={movementNotes}
-                />
-              </label>
-              <button type="submit">Guardar movimiento</button>
-            </form>
-          </Modal>
+            planned={movementPlanned}
+          />
         </>
       )}
     </div>

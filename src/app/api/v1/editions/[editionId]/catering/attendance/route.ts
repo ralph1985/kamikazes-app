@@ -2,18 +2,17 @@ import { and, asc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
   cateringAttendance,
   cateringMeals,
-  editions,
   members,
-  roleAssignments,
 } from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+import {
+  assertEditionOpen,
+  authenticateRequest,
+  canEditEditionArea,
+} from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
@@ -26,37 +25,6 @@ const attendanceSchema = z.object({
   paymentNotes: z.string().trim().max(500).nullable().optional(),
 });
 
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-async function isEditor(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const rows = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "catering"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return rows.length > 0;
-}
-
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ editionId: string }> },
@@ -65,8 +33,8 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database, member } = await authenticate(request);
-    const editor = await isEditor(database, member.memberId, editionId);
+    const { database, member } = await authenticateRequest(request);
+    const editor = await canEditEditionArea(database, member.memberId, editionId, "catering");
     const attendance = await database
       .select({
         id: cateringAttendance.id,
@@ -109,18 +77,17 @@ export async function PUT(
   if (!parsed.success)
     return apiFailure("invalid_request", "Los datos de asistencia no son válidos", 400);
   try {
-    const { database, member } = await authenticate(request);
-    const editor = await isEditor(database, member.memberId, editionId);
+    const { database, member } = await authenticateRequest(request);
+    const editor = await canEditEditionArea(database, member.memberId, editionId, "catering");
     if (!editor && parsed.data.memberId !== member.memberId)
       return apiFailure("forbidden", "Sólo puedes modificar tu propia asistencia", 403);
-    const edition = await database
-      .select({ status: editions.status })
-      .from(editions)
-      .where(eq(editions.id, editionId))
-      .limit(1);
-    if (!edition.length) return apiFailure("not_found", "La edición no existe", 404);
-    if (edition[0].status === "closed")
-      return apiFailure("edition_closed", "La edición está cerrada", 409);
+    try {
+      await assertEditionOpen(database, editionId);
+    } catch (error) {
+      if (error instanceof Error && error.message === "edition_not_found")
+        return apiFailure("not_found", "La edición no existe", 404);
+      throw error;
+    }
     const meal = await database
       .select({ id: cateringMeals.id })
       .from(cateringMeals)

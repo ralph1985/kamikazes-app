@@ -2,18 +2,17 @@ import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
-  editions,
   members,
-  roleAssignments,
   shoppingPurchases,
   shoppingStores,
 } from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+import {
+  assertEditionOpen,
+  authenticateRequest,
+  canEditEditionArea,
+} from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
@@ -28,48 +27,6 @@ const purchaseSchema = z.object({
   notes: z.string().trim().max(1000).nullable(),
 });
 
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-
-async function canEdit(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const editor = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "shopping"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return editor.length > 0;
-}
-
-async function assertOpenEdition(database: ReturnType<typeof getDatabase>, editionId: string) {
-  const edition = await database
-    .select({ status: editions.status })
-    .from(editions)
-    .where(eq(editions.id, editionId))
-    .limit(1);
-  if (!edition.length) throw new Error("edition_not_found");
-  if (edition[0].status === "closed") throw new Error("edition_closed");
-}
-
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ editionId: string }> },
@@ -78,7 +35,7 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database } = await authenticate(request);
+    const { database } = await authenticateRequest(request);
     const purchases = await database
       .select({
         id: shoppingPurchases.id,
@@ -148,10 +105,10 @@ async function mutate(
   if (!parsed.success)
     return apiFailure("invalid_request", "Los datos de la compra no son válidos", 400);
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEdit(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "shopping")))
       return apiFailure("forbidden", "No tienes permiso para editar compras", 403);
-    await assertOpenEdition(database, editionId);
+    await assertEditionOpen(database, editionId);
     const purchaser = await database
       .select({ id: members.id })
       .from(members)

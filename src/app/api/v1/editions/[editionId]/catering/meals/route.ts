@@ -2,16 +2,12 @@ import { and, asc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
+import { auditEvents, cateringMeals } from "@/infrastructure/database/schema";
 import {
-  auditEvents,
-  cateringMeals,
-  editions,
-  roleAssignments,
-} from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+  assertEditionOpen,
+  authenticateRequest,
+  canEditEditionArea,
+} from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
@@ -24,46 +20,6 @@ const mealSchema = z.object({
   sortOrder: z.number().int().min(0).max(9999),
 });
 
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-async function canEdit(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const rows = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "catering"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return rows.length > 0;
-}
-async function assertOpen(database: ReturnType<typeof getDatabase>, editionId: string) {
-  const rows = await database
-    .select({ status: editions.status })
-    .from(editions)
-    .where(eq(editions.id, editionId))
-    .limit(1);
-  if (!rows.length) throw new Error("edition_not_found");
-  if (rows[0].status === "closed") throw new Error("edition_closed");
-}
-
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ editionId: string }> },
@@ -72,13 +28,16 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database, member } = await authenticate(request);
+    const { database, member } = await authenticateRequest(request);
     const meals = await database
       .select()
       .from(cateringMeals)
       .where(eq(cateringMeals.editionId, editionId))
       .orderBy(asc(cateringMeals.sortOrder), asc(cateringMeals.name));
-    return apiSuccess({ meals, canEdit: await canEdit(database, member.memberId, editionId) });
+    return apiSuccess({
+      meals,
+      canEdit: await canEditEditionArea(database, member.memberId, editionId, "catering"),
+    });
   } catch (error) {
     if (error instanceof IdentityError)
       return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);
@@ -127,10 +86,10 @@ async function mutate(
   if (!parsed.success)
     return apiFailure("invalid_request", "Los datos de la comida no son válidos", 400);
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEdit(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "catering")))
       return apiFailure("forbidden", "No tienes permiso para editar catering", 403);
-    await assertOpen(database, editionId);
+    await assertEditionOpen(database, editionId);
     const existing = mealId
       ? await database
           .select()

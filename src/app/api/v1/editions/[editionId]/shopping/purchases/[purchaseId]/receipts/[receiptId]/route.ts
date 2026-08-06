@@ -2,53 +2,18 @@ import { del, get } from "@vercel/blob";
 import { and, eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
+import type { getDatabase } from "@/infrastructure/database/client";
 import {
   auditEvents,
   editions,
-  roleAssignments,
   shoppingPurchases,
   shoppingReceipts,
 } from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+import { authenticateRequest, canEditEditionArea } from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
 export const runtime = "nodejs";
-
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-
-async function canEdit(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const editor = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "shopping"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return editor.length > 0;
-}
 
 async function receiptContext(
   database: ReturnType<typeof getDatabase>,
@@ -86,7 +51,7 @@ export async function GET(
   if (![editionId, purchaseId, receiptId].every((value) => z.uuid().safeParse(value).success))
     return apiFailure("invalid_request", "El ticket no es válido", 400);
   try {
-    const { database } = await authenticate(_request);
+    const { database } = await authenticateRequest(_request);
     const receipt = await receiptContext(database, editionId, purchaseId, receiptId);
     if (!receipt.length) return apiFailure("not_found", "El ticket no existe", 404);
     const blob = await get(receipt[0].pathname, { access: "private" });
@@ -114,8 +79,8 @@ export async function DELETE(
   if (![editionId, purchaseId, receiptId].every((value) => z.uuid().safeParse(value).success))
     return apiFailure("invalid_request", "El ticket no es válido", 400);
   try {
-    const { database, member } = await authenticate(_request);
-    if (!(await canEdit(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(_request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "shopping")))
       return apiFailure("forbidden", "No tienes permiso para eliminar tickets", 403);
     const receipt = await receiptContext(database, editionId, purchaseId, receiptId);
     if (!receipt.length) return apiFailure("not_found", "El ticket no existe", 404);

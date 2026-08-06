@@ -2,16 +2,12 @@ import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/infrastructure/database/client";
+import { auditEvents, budgetMovements } from "@/infrastructure/database/schema";
 import {
-  auditEvents,
-  budgetMovements,
-  editions,
-  roleAssignments,
-} from "@/infrastructure/database/schema";
-import { createDatabaseGlobalAdminReader } from "@/modules/identity/adapters/database-global-admin-reader";
-import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
-import { authenticateSession } from "@/modules/identity/application/session";
+  assertEditionOpen,
+  authenticateRequest,
+  canEditEditionArea,
+} from "@/shared/server/authorization";
 import { IdentityError } from "@/modules/identity/domain/identity";
 import { apiFailure, apiSuccess } from "@/shared/http/api-response";
 
@@ -26,48 +22,6 @@ const movementSchema = z.object({
   notes: z.string().trim().max(1000).nullable(),
 });
 
-async function authenticate(request: NextRequest) {
-  const token = request.cookies.get("kamikazes_session")?.value;
-  if (!token) throw new IdentityError("invalid_credentials", "La sesión no es válida");
-  const database = getDatabase();
-  const member = await authenticateSession(token, {
-    sessions: createDatabaseSessionReader(database),
-    clock: { now: () => new Date() },
-  });
-  return { database, member };
-}
-
-async function canEdit(
-  database: ReturnType<typeof getDatabase>,
-  memberId: string,
-  editionId: string,
-) {
-  if (await createDatabaseGlobalAdminReader(database).isGlobalAdmin(memberId)) return true;
-  const rows = await database
-    .select({ id: roleAssignments.id })
-    .from(roleAssignments)
-    .where(
-      and(
-        eq(roleAssignments.memberId, memberId),
-        eq(roleAssignments.editionId, editionId),
-        eq(roleAssignments.area, "budget"),
-        eq(roleAssignments.role, "editor"),
-      ),
-    )
-    .limit(1);
-  return rows.length > 0;
-}
-
-async function openEdition(database: ReturnType<typeof getDatabase>, editionId: string) {
-  const rows = await database
-    .select({ status: editions.status })
-    .from(editions)
-    .where(eq(editions.id, editionId))
-    .limit(1);
-  if (rows.length === 0) throw new Error("edition_not_found");
-  if (rows[0].status === "closed") throw new Error("edition_closed");
-}
-
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ editionId: string }> },
@@ -76,7 +30,7 @@ export async function GET(
   if (!z.uuid().safeParse(editionId).success)
     return apiFailure("invalid_request", "La edición no es válida", 400);
   try {
-    const { database } = await authenticate(request);
+    const { database } = await authenticateRequest(request);
     const movements = await database
       .select()
       .from(budgetMovements)
@@ -118,10 +72,10 @@ export async function DELETE(
   const input = z.object({ id: z.uuid() }).safeParse(body.value);
   if (!input.success) return apiFailure("invalid_request", "El movimiento no es válido", 400);
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEdit(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "budget")))
       return apiFailure("forbidden", "No tienes permiso para editar el presupuesto", 403);
-    await openEdition(database, editionId);
+    await assertEditionOpen(database, editionId);
     const current = await database
       .select()
       .from(budgetMovements)
@@ -160,10 +114,10 @@ async function mutate(
   const input = movementSchema.safeParse(body.value);
   if (!input.success) return apiFailure("invalid_request", "El movimiento no es válido", 400);
   try {
-    const { database, member } = await authenticate(request);
-    if (!(await canEdit(database, member.memberId, editionId)))
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "budget")))
       return apiFailure("forbidden", "No tienes permiso para editar el presupuesto", 403);
-    await openEdition(database, editionId);
+    await assertEditionOpen(database, editionId);
     const movementId = id ?? randomUUID();
     let before: unknown = null;
     if (id) {
