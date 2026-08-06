@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CompactList, CompactListRow } from "@/components/lists/compact-list";
 import { ListState, MoneyCell } from "@/components/lists/list-patterns";
-import { Modal } from "@/components/ui/modal";
+import { MealForm } from "./catering-forms";
 import styles from "./edition.module.css";
 
 type Meal = {
@@ -279,53 +279,18 @@ export default function CateringOverview({
           </section>
         ))
       )}
-      <Modal
+      <MealForm
+        editing={selectedMeal !== null}
+        name={mealName}
         onClose={() => setMealModal(false)}
+        onNameChange={setMealName}
+        onPlannedPriceChange={setPlannedPrice}
+        onRealPriceChange={setRealPrice}
+        onSubmit={saveMeal}
         open={mealModal}
-        title={selectedMeal ? "Editar comida" : "Añadir comida"}
-      >
-        <form className={styles.form} onSubmit={saveMeal}>
-          <label>
-            Nombre
-            <input
-              onChange={(event) => setMealName(event.target.value)}
-              required
-              value={mealName}
-            />
-          </label>
-          <div className={styles.twoColumns}>
-            <label>
-              Precio previsto
-              <input
-                min="0"
-                onChange={(event) => setPlannedPrice(event.target.value)}
-                required
-                step="0.01"
-                type="number"
-                value={plannedPrice}
-              />
-            </label>
-            <label>
-              Precio real
-              <input
-                min="0"
-                onChange={(event) => setRealPrice(event.target.value)}
-                step="0.01"
-                type="number"
-                value={realPrice}
-              />
-            </label>
-          </div>
-          <div className={styles.actions}>
-            <button className={styles.cancel} onClick={() => setMealModal(false)} type="button">
-              Cancelar
-            </button>
-            <button className={styles.primary} type="submit">
-              Guardar
-            </button>
-          </div>
-        </form>
-      </Modal>
+        plannedPrice={plannedPrice}
+        realPrice={realPrice}
+      />
     </section>
   );
 }

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { CompactList, CompactListRow, EditIcon, IconButton } from "@/components/lists/compact-list";
 import { ListState, ListToolbar, MoneyCell } from "@/components/lists/list-patterns";
-import { Modal } from "@/components/ui/modal";
 import PurchasesOverview from "./purchases-overview";
+import { CopyShoppingForm, ShoppingProductForm, type ShoppingFormState } from "./shopping-forms";
 import styles from "./shopping.module.css";
 
 type Product = {
@@ -27,19 +27,6 @@ type Product = {
 type Option = { id: string; name: string };
 export type ShoppingStore = Option;
 type Edition = { id: string; year: number; status: string };
-type FormState = {
-  id?: string;
-  description: string;
-  category: string;
-  store: string;
-  assignment: string;
-  plannedQuantity: string;
-  realQuantity: string;
-  plannedUnitPrice: string;
-  realUnitPrice: string;
-  notes: string;
-  status: string;
-};
 const statuses = [
   ["pending", "Pendiente"],
   ["in_cart", "En carrito"],
@@ -47,7 +34,7 @@ const statuses = [
   ["not_buying", "No se compra este año"],
   ["gifted", "Regalado"],
 ] as const;
-const emptyForm: FormState = {
+const emptyForm: ShoppingFormState = {
   description: "",
   category: "",
   store: "",
@@ -87,7 +74,7 @@ export default function ShoppingOverview({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<ShoppingFormState>(emptyForm);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -292,7 +279,7 @@ export default function ShoppingOverview({
       setCopying(false);
     }
   }
-  const setField = (field: keyof FormState, value: string) =>
+  const setField = (field: keyof ShoppingFormState, value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
 
   return (
@@ -467,166 +454,25 @@ export default function ShoppingOverview({
         ))
       )}
       <PurchasesOverview editionId={editionId} readOnly={readOnly} stores={stores} />
-      <Modal
+      <ShoppingProductForm
+        categories={categories}
+        form={form}
+        onChange={setField}
         onClose={() => setModalOpen(false)}
+        onSubmit={save}
         open={modalOpen}
-        title={form.id ? "Editar producto" : "Añadir producto"}
-      >
-        <form className={styles.form} onSubmit={save}>
-          <label>
-            Descripción
-            <input
-              onChange={(event) => setField("description", event.target.value)}
-              required
-              value={form.description}
-            />
-          </label>
-          <div className={styles.twoColumns}>
-            <label>
-              Categoría
-              <input
-                onChange={(event) => setField("category", event.target.value)}
-                list="shopping-categories"
-                value={form.category}
-              />
-              <datalist id="shopping-categories">
-                {categories.map((option) => (
-                  <option key={option.id} value={option.name} />
-                ))}
-              </datalist>
-            </label>
-            <label>
-              Tienda
-              <input
-                onChange={(event) => setField("store", event.target.value)}
-                list="shopping-stores"
-                value={form.store}
-              />
-              <datalist id="shopping-stores">
-                {stores.map((option) => (
-                  <option key={option.id} value={option.name} />
-                ))}
-              </datalist>
-            </label>
-          </div>
-          <div className={styles.twoColumns}>
-            <label>
-              Cantidad prevista
-              <input
-                min="-999999"
-                onChange={(event) => setField("plannedQuantity", event.target.value)}
-                step="0.001"
-                type="number"
-                value={form.plannedQuantity}
-              />
-            </label>
-            <label>
-              Precio unitario previsto
-              <input
-                min="0"
-                onChange={(event) => setField("plannedUnitPrice", event.target.value)}
-                step="0.01"
-                type="number"
-                value={form.plannedUnitPrice}
-              />
-            </label>
-            <label>
-              Cantidad real
-              <input
-                min="-999999"
-                onChange={(event) => setField("realQuantity", event.target.value)}
-                step="0.001"
-                type="number"
-                value={form.realQuantity}
-              />
-            </label>
-            <label>
-              Precio unitario real
-              <input
-                min="0"
-                onChange={(event) => setField("realUnitPrice", event.target.value)}
-                step="0.01"
-                type="number"
-                value={form.realUnitPrice}
-              />
-            </label>
-          </div>
-          <div className={styles.twoColumns}>
-            <label>
-              Responsable
-              <input
-                onChange={(event) => setField("assignment", event.target.value)}
-                value={form.assignment}
-              />
-            </label>
-            <label>
-              Estado
-              <select
-                onChange={(event) => setField("status", event.target.value)}
-                value={form.status}
-              >
-                {statuses.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <label>
-            Notas
-            <textarea
-              onChange={(event) => setField("notes", event.target.value)}
-              value={form.notes}
-            />
-          </label>
-          <div className={styles.actions}>
-            <button className={styles.cancel} onClick={() => setModalOpen(false)} type="button">
-              Cancelar
-            </button>
-            <button className={styles.primary} type="submit">
-              Guardar
-            </button>
-          </div>
-        </form>
-      </Modal>
-      <Modal
+        stores={stores}
+      />
+      <CopyShoppingForm
+        copying={copying}
+        currentEditionId={editionId}
+        editions={editions}
         onClose={() => setCopyModalOpen(false)}
+        onSourceChange={setSourceEditionId}
+        onSubmit={copyFromEdition}
         open={copyModalOpen}
-        title="Copiar lista de otra edición"
-      >
-        <form className={styles.form} onSubmit={copyFromEdition}>
-          <p className={styles.muted}>
-            Se copiarán productos, categorías, tiendas y previsión. El seguimiento real empezará de
-            nuevo.
-          </p>
-          <label>
-            Edición origen
-            <select
-              onChange={(event) => setSourceEditionId(event.target.value)}
-              required
-              value={sourceEditionId}
-            >
-              <option value="">Selecciona una edición</option>
-              {editions
-                .filter((edition) => edition.id !== editionId)
-                .map((edition) => (
-                  <option key={edition.id} value={edition.id}>
-                    {edition.year} · {edition.status === "closed" ? "Cerrada" : "Abierta"}
-                  </option>
-                ))}
-            </select>
-          </label>
-          <div className={styles.actions}>
-            <button className={styles.cancel} onClick={() => setCopyModalOpen(false)} type="button">
-              Cancelar
-            </button>
-            <button className={styles.primary} disabled={copying} type="submit">
-              {copying ? "Copiando…" : "Copiar lista"}
-            </button>
-          </div>
-        </form>
-      </Modal>
+        sourceEditionId={sourceEditionId}
+      />
     </div>
   );
 }
