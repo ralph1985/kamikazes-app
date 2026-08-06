@@ -287,7 +287,7 @@
 .tableFrame {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  overflow: clip;
 }
 
 .tableMeta {
@@ -310,6 +310,7 @@
 
 .tableScroll {
   overflow-x: auto;
+  overflow-y: clip;
 }
 
 .shoppingTable {
@@ -352,6 +353,7 @@
 
 .shoppingTable .tableLabels th {
   top: calc(var(--app-header-height, 58px) + 142px);
+  z-index: 9;
 }
 
 .shoppingTable .tableFilters th {
