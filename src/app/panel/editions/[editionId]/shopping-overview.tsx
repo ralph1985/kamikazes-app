@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ListState } from "@/components/lists/list-patterns";
-import PurchasesOverview from "./purchases-overview";
 import { CopyShoppingForm } from "./shopping-forms";
 import ShoppingTable, { type ShoppingTableProduct } from "./shopping-table";
 import styles from "./shopping.module.css";
@@ -458,7 +457,6 @@ export default function ShoppingOverview({
           stores={stores}
         />
       )}
-      <PurchasesOverview editionId={editionId} readOnly={readOnly} stores={stores} />
       <CopyShoppingForm
         copying={copying}
         currentEditionId={editionId}

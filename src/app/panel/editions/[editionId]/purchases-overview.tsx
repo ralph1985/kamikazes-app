@@ -23,11 +23,11 @@ type Receipt = { id: string; filename: string; contentType: string; sizeBytes: n
 export default function PurchasesOverview({
   editionId,
   readOnly,
-  stores,
-}: Readonly<{ editionId: string; readOnly: boolean; stores: ShoppingStore[] }>) {
+}: Readonly<{ editionId: string; readOnly: boolean }>) {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [receipts, setReceipts] = useState<Record<string, Receipt[]>>({});
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [stores, setStores] = useState<ShoppingStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -41,9 +41,10 @@ export default function PurchasesOverview({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [purchasesResponse, participantsResponse] = await Promise.all([
+      const [purchasesResponse, participantsResponse, shoppingResponse] = await Promise.all([
         fetch(`/api/v1/editions/${editionId}/shopping/purchases`),
         fetch(`/api/v1/editions/${editionId}/participants`),
+        fetch(`/api/v1/editions/${editionId}/shopping`),
       ]);
       const purchasesResult = (await purchasesResponse.json()) as {
         data?: { purchases: Purchase[] };
@@ -53,12 +54,19 @@ export default function PurchasesOverview({
         data?: Participant[];
         error?: { message: string };
       };
+      const shoppingResult = (await shoppingResponse.json()) as {
+        data?: { stores: ShoppingStore[] };
+        error?: { message: string };
+      };
       if (!purchasesResponse.ok || !purchasesResult.data)
         throw new Error(purchasesResult.error?.message ?? "No se pudieron cargar las compras");
       if (!participantsResponse.ok || !participantsResult.data)
         throw new Error(participantsResult.error?.message ?? "No se pudieron cargar los miembros");
+      if (!shoppingResponse.ok || !shoppingResult.data)
+        throw new Error(shoppingResult.error?.message ?? "No se pudieron cargar las tiendas");
       setPurchases(purchasesResult.data.purchases);
       setParticipants(participantsResult.data);
+      setStores(shoppingResult.data.stores);
       const receiptEntries = await Promise.all(
         purchasesResult.data.purchases.map(async (purchase) => {
           const response = await fetch(
