@@ -462,84 +462,85 @@
   }
 }
 
-/* Dense data view: prioritize scanability without shrinking touch controls. */
+/* Dense data view: prioritize scanability for the operational grid. */
 .tableMeta {
-  font-size: 0.7rem;
-  padding: 6px 10px;
+  font-size: 0.64rem;
+  padding: 4px 8px;
 }
 
 .shoppingTable {
-  font-size: 0.72rem;
-  min-width: 1160px;
+  font-size: 0.64rem;
+  min-width: 1080px;
 }
 
 .shoppingTable th,
 .shoppingTable td {
-  min-width: 112px;
-  padding: 4px 5px;
+  min-width: 104px;
+  padding: 3px 4px;
 }
 
 .shoppingTable .productColumn {
-  min-width: 190px;
-  width: 190px;
+  min-width: 176px;
+  width: 176px;
 }
 
 .numberColumn {
-  min-width: 96px !important;
+  min-width: 88px !important;
 }
 
 .tableInput,
 .tableSelect,
 .filterInput,
 .filterSelect {
-  font-size: 0.72rem;
-  padding: 4px 5px;
+  font-size: 0.64rem;
+  min-height: 22px;
+  padding: 2px 3px;
 }
 
 .summaryGrid > div {
-  min-height: 54px;
-  padding: 7px 9px;
+  min-height: 48px;
+  padding: 5px 7px;
 }
 
 .summaryGrid span {
-  font-size: 0.61rem;
+  font-size: 0.57rem;
 }
 
 .summaryGrid strong {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
 }
 
 @media (max-width: 800px) {
-  /* iOS only zooms focused form controls below 16px; keep the table text compact
-     while giving interactive cells the minimum focus size Safari expects. */
+  /* The edition route disables viewport scaling; keep controls compact too. */
   .tableInput,
   .tableSelect,
   .filterInput,
   .filterSelect {
-    font-size: 16px;
+    font-size: 0.64rem;
+    min-height: 21px;
   }
 
   .shoppingTable {
-    font-size: 0.68rem;
-    min-width: 1080px;
+    font-size: 0.6rem;
+    min-width: 1000px;
   }
 
   .shoppingTable th,
   .shoppingTable td {
-    min-width: 102px;
-    padding: 3px 4px;
+    min-width: 94px;
+    padding: 2px 3px;
   }
 
   .shoppingTable .productColumn {
-    min-width: 174px;
-    width: 174px;
+    min-width: 160px;
+    width: 160px;
   }
 
   .numberColumn {
-    min-width: 88px !important;
+    min-width: 80px !important;
   }
 
   .summaryGrid strong {
-    font-size: 0.84rem;
+    font-size: 0.76rem;
   }
 }

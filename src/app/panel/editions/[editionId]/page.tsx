@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import type { Viewport } from "next";
 import { getDatabase } from "@/infrastructure/database/client";
 import { createDatabaseEditionReader } from "@/modules/editions/adapters/database-edition-reader";
 import { listEditions } from "@/modules/editions/application/list-editions";
@@ -16,6 +17,13 @@ import InventoryOverview from "./inventory-overview";
 import styles from "./edition.module.css";
 
 export const dynamic = "force-dynamic";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 const sections = [
   { key: "summary", label: "Resumen", available: true },
