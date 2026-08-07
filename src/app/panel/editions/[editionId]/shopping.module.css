@@ -317,7 +317,6 @@
 
 .tableScroll {
   overflow-x: auto;
-  overflow-y: clip;
 }
 
 .shoppingTable {
@@ -476,6 +475,14 @@
 
   .tableControls > span {
     flex-basis: 100%;
+  }
+
+  .shoppingTable .tableLabels th {
+    top: calc(var(--app-header-height, 58px) + 210px);
+  }
+
+  .shoppingTable .tableFilters th {
+    top: calc(var(--app-header-height, 58px) + 244px);
   }
 }
 
