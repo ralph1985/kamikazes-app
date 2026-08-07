@@ -6,7 +6,7 @@
 }
 
 .wide {
-  max-width: 1320px;
+  max-width: var(--content-width);
 }
 
 .auth {
