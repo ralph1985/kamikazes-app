@@ -150,7 +150,7 @@ Segundo bloque en desarrollo:
 
 Criterios de aceptación de la primera rebanada:
 
-- los productos pertenecen a una única edición y no se eliminan;
+- los productos pertenecen a una única edición y sólo los editores de compras y administradores pueden borrarlos con confirmación y auditoría;
 - lectores consultan y filtran; editores de compras y administradores crean y modifican;
 - cantidades y precios previstos/reales calculan el total automáticamente;
 - las mutaciones se auditan y una edición cerrada queda en sólo lectura;

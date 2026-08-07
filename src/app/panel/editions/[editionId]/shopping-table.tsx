@@ -320,6 +320,7 @@ export default function ShoppingTable({
   onCreateCategory,
   onCreateProduct,
   onCreateStore,
+  onDeleteProduct,
   onSave,
   groupBy,
   sortBy,
@@ -336,6 +337,7 @@ export default function ShoppingTable({
   onCreateCategory: (name: string) => Promise<void>;
   onCreateProduct: (defaults: NewProductDefaults) => Promise<ShoppingTableProduct>;
   onCreateStore: (name: string) => Promise<void>;
+  onDeleteProduct: (product: ShoppingTableProduct) => Promise<void>;
   onSave: (product: ShoppingTableProduct, field: Field, value: string) => Promise<void>;
   groupBy: string;
   sortBy: string;
@@ -463,13 +465,16 @@ export default function ShoppingTable({
     }
   }
 
-  async function markNotBuying(product: ShoppingTableProduct) {
-    setSaving(`${product.id}:status`);
+  async function deleteProduct(product: ShoppingTableProduct) {
+    const label = product.description.trim() || "este producto";
+    if (!window.confirm(`¿Seguro que quieres borrar «${label}»? Esta acción no se puede deshacer.`))
+      return;
+    setSaving(`${product.id}:delete`);
     setSaveError(null);
     try {
-      await onSave(product, "status", "not_buying");
+      await onDeleteProduct(product);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "No se pudo retirar el producto");
+      setSaveError(error instanceof Error ? error.message : "No se pudo borrar el producto");
     } finally {
       setSaving(null);
     }
@@ -618,15 +623,15 @@ export default function ShoppingTable({
                       <MoneyCell amount={realTotal} />
                     </td>
                     <td className={styles.actionColumn}>
-                      {!readOnly && product.status !== "not_buying" ? (
+                      {!readOnly ? (
                         <button
                           className={styles.detailToggle}
                           disabled={saving !== null}
-                          onClick={() => void markNotBuying(product)}
-                          title="Marcar como no necesario sin borrar el histórico"
+                          onClick={() => void deleteProduct(product)}
+                          title="Borrar producto definitivamente"
                           type="button"
                         >
-                          No comprar
+                          Borrar
                         </button>
                       ) : null}
                       <button

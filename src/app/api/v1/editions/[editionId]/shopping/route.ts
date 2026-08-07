@@ -42,6 +42,7 @@ const productInputSchema = z.object({
   notes: z.string().trim().max(1000).nullable().default(null),
   status: z.enum(shoppingStatuses).default("pending"),
 });
+const deleteProductInputSchema = z.object({ id: z.uuid() });
 const preferencesInputSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("general"),
@@ -477,4 +478,59 @@ export async function PATCH(
   context: { params: Promise<{ editionId: string }> },
 ) {
   return mutate(request, context, "update");
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ editionId: string }> },
+) {
+  const { editionId } = await context.params;
+  if (!z.uuid().safeParse(editionId).success)
+    return apiFailure("invalid_request", "La edición no es válida", 400);
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return apiFailure("invalid_request", "El cuerpo debe ser JSON válido", 400);
+  }
+  const input = deleteProductInputSchema.safeParse(body);
+  if (!input.success) return apiFailure("invalid_request", "El producto no es válido", 400);
+  try {
+    const { database, member } = await authenticateRequest(request);
+    if (!(await canEditEditionArea(database, member.memberId, editionId, "shopping")))
+      return apiFailure("forbidden", "No tienes permiso para editar compras", 403);
+    const edition = await database
+      .select({ status: editions.status })
+      .from(editions)
+      .where(eq(editions.id, editionId))
+      .limit(1);
+    if (!edition.length) return apiFailure("not_found", "La edición no existe", 404);
+    if (edition[0].status === "closed")
+      return apiFailure("edition_closed", "La edición está cerrada", 409);
+    const existing = await database
+      .select()
+      .from(shoppingProducts)
+      .where(and(eq(shoppingProducts.id, input.data.id), eq(shoppingProducts.editionId, editionId)))
+      .limit(1);
+    if (!existing.length) return apiFailure("not_found", "El producto no existe en esta edición", 404);
+    await database.batch([
+      database
+        .delete(shoppingProducts)
+        .where(and(eq(shoppingProducts.id, input.data.id), eq(shoppingProducts.editionId, editionId))),
+      database.insert(auditEvents).values({
+        memberId: member.memberId,
+        action: "delete",
+        area: "shopping",
+        entity: "shopping_product",
+        entityId: input.data.id,
+        beforeValue: existing[0],
+        afterValue: null,
+      }),
+    ] as never);
+    return apiSuccess({ id: input.data.id });
+  } catch (error) {
+    if (error instanceof IdentityError)
+      return apiFailure("unauthenticated", "Necesitas iniciar sesión", 401);
+    return apiFailure("shopping_unavailable", "No se ha podido borrar el producto", 503);
+  }
 }

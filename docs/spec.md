@@ -176,7 +176,7 @@ La cabecera de la tabla permanecerá visible e incluirá estos indicadores, calc
 
 La cantidad y el precio presupuestados serán independientes de la cantidad y el precio reales. El estado `Comprado` podrá marcarse desde la tabla o mediante el procesamiento de tickets. El procesamiento de tickets sólo propondrá cambios y requerirá confirmación antes de actualizar productos.
 
-Los lectores podrán consultar todos los productos y sus detalles. Sólo los editores de compras y el administrador podrán crear o modificar productos de la lista. Los productos no se eliminarán: cuando dejen de ser necesarios se conservarán y se marcarán con un estado de no compra. Los estados iniciales serán `Pendiente`, `Comprado`, `No se compra este año` y `Regalado`.
+Los lectores podrán consultar todos los productos y sus detalles. Sólo los editores de compras y el administrador podrán crear, modificar o borrar productos de la lista. El borrado será físico, exigirá una confirmación explícita en la interfaz, sólo se permitirá en ediciones abiertas y quedará registrado en auditoría con el valor anterior y el identificador del producto eliminado. Los estados iniciales serán `Pendiente`, `Comprado`, `No se compra este año` y `Regalado`.
 
 La cantidad de un producto podrá ser entera o decimal, para admitir unidades fraccionarias y productos vendidos por peso, con un máximo de tres decimales. Se permitirá el valor `0`, aunque la forma recomendada de indicar que un producto no se compra será el estado `No se compra este año`. También se permitirán cantidades negativas para representar devoluciones; en esos casos el total calculado podrá ser negativo y será obligatoria una nota explicando el motivo.
 

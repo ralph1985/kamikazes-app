@@ -246,6 +246,17 @@ export default function ShoppingOverview({
     return created;
   }
 
+  async function deleteProduct(product: Product) {
+    const response = await fetch(`/api/v1/editions/${editionId}/shopping`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: product.id }),
+    });
+    const result = (await response.json()) as { error?: { message: string } };
+    if (!response.ok) throw new Error(result.error?.message ?? "No se pudo borrar el producto");
+    await load();
+  }
+
   async function createCategory(name: string) {
     const response = await fetch(`/api/v1/editions/${editionId}/shopping/categories`, {
       method: "POST",
@@ -437,6 +448,7 @@ export default function ShoppingOverview({
           onCreateCategory={createCategory}
           onCreateProduct={createInlineProduct}
           onCreateStore={createStore}
+          onDeleteProduct={deleteProduct}
           onFilterChange={(field, value) =>
             field === "status"
               ? setStatus(value)

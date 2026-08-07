@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { GET, POST, PUT } from "./route";
+import { DELETE, GET, POST, PUT } from "./route";
 import { POST as createCategory } from "./categories/route";
 import { POST as createStore } from "./stores/route";
 import { POST as copyShopping } from "../shopping/copy/route";
@@ -30,6 +30,20 @@ describe("/api/v1/editions/:editionId/shopping", () => {
     );
 
     expect(response.status).toBe(401);
+  });
+
+  it("valida el producto antes de borrar", async () => {
+    const editionId = "123e4567-e89b-12d3-a456-426614174000";
+    const response = await DELETE(
+      new NextRequest(`http://localhost/api/v1/editions/${editionId}/shopping`, {
+        method: "DELETE",
+        body: JSON.stringify({ id: "not-an-id" }),
+        headers: { "content-type": "application/json" },
+      }),
+      { params: Promise.resolve({ editionId }) },
+    );
+
+    expect(response.status).toBe(400);
   });
 
   it("valida la categoría antes de consultar Neon", async () => {
