@@ -20,17 +20,17 @@
 }
 
 .editPanel {
-  background: rgb(251 248 242 / 82%);
+  background: var(--surface-card-soft);
   border-color: var(--line);
-  border-radius: var(--radius-md);
-  box-shadow: 0 12px 35px rgb(37 30 21 / 5%);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card-soft);
 }
 
 .state {
   background: var(--surface-muted);
   border: 1px dashed var(--line);
   border-radius: var(--radius-md);
-  padding: 30px 24px;
+  padding: var(--space-7) var(--space-6);
 }
 .search {
   background: #fffdf9;
@@ -47,9 +47,9 @@
   white-space: nowrap;
 }
 .state {
-  background: #fffdf9;
+  background: var(--surface-card);
   border: 1px solid #ded8ce;
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   color: #687169;
   padding: 24px;
 }
@@ -113,10 +113,10 @@
   background: #6f1f1f;
 }
 .editPanel {
-  background: #fffdf9;
+  background: var(--surface-card);
   border: 1px solid #ded8ce;
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
 }
 .editPanel h2 {
   margin: 0 0 16px;

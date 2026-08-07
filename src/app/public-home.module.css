@@ -1,6 +1,6 @@
 .page {
   margin: 0 auto;
-  max-width: 1080px;
+  max-width: var(--content-width);
   padding: 6vh 24px 12vh;
 }
 
@@ -16,13 +16,13 @@
 
 .hero h1 {
   color: #fff8ef;
-  font-size: clamp(2.6rem, 7vw, 5.8rem);
+  font-size: var(--text-hero-title);
   margin: 18px 0 22px;
 }
 
 .hero p:not(.eyebrow) {
   color: #c8cec9;
-  font-size: 1.08rem;
+  font-size: var(--text-intro);
   line-height: 1.65;
   margin: 0;
   max-width: 620px;
@@ -70,14 +70,14 @@
 }
 
 .section {
-  background: #fffdf9;
-  border: 1px solid #ded8ce;
-  border-radius: 16px;
-  padding: 24px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: var(--padding-card);
 }
 
 .section h2 {
-  font-size: 1.35rem;
+  font-size: var(--text-section);
   margin: 0 0 12px;
 }
 
@@ -145,7 +145,7 @@
 .section {
   background: var(--surface-raised);
   border-color: var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
 

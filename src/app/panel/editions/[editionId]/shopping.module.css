@@ -21,26 +21,26 @@
   color: #687169;
 }
 .primary {
-  background: #8b2e2e;
+  background: var(--accent);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: white;
   cursor: pointer;
   font: inherit;
-  padding: 9px 13px;
+  padding: var(--space-2) var(--space-3);
 }
 .primary:disabled {
   cursor: wait;
   opacity: 0.65;
 }
 .secondary {
-  background: #eee8de;
-  border: 1px solid #cfc7ba;
-  border-radius: 8px;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   color: #1f2421;
   cursor: pointer;
   font: inherit;
-  padding: 9px 13px;
+  padding: var(--space-2) var(--space-3);
 }
 .filters {
   display: grid;
@@ -51,25 +51,25 @@
 .form label {
   color: #687169;
   display: grid;
-  font-size: 0.84rem;
-  gap: 5px;
+  font-size: var(--text-sm);
+  gap: var(--space-1);
 }
 .filters select,
 .form input,
 .form select,
 .form textarea {
-  background: #fffdf9;
-  border: 1px solid #cfc7ba;
-  border-radius: 8px;
+  background: var(--surface-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   color: #1f2421;
   font: inherit;
-  padding: 9px 10px;
+  padding: var(--space-2) var(--space-3);
 }
 .totals {
   display: flex;
   gap: 18px;
   color: #687169;
-  font-size: 0.9rem;
+  font-size: var(--text-md);
 }
 .totals span {
   display: flex;
@@ -78,7 +78,7 @@
 .group h3 {
   border-bottom: 1px solid #ded8ce;
   color: #687169;
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
   letter-spacing: 0.04em;
   margin: 8px 0 8px;
   padding-bottom: 7px;
@@ -160,13 +160,13 @@
   justify-content: flex-end;
 }
 .cancel {
-  background: #eee8de;
+  background: var(--surface-muted);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: #1f2421;
   cursor: pointer;
   font: inherit;
-  padding: 9px 13px;
+  padding: var(--space-2) var(--space-3);
 }
 @media (max-width: 900px) {
   .filters {

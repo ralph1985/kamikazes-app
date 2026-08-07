@@ -40,8 +40,8 @@
 .navLink {
   border-radius: 8px;
   color: #c8cec9;
-  font-size: 0.98rem;
-  padding: 13px 14px;
+  font-size: var(--text-nav);
+  padding: var(--space-3) var(--space-4);
   text-decoration: none;
   transition:
     background 160ms ease,
@@ -62,8 +62,8 @@
   color: #c8cec9;
   cursor: pointer;
   font: inherit;
-  font-size: 0.98rem;
-  padding: 13px 14px;
+  font-size: var(--text-nav);
+  padding: var(--space-3) var(--space-4);
   text-align: left;
 }
 
@@ -83,8 +83,8 @@
 .submenuLink {
   border-radius: 6px;
   color: #9ba59e;
-  font-size: 0.88rem;
-  padding: 8px 10px;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
   text-decoration: none;
 }
 
@@ -95,7 +95,7 @@
 
 .sidebarNote {
   color: #9ba59e;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   line-height: 1.5;
   margin-top: auto;
   max-width: 190px;

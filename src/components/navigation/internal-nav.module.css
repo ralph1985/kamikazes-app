@@ -2,7 +2,7 @@
   background: rgb(247 244 239 / 96%);
   border-bottom: 1px solid #ded8ce;
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
   margin: 28px 0 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -13,7 +13,7 @@
 
 .nav {
   border-bottom-color: var(--line);
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .link {
@@ -36,8 +36,8 @@
   border-bottom: 3px solid transparent;
   color: #687169;
   flex: 0 0 auto;
-  font-size: 0.9rem;
-  padding: 13px 14px 11px;
+  font-size: var(--text-nav);
+  padding: var(--space-3) var(--space-4) var(--space-3);
   text-decoration: none;
 }
 
