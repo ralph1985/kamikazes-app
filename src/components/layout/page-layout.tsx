@@ -10,7 +10,9 @@ export function PageLayout({
   children: ReactNode;
   variant?: PageLayoutVariant;
 }>) {
-  return <div className={`${styles.layout} ${styles[variant]}`}>{children}</div>;
+  return (
+    <div className={`${styles.layout} ${variant === "auth" ? styles.auth : ""}`}>{children}</div>
+  );
 }
 
 export function PageHeader({

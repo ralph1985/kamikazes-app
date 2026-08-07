@@ -1,13 +1,15 @@
 .layout {
   margin: 0;
-  padding: var(--content-padding-block) var(--page-gutter);
+  padding-block: var(--content-padding-block);
+  padding-inline: var(--page-gutter);
   width: 100%;
 }
 
 .auth {
   display: grid;
   gap: var(--space-10);
-  padding: 8vh var(--page-gutter) 12vh;
+  padding-block: 8vh 12vh;
+  padding-inline: var(--page-gutter);
 }
 
 .header {
