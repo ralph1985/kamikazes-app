@@ -88,11 +88,12 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
           <Image
             alt="Kamikazes"
             className={styles.brandLogo}
-            height={184}
+            height={139}
             priority
-            src="/brand/kamikazes-logo.jpg"
-            width={951}
+            src="/brand/kamikazes-logo.png"
+            width={137}
           />
+          <span>Kamikazes</span>
         </Link>
         <nav aria-label="Navegación principal" className={styles.nav}>
           <Link

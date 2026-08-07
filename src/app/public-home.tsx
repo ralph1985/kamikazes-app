@@ -80,10 +80,10 @@ export default function PublicHome() {
           <Image
             alt="Logotipo de la peña Kamikazes"
             className={styles.logo}
-            height={184}
+            height={139}
             priority
-            src="/brand/kamikazes-logo.jpg"
-            width={951}
+            src="/brand/kamikazes-logo.png"
+            width={137}
           />
         </div>
       </section>

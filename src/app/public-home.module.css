@@ -52,13 +52,14 @@
 .logoFrame {
   align-self: center;
   min-width: 0;
+  width: clamp(150px, 22vw, 250px);
 }
 
 .logo {
   display: block;
   height: auto;
   max-width: 100%;
-  width: min(100%, 520px);
+  width: 100%;
 }
 
 .sections {
