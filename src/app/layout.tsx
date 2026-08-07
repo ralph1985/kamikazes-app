@@ -6,6 +6,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Kamikazes",
   description: "Gestión de las ediciones anuales de Kamikazes.",
+  icons: {
+    icon: "/brand/kamikazes-logo.png",
+    shortcut: "/brand/kamikazes-logo.png",
+    apple: "/brand/kamikazes-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
