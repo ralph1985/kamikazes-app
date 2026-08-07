@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ListState } from "@/components/lists/list-patterns";
+import { calculateShoppingSummary } from "@/modules/shopping/domain/summary";
 import { CopyShoppingForm } from "./shopping-forms";
 import ShoppingTable, { type ShoppingTableProduct } from "./shopping-table";
 import styles from "./shopping.module.css";
@@ -254,7 +255,13 @@ export default function ShoppingOverview({
     });
     const result = (await response.json()) as { error?: { message: string } };
     if (!response.ok) throw new Error(result.error?.message ?? "No se pudo borrar el producto");
-    await load();
+    setProducts((current) => {
+      const next = current.filter((item) => item.id !== product.id);
+      setSummary((currentSummary) =>
+        calculateShoppingSummary(next, currentSummary.budgetTotal, currentSummary.realTotal),
+      );
+      return next;
+    });
   }
 
   async function createCategory(name: string) {
