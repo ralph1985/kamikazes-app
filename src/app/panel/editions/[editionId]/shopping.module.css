@@ -285,6 +285,8 @@
 }
 
 .tableFrame {
+  --shopping-sticky-top: calc(var(--app-header-height, 58px) + 48px);
+  --shopping-table-header-height: 24px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   overflow: clip;
@@ -326,7 +328,7 @@
   background: var(--bg);
   overflow-x: hidden;
   position: sticky;
-  top: calc(var(--app-header-height, 58px) + 48px);
+  top: var(--shopping-sticky-top);
   z-index: 17;
 }
 
@@ -427,6 +429,9 @@
 
 .shoppingTable .groupRow > * {
   background: var(--surface-muted);
+  position: sticky;
+  top: calc(var(--shopping-sticky-top) + var(--shopping-table-header-height));
+  z-index: 7;
 }
 
 .shoppingTable .groupFill {
@@ -441,7 +446,7 @@
   padding: 8px 10px;
   position: sticky;
   left: 0;
-  z-index: 7;
+  z-index: 8;
 }
 
 .shoppingTable .groupLabel {
