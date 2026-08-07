@@ -50,7 +50,7 @@
   --padding-card: var(--space-6);
   --shadow-card-soft: var(--shadow-card);
   --content-width: 1180px;
-  --content-padding-inline: clamp(18px, 4vw, 48px);
+  --content-padding-inline: clamp(20px, 3vw, 40px);
   --content-padding-block: 5vh 14vh;
   color-scheme: light;
   background: var(--surface);

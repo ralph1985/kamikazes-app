@@ -6,19 +6,11 @@ type PageLayoutVariant = "standard" | "wide" | "auth" | "public";
 export function PageLayout({
   children,
   variant = "standard",
-  fullBleedMobile = false,
 }: Readonly<{
   children: ReactNode;
   variant?: PageLayoutVariant;
-  fullBleedMobile?: boolean;
 }>) {
-  return (
-    <div
-      className={`${styles.layout} ${styles[variant]} ${fullBleedMobile ? styles.fullBleedMobile : ""}`}
-    >
-      {children}
-    </div>
-  );
+  return <div className={`${styles.layout} ${styles[variant]}`}>{children}</div>;
 }
 
 export function PageHeader({

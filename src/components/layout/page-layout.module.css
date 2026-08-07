@@ -63,12 +63,4 @@
     gap: var(--space-8);
     padding-block: 6vh 10vh;
   }
-
-  .fullBleedMobile {
-    padding-inline: 0;
-  }
-
-  .fullBleedMobile .header {
-    padding-inline: 18px;
-  }
 }

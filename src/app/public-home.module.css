@@ -153,10 +153,6 @@
 }
 
 @media (max-width: 700px) {
-  .page {
-    padding-inline: 18px;
-  }
-
   .hero {
     border-radius: var(--radius-lg);
   }

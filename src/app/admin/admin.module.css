@@ -244,11 +244,6 @@
   white-space: nowrap;
 }
 
-/* Editorial admin surfaces */
-.page {
-  max-width: 1180px;
-}
-
 .intro,
 .memberRow span,
 .membersHeader p:last-child,
@@ -328,10 +323,6 @@
 }
 
 @media (max-width: 600px) {
-  .page {
-    padding-inline: 18px;
-  }
-
   .membersHeader,
   .memberRow,
   .contentItem {
@@ -409,11 +400,6 @@
   .memberRow button {
     width: 100%;
   }
-}
-
-/* Final admin tokens: these rules follow the legacy declarations intentionally. */
-.page {
-  max-width: 1180px;
 }
 
 .intro,
@@ -498,10 +484,6 @@
 }
 
 @media (max-width: 600px) {
-  .page {
-    padding-inline: 18px;
-  }
-
   .membersHeader,
   .memberRow,
   .contentItem {

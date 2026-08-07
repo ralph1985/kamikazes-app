@@ -108,16 +108,6 @@
   color: var(--danger);
 }
 
-@media (max-width: 600px) {
-  .page {
-    padding-inline: 0;
-  }
-
-  .heading {
-    padding-inline: 18px;
-  }
-}
-
 .heading h1,
 .card h2,
 .empty h1,
@@ -169,12 +159,6 @@
 
 .createError {
   color: var(--danger);
-}
-
-@media (max-width: 600px) {
-  .page {
-    padding-inline: 18px;
-  }
 }
 
 .cardLink {

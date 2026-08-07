@@ -42,7 +42,7 @@ export default async function PanelPage() {
   if (member.mustChangePassword) redirect("/change-password");
 
   return (
-    <PageLayout fullBleedMobile>
+    <PageLayout>
       <PageHeader
         actions={<span className={styles.member}>Hola, {member.displayName}</span>}
         description="Todo lo que organizamos, año a año."
