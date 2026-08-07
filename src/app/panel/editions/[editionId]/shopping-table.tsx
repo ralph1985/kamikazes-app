@@ -586,9 +586,13 @@ export default function ShoppingTable({
                 <Fragment key={product.id}>
                   {group !== previousGroup ? (
                     <tr className={styles.groupRow}>
-                      <th className={styles.groupLabel} colSpan={9}>
+                      <th
+                        className={`${styles.groupLabel} ${styles.productColumn}`}
+                        scope="rowgroup"
+                      >
                         {group}
                       </th>
+                      <td className={styles.groupFill} colSpan={8} />
                     </tr>
                   ) : null}
                   <tr>

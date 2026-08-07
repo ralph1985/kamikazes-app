@@ -235,11 +235,8 @@
 .stickySummary {
   background: color-mix(in srgb, var(--surface) 94%, white);
   border-bottom: 1px solid var(--line);
-  margin: 0 -18px;
-  padding: 12px 18px;
-  position: sticky;
-  top: calc(var(--app-header-height, 58px) + 48px);
-  z-index: 18;
+  margin: 0;
+  padding: 12px 0;
 }
 
 .summaryGrid {
@@ -329,7 +326,7 @@
   background: var(--bg);
   overflow-x: hidden;
   position: sticky;
-  top: calc(var(--app-header-height, 58px) + 108px);
+  top: calc(var(--app-header-height, 58px) + 48px);
   z-index: 17;
 }
 
@@ -382,22 +379,13 @@
   color: #f8f1e7;
   font-size: 0.7rem;
   letter-spacing: 0.06em;
-  position: sticky;
   text-transform: uppercase;
-  z-index: 8;
-}
-
-.shoppingTable .tableLabels th {
-  top: calc(var(--app-header-height, 58px) + 142px);
-  z-index: 9;
 }
 
 .shoppingTable .tableFilters th {
   background: var(--surface-muted);
   color: var(--ink);
   padding: 6px 7px;
-  top: calc(var(--app-header-height, 58px) + 176px);
-  z-index: 7;
 }
 
 .shoppingTable .productColumn {
@@ -437,7 +425,15 @@
   background: #f4eee5;
 }
 
-.shoppingTable .groupRow th {
+.shoppingTable .groupRow > * {
+  background: var(--surface-muted);
+}
+
+.shoppingTable .groupFill {
+  padding: 0;
+}
+
+.shoppingTable .groupRow .groupLabel {
   background: var(--surface-muted);
   color: var(--accent-dark);
   font-size: 0.72rem;
@@ -445,12 +441,13 @@
   padding: 8px 10px;
   position: sticky;
   left: 0;
-  z-index: 5;
+  z-index: 7;
 }
 
 .shoppingTable .groupLabel {
-  min-width: 0;
-  width: 100%;
+  box-shadow: 1px 0 var(--line);
+  min-width: 176px;
+  width: 176px;
 }
 
 .numberColumn {
@@ -495,11 +492,6 @@
 }
 
 @media (max-width: 800px) {
-  .stickySummary {
-    margin-inline: -14px;
-    padding-inline: 14px;
-  }
-
   .summaryGrid {
     overflow-x: visible;
   }
@@ -511,10 +503,6 @@
 
   .tableControls > span {
     flex-basis: 100%;
-  }
-
-  .stickyTableHeader {
-    top: calc(var(--app-header-height, 58px) + 164px);
   }
 }
 
@@ -755,8 +743,7 @@
   background: #f4eee5;
 }
 
-.shoppingTable .groupRow th {
-  min-width: 0;
+.shoppingTable .groupRow .groupLabel {
   padding: 5px 8px;
 }
 
