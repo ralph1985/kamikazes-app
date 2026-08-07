@@ -243,11 +243,11 @@
 }
 
 .summaryGrid {
-  display: grid;
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  grid-template-columns: repeat(6, minmax(130px, 1fr));
-  margin: 0 auto;
-  max-width: 1180px;
+  justify-content: flex-start;
 }
 
 .summaryGrid > div {
@@ -255,9 +255,12 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   display: grid;
+  flex: 0 0 auto;
   gap: 4px;
   min-height: 64px;
+  min-width: 0;
   padding: 10px 12px;
+  width: max-content;
 }
 
 .summaryGrid span {
@@ -288,6 +291,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   overflow: clip;
+  min-width: 0;
 }
 
 .tableMeta {
@@ -316,6 +320,8 @@
 }
 
 .tableScroll {
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
 }
 
@@ -323,7 +329,7 @@
   background: var(--bg);
   overflow-x: hidden;
   position: sticky;
-  top: calc(var(--app-header-height, 58px) + 142px);
+  top: calc(var(--app-header-height, 58px) + 108px);
   z-index: 17;
 }
 
@@ -488,8 +494,7 @@
   }
 
   .summaryGrid {
-    grid-template-columns: repeat(3, minmax(136px, 1fr));
-    overflow-x: auto;
+    overflow-x: visible;
   }
 
   .tableControls {
@@ -501,16 +506,8 @@
     flex-basis: 100%;
   }
 
-  .shoppingTable .tableLabels th {
-    top: calc(var(--app-header-height, 58px) + 210px);
-  }
-
-  .shoppingTable .tableFilters th {
-    top: calc(var(--app-header-height, 58px) + 244px);
-  }
-
   .stickyTableHeader {
-    top: calc(var(--app-header-height, 58px) + 210px);
+    top: calc(var(--app-header-height, 58px) + 164px);
   }
 }
 
