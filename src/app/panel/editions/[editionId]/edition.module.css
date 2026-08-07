@@ -70,7 +70,7 @@
 }
 
 .budgetHeader h2 {
-  font-size: clamp(2rem, 5vw, 3.6rem);
+  font-size: var(--text-section-title);
 }
 
 .summaryGrid {
@@ -438,7 +438,7 @@
 }
 
 .budgetHeader h2 {
-  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  font-size: var(--text-section-title);
   margin: 12px 0 8px;
 }
 
@@ -715,7 +715,7 @@
 
 .welcome h2,
 .comingSoon h2 {
-  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  font-size: var(--text-section-title);
   margin: 12px 0;
 }
 

@@ -40,8 +40,9 @@
   --text-body: 1rem;
   --text-intro: 1.05rem;
   --text-section: 1.45rem;
-  --text-page-title: clamp(2.2rem, 8vw, 4.8rem);
-  --text-hero-title: clamp(2.6rem, 7vw, 5.8rem);
+  --text-page-title: clamp(1.8rem, 4vw, 3.4rem);
+  --text-hero-title: clamp(2.1rem, 5vw, 4.2rem);
+  --text-section-title: clamp(1.55rem, 3vw, 2.35rem);
   --surface-card: var(--surface-raised);
   --surface-card-soft: rgb(251 248 242 / 82%);
   --border-card: var(--line);
@@ -192,7 +193,7 @@ h1 {
   padding: 8vh 24px 12vh;
 }
 .loginIntro h1 {
-  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-size: var(--text-page-title);
   line-height: 0.95;
   margin: 18px 0 24px;
   max-width: 520px;
