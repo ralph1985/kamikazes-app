@@ -680,9 +680,9 @@
 }
 
 .shoppingTable .actionColumn {
-  min-width: 142px;
+  min-width: 90px;
   text-align: center;
-  width: 142px;
+  width: 90px;
 }
 
 .shoppingTable .tableLabels th {
@@ -704,9 +704,18 @@
 }
 
 .productCell {
+  display: grid;
+  gap: 4px;
+}
+
+.productEditor {
   align-items: center;
   display: flex;
   gap: 4px;
+}
+
+.productCell .detailToggle {
+  justify-self: start;
 }
 
 .productCell .tableInput {

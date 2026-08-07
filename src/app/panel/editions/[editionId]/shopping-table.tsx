@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { MoneyCell } from "@/components/lists/list-patterns";
+import { Modal } from "@/components/ui/modal";
 import styles from "./shopping.module.css";
 
 export type ShoppingTableProduct = {
@@ -346,7 +347,7 @@ export default function ShoppingTable({
   const [drafts, setDrafts] = useState<Record<string, ShoppingTableProduct>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [detailProductId, setDetailProductId] = useState<string | null>(null);
   const [insertedAfter, setInsertedAfter] = useState<Record<string, string>>({});
   const [creatingAfter, setCreatingAfter] = useState<string | null>(null);
   const tableScrollRef = useRef<HTMLDivElement>(null);
@@ -581,7 +582,6 @@ export default function ShoppingTable({
               const group = groupLabel(product, groupBy);
               const previousGroup =
                 index > 0 ? groupLabel(visibleProducts[index - 1], groupBy) : null;
-              const isExpanded = expanded.has(product.id);
               return (
                 <Fragment key={product.id}>
                   {group !== previousGroup ? (
@@ -591,22 +591,31 @@ export default function ShoppingTable({
                       </th>
                     </tr>
                   ) : null}
-                  <tr className={isExpanded ? styles.expandedRow : undefined}>
+                  <tr>
                     <td className={styles.productColumn}>
                       <div className={styles.productCell}>
-                        {!readOnly ? (
-                          <button
-                            aria-label={`Añadir producto después de ${product.description || "esta fila"}`}
-                            className={styles.rowAddButton}
-                            disabled={creatingAfter !== null || saving !== null}
-                            onClick={() => void createProductAfter(product)}
-                            title="Añadir producto debajo"
-                            type="button"
-                          >
-                            +
-                          </button>
-                        ) : null}
-                        {renderField(product, "description")}
+                        <div className={styles.productEditor}>
+                          {!readOnly ? (
+                            <button
+                              aria-label={`Añadir producto después de ${product.description || "esta fila"}`}
+                              className={styles.rowAddButton}
+                              disabled={creatingAfter !== null || saving !== null}
+                              onClick={() => void createProductAfter(product)}
+                              title="Añadir producto debajo"
+                              type="button"
+                            >
+                              +
+                            </button>
+                          ) : null}
+                          {renderField(product, "description")}
+                        </div>
+                        <button
+                          className={styles.detailToggle}
+                          onClick={() => setDetailProductId(product.id)}
+                          type="button"
+                        >
+                          Abrir detalle
+                        </button>
                       </div>
                     </td>
                     <td className={styles.statusColumn}>{renderField(product, "status")}</td>
@@ -634,57 +643,48 @@ export default function ShoppingTable({
                           Borrar
                         </button>
                       ) : null}
-                      <button
-                        aria-expanded={isExpanded}
-                        className={styles.detailToggle}
-                        onClick={() =>
-                          setExpanded((current) => {
-                            const next = new Set(current);
-                            if (next.has(product.id)) next.delete(product.id);
-                            else next.add(product.id);
-                            return next;
-                          })
-                        }
-                        type="button"
-                      >
-                        {isExpanded ? "Cerrar" : "Detalle"}
-                      </button>
                     </td>
                   </tr>
-                  {isExpanded ? (
-                    <tr className={styles.detailRow}>
-                      <td colSpan={9}>
-                        <div className={styles.detailGrid}>
-                          <div className={styles.detailIntro}>
-                            <span>Detalle del producto</span>
-                            <small>Los cambios se guardan al salir de cada campo.</small>
-                          </div>
-                          <label>
-                            Categoría
-                            {renderField(product, "category", categories)}
-                          </label>
-                          <label>
-                            Asignación
-                            {renderField(product, "assignment", assignments)}
-                          </label>
-                          <label>
-                            Precio previsto
-                            {renderField(product, "plannedUnitPrice")}
-                          </label>
-                          <label className={styles.notesField}>
-                            Notas
-                            {renderField(product, "notes")}
-                          </label>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : null}
                 </Fragment>
               );
             })}
           </tbody>
         </table>
       </div>
+      {detailProductId ? (() => {
+        const detailProduct = products.find((product) => product.id === detailProductId);
+        if (!detailProduct) return null;
+        return (
+          <Modal
+            onClose={() => setDetailProductId(null)}
+            open
+            title={`Detalle · ${detailProduct.description || "Producto sin nombre"}`}
+          >
+            <div className={styles.detailGrid}>
+              <div className={styles.detailIntro}>
+                <span>Detalle del producto</span>
+                <small>Los cambios se guardan al salir de cada campo.</small>
+              </div>
+              <label>
+                Categoría
+                {renderField(detailProduct, "category", categories)}
+              </label>
+              <label>
+                Asignación
+                {renderField(detailProduct, "assignment", assignments)}
+              </label>
+              <label>
+                Precio previsto
+                {renderField(detailProduct, "plannedUnitPrice")}
+              </label>
+              <label className={styles.notesField}>
+                Notas
+                {renderField(detailProduct, "notes")}
+              </label>
+            </div>
+          </Modal>
+        );
+      })() : null}
     </div>
   );
 }
