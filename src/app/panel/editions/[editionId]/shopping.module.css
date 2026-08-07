@@ -443,7 +443,14 @@
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   padding: 8px 10px;
-  position: static;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+.shoppingTable .groupLabel {
+  min-width: 0;
+  width: 100%;
 }
 
 .numberColumn {

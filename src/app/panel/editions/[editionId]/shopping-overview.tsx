@@ -242,7 +242,7 @@ export default function ShoppingOverview({
       plannedTotal: null,
       realTotal: null,
     };
-    await load();
+    setProducts((current) => [...current, created]);
     return created;
   }
 

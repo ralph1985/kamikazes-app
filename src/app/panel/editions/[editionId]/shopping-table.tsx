@@ -463,6 +463,18 @@ export default function ShoppingTable({
     }
   }
 
+  async function markNotBuying(product: ShoppingTableProduct) {
+    setSaving(`${product.id}:status`);
+    setSaveError(null);
+    try {
+      await onSave(product, "status", "not_buying");
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "No se pudo retirar el producto");
+    } finally {
+      setSaving(null);
+    }
+  }
+
   function hasFilters() {
     return Boolean(
       filters.query ||
@@ -569,7 +581,9 @@ export default function ShoppingTable({
                 <Fragment key={product.id}>
                   {group !== previousGroup ? (
                     <tr className={styles.groupRow}>
-                      <th colSpan={9}>{group}</th>
+                      <th className={styles.groupLabel} colSpan={9}>
+                        {group}
+                      </th>
                     </tr>
                   ) : null}
                   <tr className={isExpanded ? styles.expandedRow : undefined}>
@@ -604,6 +618,17 @@ export default function ShoppingTable({
                       <MoneyCell amount={realTotal} />
                     </td>
                     <td className={styles.actionColumn}>
+                      {!readOnly && product.status !== "not_buying" ? (
+                        <button
+                          className={styles.detailToggle}
+                          disabled={saving !== null}
+                          onClick={() => void markNotBuying(product)}
+                          title="Marcar como no necesario sin borrar el histórico"
+                          type="button"
+                        >
+                          No comprar
+                        </button>
+                      ) : null}
                       <button
                         aria-expanded={isExpanded}
                         className={styles.detailToggle}
