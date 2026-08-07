@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { MoneyCell } from "@/components/lists/list-patterns";
 import { Modal } from "@/components/ui/modal";
+import { orderShoppingProducts, shoppingGroupLabel, shoppingStatuses } from "./shopping-list-order";
 import styles from "./shopping.module.css";
 
 export type ShoppingTableProduct = {
@@ -42,14 +43,6 @@ type NewProductDefaults = {
   assignment: string | null;
   status: string;
 };
-
-const statuses = [
-  ["pending", "Pendiente"],
-  ["in_cart", "En carrito"],
-  ["purchased", "Comprado"],
-  ["not_buying", "No se compra"],
-  ["gifted", "Regalado"],
-] as const;
 
 function ShoppingTableColumns() {
   return (
@@ -127,14 +120,6 @@ function MultiFilter({
   );
 }
 
-function groupLabel(product: ShoppingTableProduct, groupBy: string) {
-  if (groupBy === "store") return product.storeName || "Sin tienda";
-  if (groupBy === "assignment") return product.assignment || "Sin asignación";
-  if (groupBy === "status")
-    return statuses.find(([value]) => value === product.status)?.[1] ?? product.status;
-  return product.categoryName || "Sin categoría";
-}
-
 function fieldValue(product: ShoppingTableProduct, field: Field) {
   if (field === "store") return product.storeName ?? "";
   if (field === "category") return product.categoryName ?? "";
@@ -185,7 +170,7 @@ function EditableCell({
         onChange={(event) => onChange(event.target.value)}
         value={value}
       >
-        {statuses.map(([status, text]) => (
+        {shoppingStatuses.map(([status, text]) => (
           <option key={status} value={status}>
             {text}
           </option>
@@ -373,28 +358,8 @@ export default function ShoppingTable({
         !filters.assignment.length || filters.assignment.includes(product.assignment ?? "__none__");
       return matchesQuery && matchesStatus && matchesStore && matchesCategory && matchesAssignment;
     });
-    const sorted = [...filtered].sort((a, b) => {
-      const value = (product: ShoppingTableProduct) =>
-        sortBy === "unit_price"
-          ? Number(product.plannedUnitPrice ?? 0)
-          : sortBy === "quantity"
-            ? Number(product.plannedQuantity ?? 0)
-            : sortBy === "total"
-              ? Number(product.plannedTotal ?? 0)
-              : product.description.toLocaleLowerCase();
-      const comparison = value(a) < value(b) ? -1 : value(a) > value(b) ? 1 : 0;
-      return sortDirection === "desc" ? -comparison : comparison;
-    });
-    const children = new Map<string, ShoppingTableProduct[]>();
-    sorted.forEach((product) => {
-      const anchorId = insertedAfter[product.id];
-      if (anchorId) children.set(anchorId, [...(children.get(anchorId) ?? []), product]);
-    });
-    const insertedIds = new Set(Object.keys(insertedAfter));
-    return sorted
-      .filter((product) => !insertedIds.has(product.id))
-      .flatMap((product) => [product, ...(children.get(product.id) ?? [])]);
-  }, [filters, insertedAfter, products, sortBy, sortDirection]);
+    return orderShoppingProducts(filtered, { groupBy, insertedAfter, sortBy, sortDirection });
+  }, [filters, groupBy, insertedAfter, products, sortBy, sortDirection]);
 
   async function commit(product: ShoppingTableProduct, field: Field) {
     const draft = drafts[product.id];
@@ -510,7 +475,7 @@ export default function ShoppingTable({
         <MultiFilter
           label="Estado"
           onChange={(values) => onFilterChange("status", values)}
-          options={statuses.map(([id, name]) => ({ id, name }))}
+          options={shoppingStatuses.map(([id, name]) => ({ id, name }))}
           selected={filters.status}
         />
         <MultiFilter
@@ -579,9 +544,9 @@ export default function ShoppingTable({
                 draft.realQuantity !== null && draft.realUnitPrice !== null
                   ? Number(draft.realQuantity) * Number(draft.realUnitPrice)
                   : null;
-              const group = groupLabel(product, groupBy);
+              const group = shoppingGroupLabel(product, groupBy);
               const previousGroup =
-                index > 0 ? groupLabel(visibleProducts[index - 1], groupBy) : null;
+                index > 0 ? shoppingGroupLabel(visibleProducts[index - 1], groupBy) : null;
               return (
                 <Fragment key={product.id}>
                   {group !== previousGroup ? (
