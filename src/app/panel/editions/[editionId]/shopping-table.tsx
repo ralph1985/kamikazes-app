@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { MoneyCell } from "@/components/lists/list-patterns";
 import styles from "./shopping.module.css";
 
@@ -49,6 +49,38 @@ const statuses = [
   ["not_buying", "No se compra"],
   ["gifted", "Regalado"],
 ] as const;
+
+function ShoppingTableColumns() {
+  return (
+    <colgroup>
+      <col className={styles.productColumn} />
+      <col className={styles.statusColumn} />
+      <col className={styles.storeColumn} />
+      <col className={styles.numberColumn} />
+      <col className={styles.numberColumn} />
+      <col className={styles.numberColumn} />
+      <col className={styles.numberColumn} />
+      <col className={styles.numberColumn} />
+      <col className={styles.actionColumn} />
+    </colgroup>
+  );
+}
+
+function ShoppingTableHeader() {
+  return (
+    <tr className={styles.tableLabels}>
+      <th className={styles.productColumn}>Producto</th>
+      <th className={styles.statusColumn}>Estado</th>
+      <th className={styles.storeColumn}>Tienda</th>
+      <th className={styles.numberColumn}>Cant. prev.</th>
+      <th className={styles.numberColumn}>Cant. real</th>
+      <th className={styles.numberColumn}>Precio real</th>
+      <th className={styles.numberColumn}>Presupuesto</th>
+      <th className={styles.numberColumn}>Carrito</th>
+      <th className={styles.actionColumn} />
+    </tr>
+  );
+}
 
 function MultiFilter({
   label,
@@ -315,6 +347,8 @@ export default function ShoppingTable({
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [insertedAfter, setInsertedAfter] = useState<Record<string, string>>({});
   const [creatingAfter, setCreatingAfter] = useState<string | null>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const stickyHeaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setDrafts(Object.fromEntries(products.map((product) => [product.id, product])));
@@ -490,20 +524,31 @@ export default function ShoppingTable({
           {saveError}
         </p>
       ) : null}
-      <div className={styles.tableScroll}>
+      <div
+        aria-hidden="true"
+        className={styles.stickyTableHeader}
+        ref={stickyHeaderRef}
+      >
         <table className={styles.shoppingTable}>
+          <ShoppingTableColumns />
           <thead>
-            <tr className={styles.tableLabels}>
-              <th className={styles.productColumn}>Producto</th>
-              <th className={styles.statusColumn}>Estado</th>
-              <th className={styles.storeColumn}>Tienda</th>
-              <th className={styles.numberColumn}>Cant. prev.</th>
-              <th className={styles.numberColumn}>Cant. real</th>
-              <th className={styles.numberColumn}>Precio real</th>
-              <th className={styles.numberColumn}>Presupuesto</th>
-              <th className={styles.numberColumn}>Carrito</th>
-              <th className={styles.actionColumn} />
-            </tr>
+            <ShoppingTableHeader />
+          </thead>
+        </table>
+      </div>
+      <div
+        className={styles.tableScroll}
+        onScroll={(event) => {
+          if (stickyHeaderRef.current) {
+            stickyHeaderRef.current.scrollLeft = event.currentTarget.scrollLeft;
+          }
+        }}
+        ref={tableScrollRef}
+      >
+        <table className={styles.shoppingTable}>
+          <ShoppingTableColumns />
+          <thead>
+            <ShoppingTableHeader />
           </thead>
           <tbody>
             {visibleProducts.map((product, index) => {

@@ -319,6 +319,30 @@
   overflow-x: auto;
 }
 
+.stickyTableHeader {
+  background: var(--bg);
+  overflow-x: hidden;
+  position: sticky;
+  top: calc(var(--app-header-height, 58px) + 142px);
+  z-index: 17;
+}
+
+.stickyTableHeader .tableLabels th {
+  top: auto;
+}
+
+.tableScroll > .shoppingTable > thead {
+  visibility: hidden;
+}
+
+.tableScroll > .shoppingTable > thead th {
+  border: 0;
+  font-size: 0;
+  height: 0;
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
 .shoppingTable {
   border-collapse: separate;
   border-spacing: 0;
@@ -483,6 +507,10 @@
 
   .shoppingTable .tableFilters th {
     top: calc(var(--app-header-height, 58px) + 244px);
+  }
+
+  .stickyTableHeader {
+    top: calc(var(--app-header-height, 58px) + 210px);
   }
 }
 
