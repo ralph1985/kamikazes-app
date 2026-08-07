@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { InternalNav } from "@/components/navigation/internal-nav";
+import { PageLayout } from "@/components/layout/page-layout";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -40,7 +41,7 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="loginShell">
+    <PageLayout variant="auth">
       <div className="loginIntro">
         <p className="eyebrow">Primer acceso</p>
         <h1>Una contraseña sólo tuya.</h1>
@@ -103,6 +104,6 @@ export default function ChangePasswordPage() {
           </Link>
         </form>
       </div>
-    </div>
+    </PageLayout>
   );
 }

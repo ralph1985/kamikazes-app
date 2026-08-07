@@ -8,6 +8,7 @@ import { listEditions } from "@/modules/editions/application/list-editions";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import { PageLayout } from "@/components/layout/page-layout";
 import { InternalNav } from "@/components/navigation/internal-nav";
 import BudgetOverview from "./budget-overview";
 import ParticipantsOverview from "./participants-overview";
@@ -61,11 +62,11 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
   } catch (error) {
     if (error instanceof IdentityError) redirect("/login");
     return (
-      <main className={styles.page}>
+      <PageLayout variant="wide" fullBleedMobile>
         <p className="eyebrow">Espacio privado</p>
         <h1>No se ha podido cargar la edición</h1>
         <p className={styles.description}>Inténtalo de nuevo dentro de unos instantes.</p>
-      </main>
+      </PageLayout>
     );
   }
 
@@ -75,7 +76,7 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
   const activeSection = sections.find((item) => item.key === section) ?? sections[0];
 
   return (
-    <main className={styles.page}>
+    <PageLayout variant="wide" fullBleedMobile>
       <Link className={styles.backLink} href="/panel">
         ← Todas las ediciones
       </Link>
@@ -135,6 +136,6 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
           </div>
         )}
       </section>
-    </main>
+    </PageLayout>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { PageLayout } from "@/components/layout/page-layout";
 import styles from "./public-home.module.css";
 
 type PublicSection = {
@@ -63,7 +64,7 @@ export default function PublicHome() {
       }));
 
   return (
-    <main className={styles.page}>
+    <PageLayout variant="public">
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>Peña Kamikazes · Desde 1999</p>
@@ -107,6 +108,6 @@ export default function PublicHome() {
       ) : (
         <p className={styles.empty}>La información de contacto aparecerá aquí próximamente.</p>
       )}
-    </main>
+    </PageLayout>
   );
 }

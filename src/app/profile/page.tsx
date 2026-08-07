@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { PageLayout } from "@/components/layout/page-layout";
 import { InternalNav } from "@/components/navigation/internal-nav";
 import { Modal } from "@/components/ui/modal";
 
@@ -60,13 +61,13 @@ export default function ProfilePage() {
 
   if (loading)
     return (
-      <div className="loginShell">
+      <PageLayout variant="auth">
         <p>Cargando perfil…</p>
-      </div>
+      </PageLayout>
     );
 
   return (
-    <div className="loginShell">
+    <PageLayout variant="auth">
       <div className="loginIntro">
         <p className="eyebrow">Mi cuenta</p>
         <h1>Tu perfil.</h1>
@@ -135,6 +136,6 @@ export default function ProfilePage() {
           </form>
         </Modal>
       </div>
-    </div>
+    </PageLayout>
   );
 }

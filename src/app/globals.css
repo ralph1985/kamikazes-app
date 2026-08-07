@@ -185,13 +185,6 @@ h1 {
   margin: 0;
   padding: 10px 16px;
 }
-.loginShell {
-  display: grid;
-  gap: 48px;
-  margin: 0 auto;
-  max-width: 980px;
-  padding: 8vh 24px 12vh;
-}
 .loginIntro h1 {
   font-size: var(--text-page-title);
   line-height: 0.95;

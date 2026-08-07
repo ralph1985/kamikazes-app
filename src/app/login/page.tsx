@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { PageLayout } from "@/components/layout/page-layout";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -39,7 +40,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="loginShell">
+    <PageLayout variant="auth">
       <div className="loginIntro">
         <p className="eyebrow">Espacio privado</p>
         <h1>Volvemos a casa.</h1>
@@ -81,6 +82,6 @@ export default function LoginPage() {
           Volver al inicio
         </Link>
       </form>
-    </div>
+    </PageLayout>
   );
 }

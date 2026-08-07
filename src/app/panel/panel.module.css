@@ -1,38 +1,7 @@
-.page {
-  margin: 0 auto;
-  max-width: var(--content-width);
-  padding: var(--content-padding-block) var(--content-padding-inline);
-}
-
-.heading {
-  align-items: flex-end;
-  display: flex;
-  gap: 24px;
-  justify-content: space-between;
-  margin-bottom: 42px;
-}
-
-.heading h1 {
-  margin: 16px 0 12px;
-}
-
-.intro {
-  color: #687169;
-  font-size: var(--text-intro);
-  margin: 0;
-}
-
 .member {
   color: #687169;
   font-size: 0.86rem;
   white-space: nowrap;
-}
-
-.headingActions {
-  align-items: flex-end;
-  display: grid;
-  gap: 20px;
-  justify-items: end;
 }
 
 .createForm {
@@ -84,19 +53,12 @@
   padding: var(--padding-card);
 }
 
-/* Panel overview refresh */
-.page {
-  max-width: var(--content-width);
-}
-
-.heading h1,
 .card h2,
 .empty h1,
 .empty h2 {
   font-family: Georgia, "Times New Roman", serif;
 }
 
-.intro,
 .member,
 .card p,
 .empty p {
@@ -154,11 +116,6 @@
   .heading {
     padding-inline: 18px;
   }
-}
-
-/* Final panel tokens: these rules follow the legacy declarations intentionally. */
-.page {
-  max-width: 1180px;
 }
 
 .heading h1,
@@ -287,17 +244,6 @@
 }
 
 @media (max-width: 600px) {
-  .heading {
-    align-items: start;
-    flex-direction: column;
-  }
-
-  .headingActions {
-    align-items: start;
-    justify-items: start;
-    width: 100%;
-  }
-
   .createError {
     text-align: left;
   }

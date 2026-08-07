@@ -7,6 +7,7 @@ import { listEditions } from "@/modules/editions/application/list-editions";
 import { createDatabaseSessionReader } from "@/modules/identity/adapters/database-session-reader";
 import { authenticateSession } from "@/modules/identity/application/session";
 import { IdentityError } from "@/modules/identity/domain/identity";
+import { PageHeader, PageLayout } from "@/components/layout/page-layout";
 import { InternalNav } from "@/components/navigation/internal-nav";
 import CreateEditionForm from "@/app/panel/create-edition-form";
 import EditionStatusManager from "./edition-status-manager";
@@ -39,11 +40,11 @@ export default async function AdminPage({
     if (error instanceof IdentityError) redirect("/login");
 
     return (
-      <div className={styles.page}>
+      <PageLayout>
         <p className="eyebrow">Administración</p>
         <h1>No se ha podido cargar</h1>
         <p className={styles.intro}>Inténtalo de nuevo dentro de unos instantes.</p>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -54,10 +55,12 @@ export default async function AdminPage({
   const activeSection = section === "members" || section === "public" ? section : "editions";
 
   return (
-    <div className={styles.page}>
-      <p className="eyebrow">Sólo administrador</p>
-      <h1>Administración</h1>
-      <p className={styles.intro}>Configuración global de Kamikazes.</p>
+    <PageLayout>
+      <PageHeader
+        description="Configuración global de Kamikazes."
+        eyebrow="Sólo administrador"
+        title="Administración"
+      />
       <InternalNav
         ariaLabel="Secciones de administración"
         items={[
@@ -93,6 +96,6 @@ export default async function AdminPage({
       ) : (
         <PublicContentManager />
       )}
-    </div>
+    </PageLayout>
   );
 }

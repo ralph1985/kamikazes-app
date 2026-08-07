@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { PageLayout } from "@/components/layout/page-layout";
 import styles from "./not-found.module.css";
 
 export default function NotFound() {
   return (
-    <main className={styles.page}>
+    <PageLayout>
       <p className="eyebrow">Kamikazes</p>
       <p className={styles.code}>404</p>
       <h1>Esta página se ha ido de fiesta.</h1>
@@ -13,6 +14,6 @@ export default function NotFound() {
       <Link className="primaryAction" href="/">
         Volver al inicio
       </Link>
-    </main>
+    </PageLayout>
   );
 }
