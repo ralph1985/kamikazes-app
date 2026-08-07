@@ -62,7 +62,7 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
   } catch (error) {
     if (error instanceof IdentityError) redirect("/login");
     return (
-      <PageLayout variant="wide">
+      <PageLayout>
         <p className="eyebrow">Espacio privado</p>
         <h1>No se ha podido cargar la edición</h1>
         <p className={styles.description}>Inténtalo de nuevo dentro de unos instantes.</p>
@@ -76,7 +76,7 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
   const activeSection = sections.find((item) => item.key === section) ?? sections[0];
 
   return (
-    <PageLayout variant="wide">
+    <PageLayout>
       <Link className={styles.backLink} href="/panel">
         ← Todas las ediciones
       </Link>

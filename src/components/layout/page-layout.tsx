@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import styles from "./page-layout.module.css";
 
-type PageLayoutVariant = "standard" | "wide" | "auth" | "public";
+type PageLayoutVariant = "standard" | "auth";
 
 export function PageLayout({
   children,

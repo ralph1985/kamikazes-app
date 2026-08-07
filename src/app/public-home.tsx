@@ -64,7 +64,7 @@ export default function PublicHome() {
       }));
 
   return (
-    <PageLayout variant="public">
+    <PageLayout>
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>Peña Kamikazes · Desde 1999</p>

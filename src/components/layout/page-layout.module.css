@@ -1,23 +1,13 @@
 .layout {
-  margin: 0 auto;
-  max-width: var(--content-width);
-  padding: var(--content-padding-block) var(--content-padding-inline);
+  margin: 0;
+  padding: var(--content-padding-block) var(--page-gutter);
   width: 100%;
-}
-
-.wide {
-  max-width: var(--content-width);
 }
 
 .auth {
   display: grid;
   gap: var(--space-10);
-  max-width: 980px;
-  padding: 8vh var(--content-padding-inline) 12vh;
-}
-
-.public {
-  max-width: var(--content-width);
+  padding: 8vh var(--page-gutter) 12vh;
 }
 
 .header {

@@ -49,8 +49,7 @@
   --radius-card: var(--radius-md);
   --padding-card: var(--space-6);
   --shadow-card-soft: var(--shadow-card);
-  --content-width: 980px;
-  --content-padding-inline: clamp(20px, 3vw, 40px);
+  --page-gutter: 24px;
   --content-padding-block: 5vh 14vh;
   color-scheme: light;
   background: var(--surface);
