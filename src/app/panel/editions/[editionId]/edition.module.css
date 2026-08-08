@@ -715,6 +715,126 @@
   max-width: 620px;
 }
 
+.inventoryBoard {
+  margin: 28px calc(clamp(28px, 5vw, 56px) * -1) calc(clamp(28px, 5vw, 56px) * -1);
+  overflow-x: auto;
+  padding: 0 clamp(28px, 5vw, 56px) clamp(28px, 5vw, 56px);
+  scrollbar-color: #b7afa3 transparent;
+  scrollbar-width: thin;
+}
+
+.inventoryColumns {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  min-width: max-content;
+}
+
+.inventoryColumn {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  width: min(78vw, 310px);
+}
+
+.inventoryColumnHeader {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  padding: 18px;
+}
+
+.inventoryColumnHeader .eyebrow {
+  margin: 0 0 7px;
+}
+
+.inventoryColumnHeader h3 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.inventoryColumnHeader > span {
+  align-items: center;
+  background: var(--surface-muted);
+  border-radius: 999px;
+  color: var(--ink-muted);
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 700;
+  height: 26px;
+  justify-content: center;
+  min-width: 26px;
+  padding: 0 7px;
+}
+
+.inventoryCards {
+  display: grid;
+  flex: 1;
+  gap: 10px;
+  padding: 12px;
+}
+
+.inventoryCard {
+  background: var(--surface-card-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.inventoryCardTopline {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.inventoryCardTopline strong {
+  line-height: 1.35;
+}
+
+.inventoryCardTopline button {
+  flex: 0 0 auto;
+  margin: -6px -6px 0 0;
+}
+
+.inventoryQuantity {
+  align-items: baseline;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  margin: 14px 0 8px;
+  padding-top: 10px;
+}
+
+.inventoryQuantity span,
+.inventoryCard small {
+  color: var(--ink-muted);
+  font-size: 0.77rem;
+}
+
+.inventoryQuantity strong {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.inventoryCard small {
+  display: block;
+  line-height: 1.45;
+}
+
+.inventoryEmpty {
+  align-self: center;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  margin: auto;
+  padding: 22px 12px;
+  text-align: center;
+}
+
 .comingSoon {
   align-items: flex-start;
   display: flex;

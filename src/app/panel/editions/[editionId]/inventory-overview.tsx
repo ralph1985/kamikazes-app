@@ -230,27 +230,55 @@ export default function InventoryOverview({
               </span>
             </div>
             {items.length ? (
-              <CompactList>
-                {items.map((item) => (
-                  <CompactListRow
-                    key={item.id}
-                    action={
-                      canEdit && !readOnly ? (
-                        <IconButton
-                          label={`Editar ${item.productName}`}
-                          onClick={() => open("stock", item)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      ) : undefined
-                    }
-                    meta={`${item.quantity} unidades · ${locationName(item.locationId)}`}
-                  >
-                    <strong>{item.productName}</strong>
-                    <small>{item.notes ?? "Sin notas"}</small>
-                  </CompactListRow>
-                ))}
-              </CompactList>
+              <div
+                aria-label="Existencias por ubicación"
+                className={styles.inventoryBoard}
+                role="region"
+              >
+                <div className={styles.inventoryColumns}>
+                  {locations.map((location) => {
+                    const locationItems = items.filter((item) => item.locationId === location.id);
+
+                    return (
+                      <section className={styles.inventoryColumn} key={location.id}>
+                        <header className={styles.inventoryColumnHeader}>
+                          <div>
+                            <p className="eyebrow">Ubicación</p>
+                            <h3>{location.name}</h3>
+                          </div>
+                          <span>{locationItems.length}</span>
+                        </header>
+                        <div className={styles.inventoryCards}>
+                          {locationItems.length ? (
+                            locationItems.map((item) => (
+                              <article className={styles.inventoryCard} key={item.id}>
+                                <div className={styles.inventoryCardTopline}>
+                                  <strong>{item.productName}</strong>
+                                  {canEdit && !readOnly && (
+                                    <IconButton
+                                      label={`Editar ${item.productName}`}
+                                      onClick={() => open("stock", item)}
+                                    >
+                                      <EditIcon />
+                                    </IconButton>
+                                  )}
+                                </div>
+                                <p className={styles.inventoryQuantity}>
+                                  <span>Cantidad</span>
+                                  <strong>{item.quantity}</strong>
+                                </p>
+                                <small>{item.notes ?? "Sin notas"}</small>
+                              </article>
+                            ))
+                          ) : (
+                            <p className={styles.inventoryEmpty}>Sin existencias registradas</p>
+                          )}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+              </div>
             ) : (
               <p>Aún no hay existencias registradas.</p>
             )}
