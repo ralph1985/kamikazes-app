@@ -736,8 +736,8 @@
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
-  min-height: 260px;
-  width: min(78vw, 310px);
+  min-height: 220px;
+  width: min(76vw, 280px);
 }
 
 .inventoryColumnHeader {
@@ -745,7 +745,7 @@
   border-bottom: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
-  padding: 18px;
+  padding: 14px;
 }
 
 .inventoryColumnHeader .eyebrow {
@@ -774,15 +774,15 @@
 .inventoryCards {
   display: grid;
   flex: 1;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 9px;
 }
 
 .inventoryCard {
   background: var(--surface-card-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 14px;
+  padding: 10px;
 }
 
 .inventoryCardTopline {
@@ -806,8 +806,8 @@
   border-top: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
-  margin: 14px 0 8px;
-  padding-top: 10px;
+  margin: 8px 0 5px;
+  padding-top: 7px;
 }
 
 .inventoryQuantity span,
@@ -817,7 +817,7 @@
 }
 
 .inventoryQuantity strong {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
 }
 

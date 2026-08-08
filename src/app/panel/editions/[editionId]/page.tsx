@@ -33,6 +33,7 @@ const sections = [
   { key: "shopping", label: "Compras", available: true },
   { key: "purchases", label: "Compras registradas", available: true },
   { key: "inventory", label: "Inventario", available: true },
+  { key: "leftovers", label: "Sobrantes", available: true },
   { key: "catering", label: "Catering", available: true },
 ] as const;
 
@@ -125,6 +126,12 @@ export default async function EditionPage({ params, searchParams }: PageProps) {
           <CateringOverview editionId={edition.id} readOnly={edition.status === "closed"} />
         ) : activeSection.key === "inventory" ? (
           <InventoryOverview editionId={edition.id} readOnly={edition.status === "closed"} />
+        ) : activeSection.key === "leftovers" ? (
+          <InventoryOverview
+            editionId={edition.id}
+            readOnly={edition.status === "closed"}
+            view="leftovers"
+          />
         ) : (
           <div className={styles.welcome}>
             <p className="eyebrow">Vista general</p>

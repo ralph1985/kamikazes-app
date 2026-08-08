@@ -33,11 +33,13 @@ type Leftover = {
   notes: string | null;
 };
 type ModalType = InventoryModalType;
+type InventoryView = "inventory" | "leftovers";
 
 export default function InventoryOverview({
   editionId,
   readOnly,
-}: Readonly<{ editionId: string; readOnly: boolean }>) {
+  view = "inventory",
+}: Readonly<{ editionId: string; readOnly: boolean; view?: InventoryView }>) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [editions, setEditions] = useState<Edition[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -189,6 +191,13 @@ export default function InventoryOverview({
     id
       ? (editions.find((edition) => edition.id === id)?.year ?? "Edición desconocida")
       : "Sin edición de origen";
+  const formatQuantity = (value: string) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed)
+      ? parsed.toLocaleString("es-ES", { maximumFractionDigits: 2 })
+      : value;
+  };
+  const isLeftoversView = view === "leftovers";
 
   return (
     <section className={styles.content}>
@@ -196,23 +205,32 @@ export default function InventoryOverview({
         <div className={styles.header}>
           <div>
             <p className="eyebrow">Compras / Inventario</p>
-            <h2>Inventario y sobrantes</h2>
-            <p>Cantidades acumuladas por producto y ubicación, con movimientos auditados.</p>
+            <h2>{isLeftoversView ? "Sobrantes" : "Inventario"}</h2>
+            <p>
+              {isLeftoversView
+                ? "Material procedente de otras ediciones, con ubicación y estado de uso."
+                : "Cantidades acumuladas por producto y ubicación, con movimientos auditados."}
+            </p>
           </div>
           {canEdit && !readOnly && (
             <div className={styles.rowActions}>
-              <button className={styles.primary} onClick={() => open("location")} type="button">
-                Nueva ubicación
-              </button>
-              <button className={styles.primary} onClick={() => open("stock")} type="button">
-                Ajustar existencias
-              </button>
-              <button className={styles.primary} onClick={() => open("movement")} type="button">
-                Mover existencias
-              </button>
-              <button className={styles.primary} onClick={() => open("leftover")} type="button">
-                Nuevo sobrante
-              </button>
+              {isLeftoversView ? (
+                <button className={styles.primary} onClick={() => open("leftover")} type="button">
+                  Nuevo sobrante
+                </button>
+              ) : (
+                <>
+                  <button className={styles.primary} onClick={() => open("location")} type="button">
+                    Nueva ubicación
+                  </button>
+                  <button className={styles.primary} onClick={() => open("stock")} type="button">
+                    Ajustar existencias
+                  </button>
+                  <button className={styles.primary} onClick={() => open("movement")} type="button">
+                    Mover existencias
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -222,122 +240,130 @@ export default function InventoryOverview({
         <ListState description="Cargando inventario…" title="Inventario" />
       ) : (
         <>
-          <section className={styles.welcome}>
-            <div className={styles.header}>
-              <h2>Existencias</h2>
-              <span>
-                {items.length} registros · {locations.length} ubicaciones
-              </span>
-            </div>
-            {items.length ? (
-              <div
-                aria-label="Existencias por ubicación"
-                className={styles.inventoryBoard}
-                role="region"
-              >
-                <div className={styles.inventoryColumns}>
-                  {locations.map((location) => {
-                    const locationItems = items.filter((item) => item.locationId === location.id);
-
-                    return (
-                      <section className={styles.inventoryColumn} key={location.id}>
-                        <header className={styles.inventoryColumnHeader}>
-                          <div>
-                            <p className="eyebrow">Ubicación</p>
-                            <h3>{location.name}</h3>
-                          </div>
-                          <span>{locationItems.length}</span>
-                        </header>
-                        <div className={styles.inventoryCards}>
-                          {locationItems.length ? (
-                            locationItems.map((item) => (
-                              <article className={styles.inventoryCard} key={item.id}>
-                                <div className={styles.inventoryCardTopline}>
-                                  <strong>{item.productName}</strong>
-                                  {canEdit && !readOnly && (
-                                    <IconButton
-                                      label={`Editar ${item.productName}`}
-                                      onClick={() => open("stock", item)}
-                                    >
-                                      <EditIcon />
-                                    </IconButton>
-                                  )}
-                                </div>
-                                <p className={styles.inventoryQuantity}>
-                                  <span>Cantidad</span>
-                                  <strong>{item.quantity}</strong>
-                                </p>
-                                <small>{item.notes ?? "Sin notas"}</small>
-                              </article>
-                            ))
-                          ) : (
-                            <p className={styles.inventoryEmpty}>Sin existencias registradas</p>
-                          )}
-                        </div>
-                      </section>
-                    );
-                  })}
+          {view === "inventory" && (
+            <>
+              <section className={styles.welcome}>
+                <div className={styles.header}>
+                  <h2>Existencias</h2>
+                  <span>
+                    {items.length} registros · {locations.length} ubicaciones
+                  </span>
                 </div>
+                {items.length ? (
+                  <div
+                    aria-label="Existencias por ubicación"
+                    className={styles.inventoryBoard}
+                    role="region"
+                  >
+                    <div className={styles.inventoryColumns}>
+                      {locations.map((location) => {
+                        const locationItems = items.filter(
+                          (item) => item.locationId === location.id,
+                        );
+
+                        return (
+                          <section className={styles.inventoryColumn} key={location.id}>
+                            <header className={styles.inventoryColumnHeader}>
+                              <div>
+                                <p className="eyebrow">Ubicación</p>
+                                <h3>{location.name}</h3>
+                              </div>
+                              <span>{locationItems.length}</span>
+                            </header>
+                            <div className={styles.inventoryCards}>
+                              {locationItems.length ? (
+                                locationItems.map((item) => (
+                                  <article className={styles.inventoryCard} key={item.id}>
+                                    <div className={styles.inventoryCardTopline}>
+                                      <strong>{item.productName}</strong>
+                                      {canEdit && !readOnly && (
+                                        <IconButton
+                                          label={`Editar ${item.productName}`}
+                                          onClick={() => open("stock", item)}
+                                        >
+                                          <EditIcon />
+                                        </IconButton>
+                                      )}
+                                    </div>
+                                    <p className={styles.inventoryQuantity}>
+                                      <span>Cantidad</span>
+                                      <strong>{formatQuantity(item.quantity)}</strong>
+                                    </p>
+                                    <small>{item.notes ?? "Sin notas"}</small>
+                                  </article>
+                                ))
+                              ) : (
+                                <p className={styles.inventoryEmpty}>Sin existencias registradas</p>
+                              )}
+                            </div>
+                          </section>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p>Aún no hay existencias registradas.</p>
+                )}
+              </section>
+              <section className={styles.welcome}>
+                <div className={styles.header}>
+                  <h2>Movimientos recientes</h2>
+                  <span>{movements.length} mostrados</span>
+                </div>
+                {movements.length ? (
+                  <CompactList>
+                    {movements.map((movement) => (
+                      <CompactListRow
+                        key={movement.id}
+                        meta={`${formatQuantity(movement.quantity)} unidades · ${locationName(movement.fromLocationId)} → ${locationName(movement.toLocationId)}`}
+                      >
+                        <strong>{movement.productName}</strong>
+                        <small>{movement.notes ?? "Sin notas"}</small>
+                      </CompactListRow>
+                    ))}
+                  </CompactList>
+                ) : (
+                  <p>Aún no hay movimientos registrados.</p>
+                )}
+              </section>
+            </>
+          )}
+          {isLeftoversView && (
+            <section className={styles.welcome}>
+              <div className={styles.header}>
+                <h2>Sobrantes</h2>
+                <span>{leftovers.length} registros</span>
               </div>
-            ) : (
-              <p>Aún no hay existencias registradas.</p>
-            )}
-          </section>
-          <section className={styles.welcome}>
-            <div className={styles.header}>
-              <h2>Movimientos recientes</h2>
-              <span>{movements.length} mostrados</span>
-            </div>
-            {movements.length ? (
-              <CompactList>
-                {movements.map((movement) => (
-                  <CompactListRow
-                    key={movement.id}
-                    meta={`${movement.quantity} unidades · ${locationName(movement.fromLocationId)} → ${locationName(movement.toLocationId)}`}
-                  >
-                    <strong>{movement.productName}</strong>
-                    <small>{movement.notes ?? "Sin notas"}</small>
-                  </CompactListRow>
-                ))}
-              </CompactList>
-            ) : (
-              <p>Aún no hay movimientos registrados.</p>
-            )}
-          </section>
-          <section className={styles.welcome}>
-            <div className={styles.header}>
-              <h2>Sobrantes</h2>
-              <span>{leftovers.length} registros</span>
-            </div>
-            {leftovers.length ? (
-              <CompactList>
-                {leftovers.map((item) => (
-                  <CompactListRow
-                    key={item.id}
-                    action={
-                      canEdit && !readOnly ? (
-                        <IconButton
-                          label={`Editar sobrante de ${item.productName}`}
-                          onClick={() => open("leftover", item)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      ) : undefined
-                    }
-                    meta={`${item.quantity} unidades · ${item.status} · ${locationName(item.locationId)}`}
-                  >
-                    <strong>{item.productName}</strong>
-                    <small>
-                      {editionYear(item.sourceEditionId)}
-                      {item.notes ? ` · ${item.notes}` : ""}
-                    </small>
-                  </CompactListRow>
-                ))}
-              </CompactList>
-            ) : (
-              <p>Aún no hay sobrantes registrados.</p>
-            )}
-          </section>
+              {leftovers.length ? (
+                <CompactList>
+                  {leftovers.map((item) => (
+                    <CompactListRow
+                      key={item.id}
+                      action={
+                        canEdit && !readOnly ? (
+                          <IconButton
+                            label={`Editar sobrante de ${item.productName}`}
+                            onClick={() => open("leftover", item)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        ) : undefined
+                      }
+                      meta={`${formatQuantity(item.quantity)} unidades · ${item.status} · ${locationName(item.locationId)}`}
+                    >
+                      <strong>{item.productName}</strong>
+                      <small>
+                        {editionYear(item.sourceEditionId)}
+                        {item.notes ? ` · ${item.notes}` : ""}
+                      </small>
+                    </CompactListRow>
+                  ))}
+                </CompactList>
+              ) : (
+                <p>Aún no hay sobrantes registrados.</p>
+              )}
+            </section>
+          )}
         </>
       )}
       <InventoryForm
