@@ -772,13 +772,14 @@
 }
 
 .inventoryCards {
+  align-content: start;
   display: grid;
-  flex: 1;
   gap: 8px;
   padding: 9px;
 }
 
 .inventoryCard {
+  align-self: start;
   background: var(--surface-card-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
