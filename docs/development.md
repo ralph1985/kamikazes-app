@@ -22,8 +22,8 @@ pnpm backup:neon
 pnpm backup:neon:cron:install
 ```
 
-El cron se programa cada seis horas, guarda volcados personalizados en
-`var/backups/neon/` y conserva 14 días. La credencial debe estar únicamente en
+El cron se programa una vez al día a las 00:00, guarda volcados personalizados
+en `var/backups/neon/` y conserva 14 días. La credencial debe estar únicamente en
 `~/.config/kamikazes/neon-backup.env`, con `POSTGRES_URL_NON_POOLING` o
 `DATABASE_URL`, y permisos `600`. El log queda en
 `var/log/neon-backup.log`; CronWatch lo incluye en su tabla diaria de backups.
